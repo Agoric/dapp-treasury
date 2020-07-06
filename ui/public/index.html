@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Encouragement</title>
+
+    <link href="index.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="conf/dappConstants.js"></script>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+
+    <div id="instructions">
+      <h2>Do you know you're great?</h2>
+
+      <p>Everybody could use a little encouragement now and then. Click
+      "Encourage Me!" to get a new message. Tips are optional, but
+      requests with tips get a little more encouraging.
+      </p> Note: To give a
+      tip, first select the "for a tip..." item below, then click the
+      "Encourage Me!" button. After selecting to
+      give a tip, your wallet will pop up.  Look under
+      "Transactions" for the proposed offers that are awaiting approval (or
+      rejection). Click on the check mark in a green circle to approve
+      giving a tip, or on the x in a red circle to disapprove.</p>
+    </div>
+
+    <form id="encourageForm" target="" onsubmit="return !!this.target">
+    <p>
+        Request encouragement...
+        <br/>
+        <br/>
+        <label for="forFree"><input type="radio" id="forFree" value="free" checked="checked" name="tipKind" />
+          for free</label><br />
+        <label for="forTip"><input type="radio" id="forTip" value="tip" name="tipKind" />
+          for a tip of
+        <input type="number" min="0" size="6" length="4" id="inputAmount" value="1" disabled="disabled" />
+        <select id="brands" disabled="disabled">
+          <option value="remove()"><i>no issuers</i></option>
+        </select> from <select id="tipPurse" disabled="disabled">
+          <option value="remove()"><i>no purse</i></option>
+        </select>
+          into
+        <select id="intoPurse" disabled="disabled">
+          <option value=""><i>no purse</i></option>
+        </select></label>
+      </p>
+
+      <input type="submit" value="Encourage Me!" id="encourageMe" disabled="disabled" />
+
+      <p><i>I've encouraged <span id="numEncouragements">0</span> times since I was born.</i></p>
+    </form>
+ 
+    <hr />
+    <div class="horizontal">
+      <div class="status">
+        Agoric wallet: <span id="wallet-status">Unknown</span>
+      </div>
+      <div class="status">
+        API server: <span id="api-status">Unknown</span>
+      </div>
+    </div>
+    <div class="vertical">
+      <div>
+        <label for="debug"><input type="checkbox" id="debug" /> Debug mode</label>
+      </div>
+      <div id="messages" class="messages"></div>
+    </div>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
