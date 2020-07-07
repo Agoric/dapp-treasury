@@ -1,87 +1,66 @@
-// @ts-check
 import harden from '@agoric/harden';
-import { E } from '@agoric/eventual-send';
 
-export default harden(({ publicAPI, http }, _inviteMaker) => {
-  let notifier;
+export default harden(({ registry, publicAPI }, _inviteMaker) => {
+   
+  const cacheOfPromiseForValue = new Map();
+  const getFromRegistry = registryKey => {
+    let valueP = cacheOfPromiseForValue.get(registryKey);
+    if (!valueP) {
+      // Cache miss, so try the registry.
+      valueP = E(registry).get(registryKey);
+      cacheOfPromiseForValue.set(registryKey, valueP);
+    }
+    return valueP;
+  }
 
-  // Here's how you could implement a notification-based
-  // publish/subscribe.
-  const subChannelHandles = new Set();
-
-  const sendToSubscribers = obj => {
-    E(http).send(obj, [...subChannelHandles.keys()])
-      .catch(e => console.error('cannot send', e));
+  // returns a promise
+  const hydrateBrand = dehydratedBrand => getFromRegistry(dehydratedBrand);
+  
+  // returns a promise
+  const hydrateAmount = dehydratedAmount => {
+    return hydrateBrand(dehydratedAmount.brand).then(brand => {
+      return {
+        brand,
+        extent: dehydratedAmount.extent,
+      };
+    })
   };
-
-  const fail = e => {
-    const obj = {
-      type: 'encouragement/encouragedError',
-      data: (e && e.message) || e
-    };
-    sendToSubscribers(obj);
-  };
-
-  const doOneNotification = updateResponse => {
-    // Publish to our subscribers.
-    const obj = {
-      type: 'encouragement/encouragedResponse',
-      data: updateResponse.value,
-    };
-    sendToSubscribers(obj);
-
-    // Wait until the next notification resolves.
-    E(notifier)
-      .getUpdateSince(updateResponse.updateHandle)
-      .then(doOneNotification, fail);
-  };
-
-  notifier = E(publicAPI).getNotifier();
-  E(notifier)
-    .getUpdateSince()
-    .then(doOneNotification, fail);
 
   return harden({
     getCommandHandler() {
-      const handler = {
+      return harden({
         onError(obj, _meta) {
           console.error('Have error', obj);
         },
+        onOpen: (_obj, _meta) => {},
+        onClose: (_obj, _meta) => {},
+        async onMessage(obj, _meta) {
+          const { type, data } = obj;
+          switch (type) {
+            case 'autoswapGetCurrentPrice': {
+              const { 
+                amountIn: dehydratedAmountIn,
+                brandOut: dehydratedBrandOut
+              } = data;
 
-        // The following is to manage the subscribers map.
-        onOpen(_obj, { channelHandle }) {
-          subChannelHandles.add(channelHandle);
-        },
-        onClose(_obj, { channelHandle }) {
-          subChannelHandles.delete(channelHandle);
-        },
+              // A dehydrated amount has the form: { brand:
+              // brandRegKey, extent }
 
-        async onMessage(obj, { channelHandle }) {
-          // These are messages we receive from either POST or WebSocket.
-          switch (obj.type) {
-            case 'encouragement/getEncouragement': {
-              
-              return harden({
-                type: 'encouragement/getEncouragementResponse',
-                instanceRegKey: undefined,
-                data: await E(publicAPI).getFreeEncouragement(),
-              });
+              // dehydratedBrandOut is a brandRegKey
+              const [amountIn, brandOut] = await Promise.all([
+                hydrateAmount(dehydratedAmountIn), 
+                hydrateBrand(dehydratedBrandOut)
+              ]);
+              const { extent } = await E(publicAPI).getCurrentPrice(amountIn, brandOut);
+              return { type: 'autoswapGetCurrentPriceResponse', data: extent };
             }
 
-            case 'encouragement/subscribeNotifications': {
-              
-              return harden({
-                type: 'encouragement/subscribeNotificationsResponse',
-                data: true,
-              });
+            default: {
+              return false;
             }
-
-            default:
-              return undefined;
           }
         },
-      };
-      return harden(handler);
+      });
     },
   });
 });

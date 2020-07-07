@@ -1,7 +1,7 @@
 {
-  "name": "dapp-token-economy-agservers",
+  "name": "@agoric/dapp-simple-exchange-agservers",
   "version": "0.0.1",
-  "description": "Agoric server instances for dapp-encouragement",
+  "description": "Agoric server instances for dapp-autoswap",
   "private": true,
   "scripts": {
     "build": "exit 0",

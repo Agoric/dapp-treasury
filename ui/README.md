@@ -1,12 +1,12 @@
-# Encouragement Demo
+# Autoswap Demo
 
-## Running the Dapp frontend
+## Running the demo
 
 From the project directory, run:
 
 ```bash
-yarn
-yarn start
+npm install
+npm start
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.

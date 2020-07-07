@@ -2,72 +2,45 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Encouragement</title>
+    <meta name="theme-color" content="#000000" />
+    <!--
+      manifest.json provides metadata used when your web app is installed on a
+      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
+    -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <!--
+      Notice the use of %PUBLIC_URL% in the tags above.
+      It will be replaced with the URL of the `public` folder during the build.
+      Only files inside the `public` folder can be referenced from the HTML.
 
-    <link href="index.css" rel="stylesheet" type="text/css" />
-    <script type="text/javascript" src="conf/dappConstants.js"></script>
+      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+      work correctly both with client-side routing and a non-root public URL.
+      Learn how to configure a non-root public URL by running `npm run build`.
+    -->
+
+    <!-- 
+      Add the Roboto font required by Material UI. 
+    -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+
+    <title>AutoSwap Exchange</title>
+
+    <script type="text/javascript" src="%PUBLIC_URL%/dappConstants.js"></script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <!--
+      This HTML file is a template.
+      If you open it directly in the browser, you will see an empty page.
 
-    <div id="instructions">
-      <h2>Do you know you're great?</h2>
+      You can add webfonts, meta tags, or analytics to this file.
+      The build step will place the bundled scripts into the <body> tag.
 
-      <p>Everybody could use a little encouragement now and then. Click
-      "Encourage Me!" to get a new message. Tips are optional, but
-      requests with tips get a little more encouraging.
-      </p> Note: To give a
-      tip, first select the "for a tip..." item below, then click the
-      "Encourage Me!" button. After selecting to
-      give a tip, your wallet will pop up.  Look under
-      "Transactions" for the proposed offers that are awaiting approval (or
-      rejection). Click on the check mark in a green circle to approve
-      giving a tip, or on the x in a red circle to disapprove.</p>
-    </div>
-
-    <form id="encourageForm" target="" onsubmit="return !!this.target">
-    <p>
-        Request encouragement...
-        <br/>
-        <br/>
-        <label for="forFree"><input type="radio" id="forFree" value="free" checked="checked" name="tipKind" />
-          for free</label><br />
-        <label for="forTip"><input type="radio" id="forTip" value="tip" name="tipKind" />
-          for a tip of
-        <input type="number" min="0" size="6" length="4" id="inputAmount" value="1" disabled="disabled" />
-        <select id="brands" disabled="disabled">
-          <option value="remove()"><i>no issuers</i></option>
-        </select> from <select id="tipPurse" disabled="disabled">
-          <option value="remove()"><i>no purse</i></option>
-        </select>
-          into
-        <select id="intoPurse" disabled="disabled">
-          <option value=""><i>no purse</i></option>
-        </select></label>
-      </p>
-
-      <input type="submit" value="Encourage Me!" id="encourageMe" disabled="disabled" />
-
-      <p><i>I've encouraged <span id="numEncouragements">0</span> times since I was born.</i></p>
-    </form>
- 
-    <hr />
-    <div class="horizontal">
-      <div class="status">
-        Agoric wallet: <span id="wallet-status">Unknown</span>
-      </div>
-      <div class="status">
-        API server: <span id="api-status">Unknown</span>
-      </div>
-    </div>
-    <div class="vertical">
-      <div>
-        <label for="debug"><input type="checkbox" id="debug" /> Debug mode</label>
-      </div>
-      <div id="messages" class="messages"></div>
-    </div>
-
-    <script type="module" src="src/main.js"></script>
+      To begin the development, run `npm start` or `yarn start`.
+      To create a production bundle, use `npm run build` or `yarn build`.
+    -->
   </body>
 </html>
