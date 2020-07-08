@@ -49,7 +49,7 @@ export function makeVaultManager(zcf, autoswap, sconeStuff) {
       } = zcf.getOffer(offerHandle);
 
       // this offer will hold the collateral until the loan is retired
-      const o = await makeEmptyOffer();
+      const collateralHolderOffer = await makeEmptyOffer();
       // AWAIT SORRY MARKM
 
       const stalePrice = await E(autoswap).getCurrentPrice();
@@ -67,13 +67,13 @@ export function makeVaultManager(zcf, autoswap, sconeStuff) {
         amount: sconesWanted,
         payment: sconeMint.mintPayment(sconesWanted),
         keyword: 'Scones',
-        recipientHandle: o,
+        recipientHandle: collateralHolderOffer,
       });
       // AWAIT
 
       trade(
         {
-          offerHandle: o,
+          offerHandle: collateralHolderOffer,
           gains: { Collateral: collateralAmount },
         },
         {
@@ -85,7 +85,7 @@ export function makeVaultManager(zcf, autoswap, sconeStuff) {
       // todo: maybe let them extract the loan later, not right away
 
       const sconeDebt = sconesWanted; // todo +fee
-      const vault = makeVault(zcf, o, sconeDebt, sconeStuff, autoswap);
+      const vault = makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, autoswap);
       allVaults.push(vault);
 
       zcf.complete(offerHandle);

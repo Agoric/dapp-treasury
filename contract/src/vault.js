@@ -2,16 +2,15 @@
 
 import { assert, details, q } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
-import makeAmountMath from '@agoric/ertp/src/amountMath';
 import { makeZoeHelpers } from '@agoric/zoe/src/contractSupport';
 import { burn } from './burn';
 
 // a Vault is an individual loan, using some collateralType as the
 // collateral, and lending Scones to the borrower
 
-export function makeVault(zcf, o, sconeDebt, sconeStuff, autoswap) {
-  // 'o' is the Offer that currently holds the borrower's collateral (zoe
-  // owns the tokens for the benefit of this Offer)
+export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, autoswap) {
+  // 'collateralHolderOffer' is the Offer that currently holds the borrower's
+  // collateral (zoe owns the tokens for the benefit of this Offer)
   const { mint: sconeMint, issuer: sconeIssuer, amountMath: sconeMath } = sconeStuff;
   const { trade, checkHook } = makeZoeHelpers(zcf);
 
@@ -24,7 +23,7 @@ export function makeVault(zcf, o, sconeDebt, sconeStuff, autoswap) {
     
     trade(
       {
-        offerHandle: o,
+        offerHandle: collateralHolderOffer,
         gains: { Collateral: collateralAmount },
       },
       { offerHandle, gains: {} },
@@ -57,7 +56,7 @@ export function makeVault(zcf, o, sconeDebt, sconeStuff, autoswap) {
 
     trade(
       {
-        offerHandle: o,
+        offerHandle: collateralHolderOffer,
         gains: { Scones: sconeDebt }, // return any overpayment
       },
       { offerHandle,
@@ -66,7 +65,7 @@ export function makeVault(zcf, o, sconeDebt, sconeStuff, autoswap) {
     );
     sconeDebt = sconeMath.getEmpty();
     // burn the scones. first we need zoe to make us a payment
-    await burn(trade, o, { Scones: sconeIssuer }, { Scones: sconeDebt });
+    await burn(trade, collateralHolderOffer, { Scones: sconeIssuer }, { Scones: sconeDebt });
     // AWAIT
 
     zcf.complete(offerHandle);
@@ -93,7 +92,7 @@ export function makeVault(zcf, o, sconeDebt, sconeStuff, autoswap) {
     const remainingDebt = sconeMath.subtract(sconeDebt, acceptedScones);
     const { Collateral: currentCollateral } = zcf.getCurrentAllocation(o);
 
-    const collateralMath = makeAmountMath(currentCollateral.brand, 'nat');
+    const collateralMath = zcf.getAmountMath(currentCollateral.brand);
     // and you'd have this much collateral left:
     const remainingCollateral = collateralMath.subtract(currentCollateral, collateralWanted);
 
@@ -104,7 +103,7 @@ export function makeVault(zcf, o, sconeDebt, sconeStuff, autoswap) {
 
     trade(
       {
-        offerHandle: o,
+        offerHandle: collateralHolderOffer,
         gains: { Scones: acceptedScones }, // return any overpayment
       },
       { offerHandle,
@@ -114,12 +113,12 @@ export function makeVault(zcf, o, sconeDebt, sconeStuff, autoswap) {
     sconeDebt = sconeMath.subtract(sconeDebt, acceptedScones);
     zcf.complete(offerHandle);
 
-    // todo: have a separate offer just for burning, don't use 'o'. burn
-    // offers are short-lived, 'o' is long-lived. 'o' is really
-    // collateralHolderOffer
+    // todo: have a separate offer just for burning, don't use
+    // 'collateralHolderOffero'. burn offers are short-lived,
+    // 'collateralHolderOffer' is long-lived
 
     // burn the scones. first we need zoe to make us a payment
-    await burn(trade, o, { Scones: sconeIssuer }, { Scones: acceptedScones });
+    await burn(trade, collateralHolderOffer, { Scones: sconeIssuer }, { Scones: acceptedScones });
     // AWAIT
 
     // note: the only way to delete the Vault completely is close()
@@ -153,11 +152,11 @@ export function makeVault(zcf, o, sconeDebt, sconeStuff, autoswap) {
     const acceptedScones = sconeMath.make(Math.min(sconesReturned.extent,
                                                    sconeDebt.extent));
 
-    const { Collateral: currentCollateral } = zcf.getCurrentAllocation(o);
+    const { Collateral: currentCollateral } = zcf.getCurrentAllocation(collateralHolderOffer);
 
     trade(
       {
-        offerHandle: o,
+        offerHandle: collateralHolderOffer,
         gains: { Scones: acceptedScones }, // return any overpayment
       },
       { offerHandle,
@@ -168,11 +167,11 @@ export function makeVault(zcf, o, sconeDebt, sconeStuff, autoswap) {
     zcf.complete(offerHandle);
 
     // burn the scones. first we need zoe to make us a payment
-    await burn(trade, o, { Scones: sconeIssuer }, { Scones: acceptedScones });
+    await burn(trade, collateralHolderOffer, { Scones: sconeIssuer }, { Scones: acceptedScones });
     // AWAIT
 
     // todo: close the vault
-    // zcf.complete(o)
+    // zcf.complete(collateralHolderOffer)
 
     return 'your loan is closed, thank you for your business';
   }
