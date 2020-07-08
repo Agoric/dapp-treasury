@@ -3,13 +3,19 @@
 
 import { E } from '@agoric/eventual-send';
 import produceIssuer from '@agoric/ertp';
+import { makeVaultManager } from './vaultManager';
 
-function makeStableCoinMachine(zcf, multiPoolAutoSwapInstallHandle) {
-  const { mint: sconeMint, issuer: sconeIssuer, amountMath: sconeMath } = produceIssuer('scone');
-  const { mint: govMint, issuer: govIssuer, amountMath: govMath } = produceIssuer('governance');
+export function makeStableCoinMachine(zcf, multiPoolAutoSwapInstallHandle) {
+  const sconeStuff = produceIssuer('scone');
+  const { mint: sconeMint, issuer: sconeIssuer, amountMath: sconeMath } = sconeStuff;
+  const govStuff = produceIssuer('governance');
+  const { mint: govMint, issuer: govIssuer, amountMath: govMath } = govStuff;
+
   // TODO sinclair+us: is there a scm/gov token per collateralType (joe says yes), or just one?
   const collateralTypes = Map(); // Issuer -> xxx
 
+  // we assume the multipool-autoswap is public, so folks can buy/sell
+  // through it without our involvement
   const mp = E(zoe).install(multiPoolAutoSwapInstallHandle);
   const mpAPI = xx;
 
@@ -19,6 +25,7 @@ function makeStableCoinMachine(zcf, multiPoolAutoSwapInstallHandle) {
   function makeAddTypeInvite(collateralIssuer, collateralKeyword, rate) {
     assert(!collateralTypes.has(collateralIssuer));
     function addTypeHook(offerHandle) {
+
       const { 
         proposal: {
           give: { Collateral: collateralIn },
@@ -29,7 +36,7 @@ function makeStableCoinMachine(zcf, multiPoolAutoSwapInstallHandle) {
       const newScones = rate * collateralIn.amount;
       const newGov = newScones; // TODO joe
 
-      const vm = create_vault_manager(..);
+      const vm = makeVaultManager(zcf, autoswap, sconeStuff);
 
       
       // first, we create the new governance tokens, satisfy the offer, then

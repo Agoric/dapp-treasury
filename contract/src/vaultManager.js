@@ -2,6 +2,8 @@
 import { assert, details, q } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
 import { makeZoeHelpers } from '@agoric/zoe/contractSupport';
+import { makeVault } from './vault';
+import { makeEmptyOfferWithResult } from './make-empty';
 
 // Each VaultManager manages a single collateralType. It owns an autoswap
 // instance which trades this collateralType against Scones. It also manages
@@ -11,15 +13,13 @@ import { makeZoeHelpers } from '@agoric/zoe/contractSupport';
 // todo: two timers: one to increment fees, second (not really timer) when
 // the autoswap price changes, to check if we need to liquidate
 
-function makeVaultManager(zcf, collateralIssuer, autoswap, sconeMath, sconeMint) {
+export function makeVaultManager(zcf, autoswap, sconeStuff) {
+  const { mint: sconeMint, issuer: sconeIssuer, amountMath: sconeMath } = sconeStuff;
   const {
     trade,
-    rejectOffer,
     makeEmptyOffer,
     checkHook,
-    assertKeywords,
     escrowAndAllocateTo,
-    assertNatMathHelpers,
   } = makeZoeHelpers(zcf);
 
   // todo: sort by price at which we need to liquidate
@@ -86,7 +86,7 @@ function makeVaultManager(zcf, collateralIssuer, autoswap, sconeMath, sconeMint)
       // todo: maybe let them extract the loan later, not right away
 
       const sconeDebt = sconesWanted; // todo +fee
-      const vault = makeVault(o, sconeDebt);
+      const vault = makeVault(zcf, o, sconeDebt, sconeStuff, autoswap);
       allVaults.push(vault);
 
       zcf.complete(offerHandle);
