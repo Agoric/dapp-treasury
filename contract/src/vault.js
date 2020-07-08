@@ -4,6 +4,7 @@ import { assert, details, q } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
 import { makeZoeHelpers } from '@agoric/zoe/src/contractSupport';
 import { burn } from './burn';
+import { makeEmptyOfferWithResult } from './make-empty';
 
 // a Vault is an individual loan, using some collateralType as the
 // collateral, and lending Scones to the borrower
@@ -12,7 +13,8 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
   // 'collateralHolderOffer' is the Offer that currently holds the borrower's
   // collateral (zoe owns the tokens for the benefit of this Offer)
   const { mint: sconeMint, issuer: sconeIssuer, amountMath: sconeMath } = sconeStuff;
-  const { trade, checkHook } = makeZoeHelpers(zcf);
+  const { trade, checkHook, escrowAndAllocateTo } = makeZoeHelpers(zcf);
+  const zoe = zcf.getZoeService();
 
   function addCollateralHook(offerHandle) {
     const {
@@ -20,7 +22,8 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
         give: { Collateral: collateralAmount },
       },
     } = zcf.getOffer(offerHandle);
-    
+    console.log(`-- h2`);
+
     trade(
       {
         offerHandle: collateralHolderOffer,
@@ -35,7 +38,7 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
   function makeAddCollateralInvite() {
     const expected = harden({
       give: { Collateral: null },
-      want: { },
+      want: { Scones: null },
     });
     return zcf.makeInvitation(checkHook(addCollateralHook, expected), 'add collateral');
   }
@@ -182,6 +185,92 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
       want: { Collateral: null },
     });
     return zcf.makeInvitation(checkHook(paybackHook, expected), 'pay off entire loan and close Vault');
+  }
+
+  async function liquidate() {
+    // First, take all the collateral away from collateralHolderOffer, so we
+    // can sell it
+    const { Collateral: currentCollateral } = zcf.getCurrentAllocation(collateralHolderOffer);
+
+    const offer2 = await makeEmptyOfferWithResult();
+    trade(
+      {
+        offerHandle: collateralHolderOffer,
+        gains: { },
+      },
+      {
+        offerHandle: offer2.offerHandle,
+        gains: { Collateral:  currentCollateral },
+      },
+    );
+    const payout2 = await offer2.payout;
+
+    // Then, sell off all their collateral. We really only need enough to
+    // cover 'sconeDebt', but our autoswap API doesn't give us a way to
+    // specify just the output amount yet.
+    const swapInvite = E(autoswap).makeSwapInvite(); // really inviteP, that's ok
+    const saleOffer = harden({
+      give: { Collateral: currentCollateral },
+      want: { Scones: sconeMath.empty() }, // we'll take anything we can get
+    });
+    const { payout: salesPayoutP } = await E(zoe).offer(swapInvite, saleOffer, payout2);
+    const { Scones: sconeProceeds, ...otherProceeds } = await salesPayoutP;
+    // we now claim enough from sconeProceeds to cover the debt (if there's
+    // enough). They get back the rest, as well as any remaining scones.
+
+    const isUnderwater = !sconeMath.isGTE(sconeProceeds, sconeDebt);
+    const underwaterBy = isUnderwater ? sconeMath.subtract(sconeDebt, sconeProceeds) : sconeMath.empty();
+    const sconesToBurn = isUnderwater ? sconeProceeds : sconeDebt;
+    const [sconePaymentToBurn, sconePaymentToRefund] = await E(sconeIssuer).split(sconeProceeds, sconesToBurn);
+
+    // refund any remaining scones, plus anything else leftover from the sale
+    // (perhaps some collateral, who knows maybe autoswap threw in a free
+    // toaster)
+    const refund = { Scones: sconePaymentToRefund, ...otherProceeds };
+    for (const keyword of refund.keys()) {
+      const payment = refund[keyword];
+      const allegedBrand = await E(payment).getAllegedBrand();
+      const issuer = zcf.getIssuerForBrand(allegedBrand); // TODO: requires a zoe addition
+      const amount = await E(issuer).getAmountOf(payment);
+      await escrowAndAllocateTo({
+        amount,
+        payment: refund[keyword],
+        keyword,
+        recipientHandle: collateralHolderOffer,
+p      });
+    }
+
+    if (isUnderwater) {
+      console.log(`underwater by`, underwaterBy);
+      // todo: fall back to next recovery layer
+      // moreSconesToBurn = getSconesFromFallbackLayers(underwaterBy);
+    }
+
+    // finally burn
+    await E(sconeIssuer).burn(sconesToBurn);
+    // await E(sconeIssuer).burn(moreSconesToBurn);
+
+  }
+
+
+  // Call this each time the price changes, and after some other operations.
+  // If the collateral no longer has sufficient value to meet the margin
+  // requirement, this will sell off all the collateral, deduct the scones
+  // they still owe, and return the remaining scones.
+  async function checkMargin() {
+    let liquidate = false;
+    // get current price
+
+    // compute how much debt is supported by the current collateral at that price
+
+    // compute how much is unsupported
+
+    // compute how much collateral must be forefeit to buy that much Scone
+
+    if (liquidate) {
+      liquidate();
+    }
+    // 
   }
 
   const vault = harden({

@@ -15,19 +15,31 @@ tap.test('first', async t => {
   const { invite: adminInvite, instanceRecord } = await E(zoe).makeInstance(installationHandle);
   const r = await E(zoe).offer(adminInvite);
   //console.log(`r is `, r);
-  const outcome  = await r.outcome;
-  //console.log(`outcome.vault is`, outcome.vault);
+
+  // Our wrapper gives us a Vault which has lent out 10 Scones, which uses an
+  // autoswap that presents a fixed price of 4 Scones per Collateral.
+
   const { vault,
           sconeStuff: { amountMath: sconeMath },
           collateralStuff: { mint: cMint,
                              amountMath: cMath,
-                           }, } = outcome;
+                           },
+        } = await r.outcome;
   //await E(outcome).go();
+
+  // Add more collateral to an existing loan. We get nothing back but a warm
+  // fuzzy feeling.
+
   const addInvite = vault.makeAddCollateralInvite();
   console.log(`addI`, addInvite);
-  E(zoe).offer(addInvite, harden({ give: { Collateral: cMint.mintPayment(cMath.make(10)) },
-                            want: { Scones: sconeMath.make(2) },
-                            }));
+  const collateralAmount = cMath.make(10);
+  await E(zoe).offer(addInvite,
+                     harden({ give: { Collateral: collateralAmount },
+                              want: { }, //Scones: sconeMath.make(2) },
+                            }),
+                     harden({
+                       Collateral: cMint.mintPayment(collateralAmount),
+                     }));
 
   t.equal(1, 1, 'yes');
   t.end();

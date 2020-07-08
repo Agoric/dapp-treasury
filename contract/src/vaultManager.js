@@ -3,6 +3,7 @@ import { assert, details, q } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
 import { makeZoeHelpers } from '@agoric/zoe/contractSupport';
 import { makeVault } from './vault';
+import { makeEmptyOfferWithResult } from './make-empty';
 
 // Each VaultManager manages a single collateralType. It owns an autoswap
 // instance which trades this collateralType against Scones. It also manages
@@ -48,9 +49,15 @@ export function makeVaultManager(zcf, autoswap, sconeStuff) {
         },
       } = zcf.getOffer(offerHandle);
 
-      // this offer will hold the collateral until the loan is retired
-      const collateralHolderOffer = await makeEmptyOffer();
+      // this offer will hold the collateral until the loan is retired. The
+      // payout from it will be handed to the user: if the vault dies early
+      // (because the StableCoinMachine vat died), they'll get all their
+      // collateral back.
+      const r = await makeEmptyOfferWithResult();
       // AWAIT SORRY MARKM
+      const collateralHolderOffer = await r.offerHandle;
+      // AWAIT
+      const collateralPayoutP = r.payout;
 
       const stalePrice = await E(autoswap).getCurrentPrice();
       // AWAIT
@@ -62,6 +69,10 @@ export function makeVaultManager(zcf, autoswap, sconeStuff) {
       // much must be paid back
 
       // todo trigger process() check right away, in case the price dropped while we ran
+
+      // todo (from dean) use a different offer for newly minted stablecoins,
+      // to prevent something something that lets them get back both their
+      // collateral and the new coins
 
       await escrowAndAllocateTo({
         amount: sconesWanted,
@@ -89,7 +100,13 @@ export function makeVaultManager(zcf, autoswap, sconeStuff) {
       allVaults.push(vault);
 
       zcf.complete(offerHandle);
-      return harden(vault.userFacet);
+
+      // todo: nicer to return single objects, find a better way to give them
+      // the payout object
+      return harden({
+        userFacet: vault.userFacet,
+        liquidationPayout: collateralPayoutP,
+      });
     }
 
     const iv = checkHook(makeLoanHook, expected);

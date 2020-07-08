@@ -26,7 +26,7 @@ export async function burn(zcf, fromOffer, issuers, what) {
   // todo: some .map and Promise.all() to appease eslint
   for (const name of what.keys()) {
     // todo: when #1270 is done, use it to ask zcf.getIssuer(payment~.getAllegedBrand())
-    await E(issuers[name]).burn(payoutRecord[name], what[name]);
+    await E(issuers[name]).burn(payoutRecord[name]);
     // AWAIT
   }
 }
