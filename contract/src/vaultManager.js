@@ -26,6 +26,36 @@ export function makeVaultManager(zcf, autoswap, sconeStuff) {
   const allVaults = [];
 
 
+  // the SCM can call invest. This will mint Scones and buy liquidity tokens
+  // from the pool
+  function invest(collateralTokens) // -> Ownership Tokens
+  {
+    // we hold the liquidity tokens as an asset, and have the ownership
+    // tokens as a liability
+
+    // option 1: add only the collateralTokens to the autoswap's liquidity
+    // pool, hold
+
+    // option 2: get the current price from the autoswap, mint a matching
+    // number of Scones for the collateral, add both (collateral+scones) into
+    // the autoswap pool, hold the resulting liquidity tokens. When we redeem
+    // the liquidity tokens, burn those scones.
+
+
+    // ltokens = autoswap.addLiquidity(collateralTokens)
+    // otokens = ownershipMint.mintPayment(count)
+    // return otokens
+
+    // this VM can choose to invest in other VMs, getting back ownership
+    // shares in those VMs
+  }
+
+  function sellOwnershipTokens(ownershipTokens) // -> collateralTokens
+  {}
+
+
+  // end users can the SCM for loans with some collateral, and the SCM asks
+  // us to make a new Vault
 
   function makeLoanInvite() {
     const expected = harden({
@@ -113,7 +143,15 @@ export function makeVaultManager(zcf, autoswap, sconeStuff) {
     return zcf.makeInvitation(iv, 'make a loan');
   }
 
-  
 
+  // Called by the vault when liquidation is insufficient. We're expected to
+  // come up with 'underwaterBy' Scones.
+  function helpLiquidateFallback(underwaterBy) {
+  }
+
+
+  return harden({
+    makeLoanInvite,
+  });
 
 }

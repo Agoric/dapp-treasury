@@ -19,6 +19,8 @@ export function makeStableCoinMachine(zcf, multiPoolAutoSwapInstallHandle) {
   const mp = E(zoe).install(multiPoolAutoSwapInstallHandle);
   const mpAPI = xx;
 
+
+
   // We process only one offer per collateralType. They must tell us the
   // dollar value of their collateral, and we create that make Scones.
   // collateralKeyword = 'aEth'
@@ -77,6 +79,22 @@ export function makeStableCoinMachine(zcf, multiPoolAutoSwapInstallHandle) {
     assert(collateralTypes.has(collateralIn.ISSUER));
     
   }
+
+  // this overarching SCM holds ownershipTokens in the individual per-type
+  // vaultManagers
+
+  // one exposed (but closely held) method is to add a brand new collateral
+  // type. This gets to specify the initial exchange rate
+  // function invest_new(collateral, price) -> govTokens
+
+  // a second closely held method is to add a collateral type for which there
+  // was an existing pool. We ask the pool for the current price, and then
+  // call x_new(). The price will be stale, but it's the same kind of stale
+  // as addLiquidity
+  //function invest_existing(collateral) -> govTokens
+
+  // govTokens entitle you to distributions, but you can't redeem them
+  // outright, that would drain the utility form the economy
 
 }
 
