@@ -99,7 +99,7 @@ export function makeVaultManager(zcf, autoswap, sconeStuff) {
       const vault = makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, autoswap);
       allVaults.push(vault);
 
-      zcf.complete(offerHandle);
+      zcf.complete([offerHandle]);
 
       // todo: nicer to return single objects, find a better way to give them
       // the payout object

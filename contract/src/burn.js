@@ -19,7 +19,7 @@ export async function burn(zcf, fromOffer, issuers, what) {
     { offerHandle: burnOffer, gains: what },
     { offerHandle: fromOffer, gains: {} },
   );
-  zcf.complete(burnOffer);
+  zcf.complete([burnOffer]);
   const payoutRecord = await resultRecord.payout;
   // AWAIT
 

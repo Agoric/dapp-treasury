@@ -17,6 +17,7 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
   const zoe = zcf.getZoeService();
 
   function addCollateralHook(offerHandle) {
+    console.log(`-- h1`);
     const {
       proposal: {
         give: { Collateral: collateralAmount },
@@ -31,14 +32,16 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
       },
       { offerHandle, gains: {} },
     );
-    zcf.complete(offerHandle);
+    console.log(`-- h3`);
+    zcf.complete([offerHandle]);
+    console.log(`-- h4`);
     return 'a warm fuzzy feeling that you are further away from default than ever before';
   }
 
   function makeAddCollateralInvite() {
     const expected = harden({
       give: { Collateral: null },
-      want: { Scones: null },
+      want: { },
     });
     return zcf.makeInvitation(checkHook(addCollateralHook, expected), 'add collateral');
   }
@@ -71,7 +74,7 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
     await burn(trade, collateralHolderOffer, { Scones: sconeIssuer }, { Scones: sconeDebt });
     // AWAIT
 
-    zcf.complete(offerHandle);
+    zcf.complete([offerHandle]);
 
     return 'thank you for your business';
   }
@@ -114,7 +117,7 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
       },
     );
     sconeDebt = sconeMath.subtract(sconeDebt, acceptedScones);
-    zcf.complete(offerHandle);
+    zcf.complete([offerHandle]);
 
     // todo: have a separate offer just for burning, don't use
     // 'collateralHolderOffero'. burn offers are short-lived,
@@ -167,14 +170,14 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
       },
     );
     sconeDebt = sconeMath.getEmpty();
-    zcf.complete(offerHandle);
+    zcf.complete([offerHandle]);
 
     // burn the scones. first we need zoe to make us a payment
     await burn(trade, collateralHolderOffer, { Scones: sconeIssuer }, { Scones: acceptedScones });
     // AWAIT
 
     // todo: close the vault
-    // zcf.complete(collateralHolderOffer)
+    // zcf.complete([collateralHolderOffer])
 
     return 'your loan is closed, thank you for your business';
   }
@@ -237,7 +240,7 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
         payment: refund[keyword],
         keyword,
         recipientHandle: collateralHolderOffer,
-p      });
+      });
     }
 
     if (isUnderwater) {

@@ -16,8 +16,9 @@ tap.test('first', async t => {
   const r = await E(zoe).offer(adminInvite);
   //console.log(`r is `, r);
 
-  // Our wrapper gives us a Vault which has lent out 10 Scones, which uses an
-  // autoswap that presents a fixed price of 4 Scones per Collateral.
+  // Our wrapper gives us a Vault which holds 5 Collateral, has lent out 10
+  // Scones, which uses an autoswap that presents a fixed price of 4 Scones
+  // per Collateral.
 
   const { vault,
           sconeStuff: { amountMath: sconeMath },
@@ -32,7 +33,7 @@ tap.test('first', async t => {
 
   const addInvite = vault.makeAddCollateralInvite();
   console.log(`addI`, addInvite);
-  const collateralAmount = cMath.make(10);
+  const collateralAmount = cMath.make(2);
   await E(zoe).offer(addInvite,
                      harden({ give: { Collateral: collateralAmount },
                               want: { }, //Scones: sconeMath.make(2) },
