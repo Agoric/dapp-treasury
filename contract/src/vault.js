@@ -35,13 +35,14 @@ async function burn(zcf, fromOffer, issuers, what) {
 
   // todo: some .map and Promise.all() to appease eslint
   for (const name of what.keys()) {
+    // todo: when #1270 is done, use it to ask zcf.getIssuer(payment~.getAllegedBrand())
     await E(issuers[name]).burn(payoutRecord[name], what[name]);
     // AWAIT
   }
 }
 
 
-function makeVault(zcf, o, sconeDebt, sconeMath, sconeIssuer) {
+function makeVault(zcf, o, sconeDebt, sconeMath, sconeIssuer, collateralMath, autoswap) {
   // 'o' is the Offer that currently holds the borrower's collateral (zoe
   // owns the tokens for the benefit of this Offer)
   const {
@@ -149,23 +150,34 @@ function makeVault(zcf, o, sconeDebt, sconeMath, sconeIssuer) {
         gains: { Collateral: collateralWanted },
       },
     );
-    sconeDebt = sconeMath.getEmpty();
+    sconeDebt = sconeMath.subtract(sconeDebt, acceptedScones);
     // burn the scones. first we need zoe to make us a payment
     await burn(trade, o, { Scones: sconeIssuer }, { Scones: acceptedScones });
     // AWAIT
 
-    zcf.complete(offerHandle);
-
-    // todo: if sconeDebt == 0, close the Vault
-    return 'thank you for your business';
+    if (sconeMath.isEmpty(sconeDebt)) {
+      zcf.complete(offerHandle);
+      // todo: close the Vault
+      return 'your loan is closed, thank you for your business';
+    }
+    return 'thank you for your payment';
   }
 
-  function makePaybackHook() {
+  function makePaybackInvite() {
     const expected = harden({
       give: { Scones: null },
       want: { Collateral: null },
     });
-    return zcf.makeInvitation(checkHook(makePaybackHook, expected));
+    return zcf.makeInvitation(checkHook(paybackHook, expected));
   }
 
+  // payback could be split into:
+  // * returnScones: reduces sconeDebt
+  // * withdrawSomeCollateral: do margin check, remove collateral
+  // * close: do margin check, remove all collateral, close Vault
+  //
+  // the downside is that a buggy vault contract could accept returnScones()
+  // but break before withdrawSomeCollateral() finishes
+
+  // consider payback() and close()
 }
