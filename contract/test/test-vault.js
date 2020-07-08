@@ -5,6 +5,7 @@ import { E } from '@agoric/eventual-send';
 import { makeZoe } from '@agoric/zoe';
 import bundleSource from '@agoric/bundle-source';
 
+import produceIssuer from '@agoric/ertp';
 import { makeVault } from '../src/vault';
 
 tap.test('first', async t => {
@@ -36,7 +37,6 @@ tap.test('first', async t => {
   // fuzzy feeling.
 
   const addInvite = vault.makeAddCollateralInvite();
-  console.log(`addI`, addInvite);
   const collateralAmount = cMath.make(2);
   await E(zoe).offer(addInvite,
                      harden({ give: { Collateral: collateralAmount },
@@ -48,7 +48,29 @@ tap.test('first', async t => {
 
   t.ok(cMath.isEqual(vault.getCollateralAmount(), cMath.make(7)),
        'vault holds 7 Collateral');
-  
+
+  // adding the wrong kind of collateral should be rejected
+  const wrong = produceIssuer('wrong');
+
+  const wrongAmount = wrong.amountMath.make(2);
+  const p = E(zoe).offer(vault.makeAddCollateralInvite(),
+                         harden({ give: { Collateral: collateralAmount },
+                                  want: { },
+                                }),
+                         harden({
+                           Collateral: wrong.mint.mintPayment(wrongAmount),
+                         }));
+  try {
+    await p;
+    t.fail('not rejected when it should have been');
+  } catch(e) {
+    console.log(`yup, it was rejected`);
+    t.ok(true, 'yay rejection');
+  }
+  //p.then(_ => console.log('oops passed'),
+  //       rej => console.log('reg', rej));
+  //t.rejects(p, / /, 'addCollateral requires the right kind', {});
+  //t.throws(async () => { await p; }, /payment not found for/);
 
   t.end();
 });

@@ -17,13 +17,11 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
   const zoe = zcf.getZoeService();
 
   function addCollateralHook(offerHandle) {
-    console.log(`-- h1`);
     const {
       proposal: {
         give: { Collateral: collateralAmount },
       },
     } = zcf.getOffer(offerHandle);
-    console.log(`-- h2`);
 
     trade(
       {
@@ -32,9 +30,7 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
       },
       { offerHandle, gains: {} },
     );
-    console.log(`-- h3`);
     zcf.complete([offerHandle]);
-    console.log(`-- h4`);
     return 'a warm fuzzy feeling that you are further away from default than ever before';
   }
 
