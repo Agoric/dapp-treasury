@@ -3,7 +3,6 @@ import { assert, details, q } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
 import { makeZoeHelpers } from '@agoric/zoe/contractSupport';
 import { makeVault } from './vault';
-import { makeEmptyOfferWithResult } from './make-empty';
 
 // Each VaultManager manages a single collateralType. It owns an autoswap
 // instance which trades this collateralType against Scones. It also manages

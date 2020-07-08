@@ -3,7 +3,7 @@
 import { assert, details, q } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
 import makeAmountMath from '@agoric/ertp/src/amountMath';
-import { makeZoeHelpers } from '@agoric/zoe/contractSupport';
+import { makeZoeHelpers } from '@agoric/zoe/src/contractSupport';
 import { burn } from './burn';
 
 // a Vault is an individual loan, using some collateralType as the
@@ -38,7 +38,7 @@ export function makeVault(zcf, o, sconeDebt, sconeStuff, autoswap) {
       give: { Collateral: null },
       want: { },
     });
-    return zcf.makeInvitation(checkHook(addCollateralHook, expected));
+    return zcf.makeInvitation(checkHook(addCollateralHook, expected), 'add collateral');
   }
 
   /*
@@ -126,12 +126,12 @@ export function makeVault(zcf, o, sconeDebt, sconeStuff, autoswap) {
     return 'thank you for your payment';
   }
 
-  function makeCloseInvite() {
+  function makePaybackInvite() {
     const expected = harden({
       give: { Scones: null },
       want: { Collateral: null },
     });
-    return zcf.makeInvitation(checkHook(paybackHook, expected));
+    return zcf.makeInvitation(checkHook(paybackHook, expected), 'pay back partially');
   }
 
 
@@ -177,13 +177,23 @@ export function makeVault(zcf, o, sconeDebt, sconeStuff, autoswap) {
     return 'your loan is closed, thank you for your business';
   }
 
-  function makePaybackInvite() {
+  function makeCloseInvite() {
     const expected = harden({
       give: { Scones: null },
       want: { Collateral: null },
     });
-    return zcf.makeInvitation(checkHook(paybackHook, expected));
+    return zcf.makeInvitation(checkHook(paybackHook, expected), 'pay off entire loan and close Vault');
   }
+
+  const vault = harden({
+    makeAddCollateralInvite,
+    makePaybackInvite,
+    makeCloseInvite,
+  });
+
+  return vault;
+}
+
 
 
   // payback could be split into:
@@ -195,4 +205,3 @@ export function makeVault(zcf, o, sconeDebt, sconeStuff, autoswap) {
   // but break before withdrawSomeCollateral() finishes
 
   // consider payback() and close()
-}

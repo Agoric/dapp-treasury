@@ -1,16 +1,16 @@
 import { assert, details, q } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
-import { makeZoeHelpers } from '@agoric/zoe/contractSupport';
+import { makeZoeHelpers } from '@agoric/zoe/src/contractSupport';
 import { makeEmptyOfferWithResult } from './make-empty';
 
 // burn(zcf, o, { Scones: sconeIssuer }, { Scones: sconeMath.make(4) })
-async function burn(zcf, fromOffer, issuers, what) {
+export async function burn(zcf, fromOffer, issuers, what) {
   for (const name of what.keys()) {
     assert(issuers[what], details`missing issuers[${what}]`);
   }
 
   const { trade, makeEmptyOffer } = makeZoeHelpers(zcf);
-  const resultRecord = await makeEmptyOfferWithResult();
+  const resultRecord = await makeEmptyOfferWithResult(zcf);
   // AWAIT
   const burnOffer = await resultRecord.offerHandle;
   // AWAIT
