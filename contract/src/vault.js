@@ -56,7 +56,7 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
       },
     } = zcf.getOffer(offerHandle);
 
-    const { Collateral: haveCollateral } = zcf.getCurrentAllocation(o);
+    const { Collateral: haveCollateral } = zcf.getCurrentAllocation(collateralHolderOffer);
 
     assert(sconeMath.isGTE(sconesReturned, sconeDebt));
 
@@ -96,7 +96,7 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
                                                    sconeDebt.extent));
     // if we accept your scones, this is how much you'd still owe
     const remainingDebt = sconeMath.subtract(sconeDebt, acceptedScones);
-    const { Collateral: currentCollateral } = zcf.getCurrentAllocation(o);
+    const { Collateral: currentCollateral } = zcf.getCurrentAllocation(collateralHolderOffer);
 
     const collateralMath = zcf.getAmountMath(currentCollateral.brand);
     // and you'd have this much collateral left:
@@ -276,10 +276,22 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
     // 
   }
 
+  function getCollateralAmount() {
+    const { Collateral: collateralAmount } = zcf.getCurrentAllocation(collateralHolderOffer);
+    return collateralAmount;
+  }
+
+  function getDebtAmount() {
+    return sconeDebt;
+  }
+
   const vault = harden({
     makeAddCollateralInvite,
     makePaybackInvite,
     makeCloseInvite,
+
+    getCollateralAmount,
+    getDebtAmount,
   });
 
   return vault;

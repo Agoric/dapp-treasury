@@ -27,6 +27,10 @@ tap.test('first', async t => {
                            },
         } = await r.outcome;
   //await E(outcome).go();
+  t.ok(cMath.isEqual(vault.getCollateralAmount(), cMath.make(5)),
+       'vault holds 5 Collateral');
+  t.ok(sconeMath.isEqual(vault.getDebtAmount(), sconeMath.make(10)),
+       'vault lent 10 Scones');
 
   // Add more collateral to an existing loan. We get nothing back but a warm
   // fuzzy feeling.
@@ -42,6 +46,9 @@ tap.test('first', async t => {
                        Collateral: cMint.mintPayment(collateralAmount),
                      }));
 
-  t.equal(1, 1, 'yes');
+  t.ok(cMath.isEqual(vault.getCollateralAmount(), cMath.make(7)),
+       'vault holds 7 Collateral');
+  
+
   t.end();
 });
