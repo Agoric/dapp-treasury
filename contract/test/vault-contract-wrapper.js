@@ -3,26 +3,26 @@
 import produceIssuer from '@agoric/ertp';
 import { makeZoeHelpers } from '@agoric/zoe/src/contractSupport';
 import { makeVault } from '../src/vault';
-import { makeEmptyOfferWithResult } from '../src/make-empty';
+import { makeEmptyOfferWithResult as makeEmptyOfferWithResult } from '../src/make-empty';
 
 export async function makeContract(zcf) {
   console.log(`makeContract invoked`);
 
   const { escrowAndAllocateTo } = makeZoeHelpers(zcf);
-  const collateralStuff = produceIssuer('collateral');
-  const { mint: collateralMint, amountMath: collateralMath } = collateralStuff;
+  const collateralKit = produceIssuer('collateral');
+  const { mint: collateralMint, amountMath: collateralMath } = collateralKit;
 
-  const sconeStuff = produceIssuer('scone');
-  const { mint: sconeMint, issuer: sconeIssuer, amountMath: sconeMath } = sconeStuff;
+  const sconeKit = produceIssuer('scone');
+  const { mint: sconeMint, issuer: sconeIssuer, amountMath: sconeMath } = sconeKit;
   const sconeDebt = sconeMath.make(10);
   await zcf.addNewIssuer(sconeIssuer, 'Scones');
-  await zcf.addNewIssuer(collateralStuff.issuer, 'Collateral'); // todo: CollateralETH, etc
+  await zcf.addNewIssuer(collateralKit.issuer, 'Collateral'); // todo: CollateralETH, etc
 
   async function makeHook(offerHandle) {
     console.log(`makeHook invoked`, offerHandle);
     //    const collateralHoldingOffer = (await makeEmptyOfferWithResult(zcf)).offerHandle;
-    const x = await makeEmptyOfferWithResult(zcf);
-    const collateralHoldingOffer = await x.offerHandle;
+    const collateralResult = await makeEmptyOfferWithResult(zcf);
+    const collateralHoldingOffer = await collateralResult.offerHandle;
     console.log(`-- collateralHoldingOffer is`, collateralHoldingOffer);
     const initialCollateralAmount = collateralMath.make(5);
     await escrowAndAllocateTo({
@@ -35,14 +35,18 @@ export async function makeContract(zcf) {
     const autoswap = {
       getCurrentPrice() { return sconeMath.make(4); },
     };
-    const vault = makeVault(zcf, collateralHoldingOffer, sconeDebt, sconeStuff, autoswap);
+    const manager = {
+      getLiquidationMargin() { return 1.2; },
+      getInitialMargin() { return 1.5; }
+    };
+    const vault = makeVault(zcf, manager, collateralHoldingOffer, sconeDebt, sconeKit, autoswap);
 
     zcf.complete([offerHandle]);
 
     return {
       vault,
-      sconeStuff,
-      collateralStuff,
+      sconeKit,
+      collateralKit,
       go() { console.log('go'); },
       add() { vault.makeAddCollateralInvite(); },
     };

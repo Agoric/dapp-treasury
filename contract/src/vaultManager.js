@@ -13,8 +13,8 @@ import { makeEmptyOfferWithResult } from './make-empty';
 // todo: two timers: one to increment fees, second (not really timer) when
 // the autoswap price changes, to check if we need to liquidate
 
-export function makeVaultManager(zcf, autoswap, sconeStuff) {
-  const { mint: sconeMint, issuer: sconeIssuer, amountMath: sconeMath } = sconeStuff;
+export function makeVaultManager(zcf, autoswap, sconeKit) {
+  const { mint: sconeMint, issuer: sconeIssuer, amountMath: sconeMath } = sconeKit;
   const {
     trade,
     makeEmptyOffer,
@@ -57,6 +57,16 @@ export function makeVaultManager(zcf, autoswap, sconeStuff) {
   // end users can the SCM for loans with some collateral, and the SCM asks
   // us to make a new Vault
 
+  // loans must initially have at least 1.5x collateralization
+  const initialMargin = 1.5;
+  // loans below this margin may be liquidated
+  const liquidationMargin = 1.2;
+
+  const innerFacet = harden({
+    getLiquidationMargin() { return liquidationMargin; },
+    getInitialMargin() { return initialMargin; }
+  })
+
   function makeLoanInvite() {
     const expected = harden({
       give: { Collateral: null },
@@ -65,9 +75,7 @@ export function makeVaultManager(zcf, autoswap, sconeStuff) {
 
     async function makeLoanHook(offerHandle) {
       const {
-        //handle,
-        //instanceHandle,
-        //currentAllocation,
+        //handle, instanceHandle, currentAllocation,
         proposal: {
           give: {
             Collateral: collateralAmount,
@@ -83,17 +91,18 @@ export function makeVaultManager(zcf, autoswap, sconeStuff) {
       // payout from it will be handed to the user: if the vault dies early
       // (because the StableCoinMachine vat died), they'll get all their
       // collateral back.
-      const r = await makeEmptyOfferWithResult();
-      // AWAIT SORRY MARKM
-      const collateralHolderOffer = await r.offerHandle;
+      const collP = await makeEmptyOfferWithResult();
+      // AWAIT 
+      const collateralHolderOffer = await collP.offerHandle;
       // AWAIT
-      const collateralPayoutP = r.payout;
+      // get the payout to provide access to the collateral if the 
+      // contract abandons
+      const collateralPayoutP = collP.payout;
 
       const stalePrice = await E(autoswap).getCurrentPrice();
       // AWAIT
 
-      const margin = 1.5;
-      const maxScones = sconeMath.make(stalePrice.extent * collateralAmount.extent / margin); // todo fee
+      const maxScones = sconeMath.make(stalePrice.extent * collateralAmount.extent / initialMargin); // todo fee
       assert(sconeMath.isGTE(maxScones, sconesWanted), 'you ask for too much');
       // todo fee: maybe mint new Scones, send to reward pool, increment how
       // much must be paid back
@@ -123,10 +132,8 @@ export function makeVaultManager(zcf, autoswap, sconeStuff) {
         },
       );
 
-      // todo: maybe let them extract the loan later, not right away
-
       const sconeDebt = sconesWanted; // todo +fee
-      const vault = makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, autoswap);
+      const vault = makeVault(zcf, innerFacet, collateralHolderOffer, sconeDebt, sconeKit, autoswap);
       allVaults.push(vault);
 
       zcf.complete([offerHandle]);
@@ -139,8 +146,8 @@ export function makeVaultManager(zcf, autoswap, sconeStuff) {
       });
     }
 
-    const iv = checkHook(makeLoanHook, expected);
-    return zcf.makeInvitation(iv, 'make a loan');
+    const checkedHook = checkHook(makeLoanHook, expected);
+    return zcf.makeInvitation(checkedHook, 'make a loan');
   }
 
 
@@ -149,9 +156,10 @@ export function makeVaultManager(zcf, autoswap, sconeStuff) {
   function helpLiquidateFallback(underwaterBy) {
   }
 
-
   return harden({
     makeLoanInvite,
+    getLiquidationMargin() { return liquidationMargin; },
+    getInitialMargin() { return initialMargin; }
   });
 
 }

@@ -3,13 +3,10 @@ import { E } from '@agoric/eventual-send';
 import { makeZoeHelpers } from '@agoric/zoe/src/contractSupport';
 import { makeEmptyOfferWithResult } from './make-empty';
 
-// burn(zcf, o, { Scones: sconeIssuer }, { Scones: sconeMath.make(4) })
-export async function burn(zcf, fromOffer, issuers, what) {
-  for (const name of what.keys()) {
-    assert(issuers[what], details`missing issuers[${what}]`);
-  }
-
-  const { trade, makeEmptyOffer } = makeZoeHelpers(zcf);
+// burn(zcf, o, { Scones: sconeMath.make(4) })
+export async function burn(zcf, fromOffer, what) {
+  assert(zcf.isOfferActive(fromOffer), "An active offer is required");
+  const { trade } = makeZoeHelpers(zcf);
   const resultRecord = await makeEmptyOfferWithResult(zcf);
   // AWAIT
   const burnOffer = await resultRecord.offerHandle;
@@ -24,9 +21,10 @@ export async function burn(zcf, fromOffer, issuers, what) {
   // AWAIT
 
   // todo: some .map and Promise.all() to appease eslint
-  for (const name of what.keys()) {
-    // todo: when #1270 is done, use it to ask zcf.getIssuer(payment~.getAllegedBrand())
-    await E(issuers[name]).burn(payoutRecord[name]);
-    // AWAIT
-  }
+  const burns = Object.values(payoutRecord).map(async payment => {
+    const allegedBrand = await E(payment).getAllegedBrand();
+    const issuer = zcf.getIssuerForBrand(allegedBrand); // TODO: requires a zoe addition
+    return E(issuer).burn(payment);
+  })
+  await Promise.all(burns);
 }

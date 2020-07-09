@@ -35,12 +35,9 @@ export function makeStableCoinMachine(zcf, multiPoolAutoSwapInstallHandle) {
         },
       } = zcf.getOffer(offerHandle);
       assert(!collateralTypes.has(collateralIn.ISSUER));
-      const newScones = rate * collateralIn.amount;
+      const newScones = sconeMath.make(rate * collateralIn.extent); //TODO * or /
       const newGov = newScones; // TODO joe
 
-      const vm = makeVaultManager(zcf, autoswap, sconeStuff);
-
-      
       // first, we create the new governance tokens, satisfy the offer, then
       // we get the collateral.
 
@@ -50,16 +47,26 @@ export function makeStableCoinMachine(zcf, multiPoolAutoSwapInstallHandle) {
       // TODO: check for existing pool, use it's price instead of the
       // user-provided 'rate'. Or throw an error if it already exists.
       const autoswap = E(mpAPI).addPool(collateralIn.ISSUER, collateralKeyword);
+      const sconesAmount = sconeMath.make(newScones);
       // mint the new scones
-      const sconesPayment = sconeMint.mintPayment(sconeMath.make(newScones));
+      const sconesPayment = sconeMint.mintPayment(sconesAmount);
+
+      // TODO finish adding liquidity
+      // const swapInvite = E(autoswap).makeAddLiquidityInvite(); // really inviteP, that's ok
+      // const saleOffer = harden({
+      //   give: { CentralToken: sconeAmount, Secondary: collateralIn },
+      //   want: { Liquidity: liquidityAmount },
+      // });
+      // const { payout: salesPayoutP } = await E(zoe).offer(swapInvite, saleOffer, payout2);
+      // const { Scones: sconeProceeds, ...otherProceeds } = await salesPayoutP;
 
       // inject both the collateral and the scones into the new autoswap, to
       // provide the initial liquidity pool
       E(autoswap).something(sconesPayment, ... "magic to extract the collateral from the offer");
 
       // do something with the liquidity we just bought
-
-      
+      const vm = makeVaultManager(zcf, autoswap, sconeStuff);
+      // TODO add vm to table of vault manager      
     }
 
     return zcf.makeInvitation(addTypeHook, 'add a new kind of collateral to the machine');

@@ -9,8 +9,9 @@ import { makeEmptyOfferWithResult } from './make-empty';
 // a Vault is an individual loan, using some collateralType as the
 // collateral, and lending Scones to the borrower
 
-export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, autoswap) {
+export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeStuff, autoswap) {
   let active = true; // liquidation halts all user actions
+  let accumulatedFee = 0;
 
   // 'collateralHolderOffer' is the Offer that currently holds the borrower's
   // collateral (zoe owns the tokens for the benefit of this Offer)
@@ -70,7 +71,7 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
     );
     sconeDebt = sconeMath.getEmpty();
     // burn the scones. first we need zoe to make us a payment
-    await burn(trade, collateralHolderOffer, { Scones: sconeIssuer }, { Scones: sconeDebt });
+    await burn(trade, collateralHolderOffer, { Scones: sconeDebt });
     // AWAIT
 
     zcf.complete([offerHandle]);
@@ -96,16 +97,20 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
                                                    sconeDebt.extent));
     // if we accept your scones, this is how much you'd still owe
     const remainingDebt = sconeMath.subtract(sconeDebt, acceptedScones);
-    const { Collateral: currentCollateral } = zcf.getCurrentAllocation(collateralHolderOffer);
 
+    const { Collateral: currentCollateral } = zcf.getCurrentAllocation(collateralHolderOffer);
     const collateralMath = zcf.getAmountMath(currentCollateral.brand);
     // and you'd have this much collateral left:
     const remainingCollateral = collateralMath.subtract(currentCollateral, collateralWanted);
 
     // that will require at least this much collateral:
-    const margin = 1.5;
-    const maxScones = sconeMath.make(stalePrice.extent * remainingCollateral.extent / margin);
-    assert(sconeMath.isGTE(maxScones, remainingDebt), 'insufficient remaining collateral');
+    const liquidationMargin = manager.getLiquidationMargin();
+    const maxScones = sconeMath.make(stalePrice.extent * remainingCollateral.extent / liquidationMargin);
+    // TODO is there a better policy than:
+    //      don't reject if they are not taking out collateral
+    if (!collateralMath.isEmpty(collateralWanted)) {
+      assert(sconeMath.isGTE(maxScones, remainingDebt), 'insufficient remaining collateral');
+    }
 
     trade(
       {
@@ -120,11 +125,11 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
     zcf.complete([offerHandle]);
 
     // todo: have a separate offer just for burning, don't use
-    // 'collateralHolderOffero'. burn offers are short-lived,
+    // 'collateralHolderOffer'. burn offers are short-lived,
     // 'collateralHolderOffer' is long-lived
 
     // burn the scones. first we need zoe to make us a payment
-    await burn(trade, collateralHolderOffer, { Scones: sconeIssuer }, { Scones: acceptedScones });
+    await burn(zcf, collateralHolderOffer, { Scones: acceptedScones });
     // AWAIT
 
     // note: the only way to delete the Vault completely is close()
@@ -155,7 +160,7 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
     // missed our chance.
 
     // you must pay off the entire remainder
-    assert(sconeMath.isGTE(sconeDebt, sconesReturned));
+    assert(sconeMath.isGTE(sconesReturned, sconeDebt));
     // but if you offer too much, we won't take more than you owe
     const acceptedScones = sconeMath.make(Math.min(sconesReturned.extent,
                                                    sconeDebt.extent));
@@ -175,10 +180,11 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
     zcf.complete([offerHandle]);
 
     // burn the scones. first we need zoe to make us a payment
-    await burn(trade, collateralHolderOffer, { Scones: sconeIssuer }, { Scones: acceptedScones });
+    await burn(trade, collateralHolderOffer, { Scones: acceptedScones });
     // AWAIT
-
+    
     // todo: close the vault
+    active = false;
     // zcf.complete([collateralHolderOffer])
 
     return 'your loan is closed, thank you for your business';
@@ -249,6 +255,8 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
       });
     }
 
+    zcf.complete([collateralHolderOffer]);
+
     if (isUnderwater) {
       console.log(`underwater by`, underwaterBy);
       // todo: fall back to next recovery layer. The vaultManager holds
@@ -262,7 +270,6 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
 
   }
 
-
   // Call this each time the price changes, and after some other operations.
   // If the collateral no longer has sufficient value to meet the margin
   // requirement, this will sell off all the collateral, deduct (and burn)
@@ -273,12 +280,15 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
     // get current price
     const stalePrice = await E(autoswap).getCurrentPrice();
     // AWAIT
+    if (!active) {
+      return;
+    }
 
     const { Collateral: currentCollateral } = zcf.getCurrentAllocation(collateralHolderOffer);
 
     // compute how much debt is supported by the current collateral at that price
-    const margin = 1.5;
-    const maxScones = sconeMath.make(stalePrice.extent * currentCollateral.extent / margin);
+    const liquidationMargin = 1.2;
+    const maxScones = sconeMath.make(stalePrice.extent * currentCollateral.extent / liquidationMargin);
 
     if (!sconeMath.isGTE(maxScones, sconeDebt)) {
       liquidate();
@@ -298,6 +308,11 @@ export function makeVault(zcf, collateralHolderOffer, sconeDebt, sconeStuff, aut
   function getDebtAmount() {
     // todo?: assert(active, 'vault has been liquidated');
     return sconeDebt;
+  }
+
+  // how do I get a floating point number ration here?
+  function getCollateralizationPercent() {
+    return sconeDebt.extent / getCollateralAmount().extent;
   }
 
   const vault = harden({
