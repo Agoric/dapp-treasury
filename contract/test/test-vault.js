@@ -8,8 +8,10 @@ import bundleSource from '@agoric/bundle-source';
 import produceIssuer from '@agoric/ertp';
 import { makeVault } from '../src/vault';
 
-async function setup(zoe) {
-  const contractBundle = await bundleSource(require.resolve('./vault-contract-wrapper.js'));
+const vaultRoot = './vault-contract-wrapper.js';
+
+async function launch(zoe, sourceRoot) {
+  const contractBundle = await bundleSource(require.resolve(sourceRoot));
   const installationHandle = await E(zoe).install(contractBundle);
   const { invite: adminInvite } = await E(zoe).makeInstance(installationHandle);
   return E(zoe).offer(adminInvite);
@@ -17,16 +19,18 @@ async function setup(zoe) {
 
 tap.test('first', async t => {
   const zoe = makeZoe();
-  const offerKit = await setup(zoe);
+  const offerKit = await launch(zoe, vaultRoot);
 
   // Our wrapper gives us a Vault which holds 5 Collateral, has lent out 10
   // Scones, which uses an autoswap that presents a fixed price of 4 Scones
   // per Collateral.
 
   const { vault,
-        sconeKit: { mint: sconeMint, amountMath: sconeMath },
-          collateralKit: {  mint: cMint, issuer: cIssuer, amountMath: cMath },
-        } = await offerKit.outcome;
+      liquidationPayout,
+      liquidate,
+      sconeKit: { mint: sconeMint, amountMath: sconeMath },
+      collateralKit: {  mint: cMint, issuer: cIssuer, amountMath: cMath },
+    } = await offerKit.outcome;
   t.ok(cMath.isEqual(vault.getCollateralAmount(), cMath.make(5)),
        'vault holds 5 Collateral');
   t.ok(sconeMath.isEqual(vault.getDebtAmount(), sconeMath.make(10)),
@@ -79,7 +83,7 @@ tap.test('first', async t => {
 
 tap.test('bad collateral', async t => {
   const zoe = makeZoe();
-  const offerKit = await setup(zoe);
+  const offerKit = await launch(zoe, vaultRoot);
 
   // Our wrapper gives us a Vault which holds 5 Collateral, has lent out 10
   // Scones, which uses an autoswap that presents a fixed price of 4 Scones

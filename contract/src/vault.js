@@ -207,26 +207,30 @@ export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeS
     // can sell it
     const { Collateral: currentCollateral } = zcf.getCurrentAllocation(collateralHolderOffer);
 
-    const offer2 = await makeEmptyOfferWithResult();
+    const liqOfferKit = await makeEmptyOfferWithResult(zcf);
+    const liqOfferHandle = await liqOfferKit.offerHandle;
     trade(
       {
         offerHandle: collateralHolderOffer,
         gains: { },
       },
       {
-        offerHandle: offer2.offerHandle,
+        offerHandle: liqOfferHandle,
         gains: { Collateral:  currentCollateral },
       },
     );
-    const payout2 = await offer2.payout;
+    zcf.complete([liqOfferHandle]);
+    const payout2 = await liqOfferKit.payout;
+    // AWAIT
 
     // Then, sell off all their collateral. We really only need enough to
     // cover 'sconeDebt', but our autoswap API doesn't give us a way to
     // specify just the output amount yet.
     const swapInvite = E(autoswap).makeSwapInvite(); // really inviteP, that's ok
+    console.log('SMOKING  ', await swapInvite);
     const saleOffer = harden({
       give: { Collateral: currentCollateral },
-      want: { Scones: sconeMath.empty() }, // we'll take anything we can get
+      want: { Scones: sconeMath.getEmpty() }, // we'll take anything we can get
     });
     const { payout: salesPayoutP } = await E(zoe).offer(swapInvite, saleOffer, payout2);
     const { Scones: sconeProceeds, ...otherProceeds } = await salesPayoutP;
@@ -247,6 +251,7 @@ export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeS
       const allegedBrand = await E(payment).getAllegedBrand();
       const issuer = zcf.getIssuerForBrand(allegedBrand); // TODO: requires a zoe addition
       const amount = await E(issuer).getAmountOf(payment);
+      // TODO refactor to not have an inner await
       await escrowAndAllocateTo({
         amount,
         payment: refund[keyword],
@@ -265,7 +270,7 @@ export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeS
     }
 
     // finally burn
-    await E(sconeIssuer).burn(sconesToBurn);
+    await E(sconeIssuer).burn(sconePaymentToBurn);
     // await E(sconeIssuer).burn(moreSconesToBurn);
 
   }
@@ -287,7 +292,7 @@ export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeS
     const { Collateral: currentCollateral } = zcf.getCurrentAllocation(collateralHolderOffer);
 
     // compute how much debt is supported by the current collateral at that price
-    const liquidationMargin = 1.2;
+    const liquidationMargin = manager.getLiquidationMargin();
     const maxScones = sconeMath.make(stalePrice.extent * currentCollateral.extent / liquidationMargin);
 
     if (!sconeMath.isGTE(maxScones, sconeDebt)) {
@@ -326,7 +331,11 @@ export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeS
     //getFeeAmount,
   });
 
-  return vault;
+  return harden({ 
+    vault,
+    liquidate,
+    checkMargin,
+  });
 }
 
 

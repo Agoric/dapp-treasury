@@ -39,14 +39,21 @@ export async function makeContract(zcf) {
       getLiquidationMargin() { return 1.2; },
       getInitialMargin() { return 1.5; }
     };
-    const vault = makeVault(zcf, manager, collateralHoldingOffer, sconeDebt, sconeKit, autoswap);
+    const {
+      vault,
+      liquidate,
+      checkMargin,
+    } = makeVault(zcf, manager, collateralHoldingOffer, sconeDebt, sconeKit, autoswap);
 
     zcf.complete([offerHandle]);
 
     return {
       vault,
+      liquidationPayout: collateralResult.payout,
       sconeKit,
       collateralKit,
+      liquidate,
+      checkMargin,
       go() { console.log('go'); },
       add() { vault.makeAddCollateralInvite(); },
     };

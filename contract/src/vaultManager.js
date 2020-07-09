@@ -1,7 +1,7 @@
 /* global harden */
 import { assert, details, q } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
-import { makeZoeHelpers } from '@agoric/zoe/contractSupport';
+import { makeZoeHelpers } from '@agoric/zoe/src/contractSupport';
 import { makeVault } from './vault';
 import { makeEmptyOfferWithResult } from './make-empty';
 
@@ -133,7 +133,11 @@ export function makeVaultManager(zcf, autoswap, sconeKit) {
       );
 
       const sconeDebt = sconesWanted; // todo +fee
-      const vault = makeVault(zcf, innerFacet, collateralHolderOffer, sconeDebt, sconeKit, autoswap);
+      const {
+        vault,
+        liquidate,
+        checkMargin,
+      } = makeVault(zcf, innerFacet, collateralHolderOffer, sconeDebt, sconeKit, autoswap);
       allVaults.push(vault);
 
       zcf.complete([offerHandle]);
@@ -161,5 +165,4 @@ export function makeVaultManager(zcf, autoswap, sconeKit) {
     getLiquidationMargin() { return liquidationMargin; },
     getInitialMargin() { return initialMargin; }
   });
-
 }
