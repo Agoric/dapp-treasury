@@ -27,6 +27,10 @@ export function makeVaultManager(zcf, autoswap, sconeKit, collateralBrand) {
   // todo: sort by price at which we need to liquidate
   const allVaults = [];
 
+  function liquidateAll() {
+    const promises = allVaults.map(vaultKit => vaultKit.liquidate());
+    return Promise.all(promises);
+  }
 
   // the SCM can call invest. This will mint Scones and buy liquidity tokens
   // from the pool
@@ -137,12 +141,13 @@ export function makeVaultManager(zcf, autoswap, sconeKit, collateralBrand) {
       );
 
       const sconeDebt = sconesWanted; // todo +fee
+      const vaultKit = makeVault(zcf, innerFacet, collateralHolderOffer, sconeDebt, sconeKit, autoswap);
       const {
         vault,
         liquidate,
         checkMargin,
-      } = makeVault(zcf, innerFacet, collateralHolderOffer, sconeDebt, sconeKit, autoswap);
-      allVaults.push(vault);
+      } = vaultKit;
+      allVaults.push(vaultKit);
 
       zcf.complete([offerHandle]);
 
@@ -167,6 +172,7 @@ export function makeVaultManager(zcf, autoswap, sconeKit, collateralBrand) {
   return harden({
     makeLoanInvite,
     getLiquidationMargin() { return liquidationMargin; },
-    getInitialMargin() { return initialMargin; }
+    getInitialMargin() { return initialMargin; },
+    liquidateAll,
   });
 }

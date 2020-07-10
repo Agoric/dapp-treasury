@@ -3,18 +3,26 @@
 import { assert, details, q } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
 import { makeZoeHelpers } from '@agoric/zoe/src/contractSupport';
-import { burn } from './burn';
+import { burn, escrowAllTo } from './burn';
 import { makeEmptyOfferWithResult } from './make-empty';
 
 // a Vault is an individual loan, using some collateralType as the
 // collateral, and lending Scones to the borrower
 
+let debugInstance = 1;
+
 export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeKit, autoswap) {
+
+  let debugCount = debugInstance++ * 1000 + 1;
+  function debugTick(msg = '') {
+    console.log('VV ', debugCount++, msg);
+  }
+
   let active = true; // liquidation halts all user actions
   let accumulatedFee = 0;
   const collateralMath = manager.collateralMath;
   const collateralBrand = manager.collateralBrand;
-
+  const collateralIssuer = zcf.getIssuerForBrand(collateralBrand);
 
   // 'collateralHolderOffer' is the Offer that currently holds the borrower's
   // collateral (zoe owns the tokens for the benefit of this Offer)
@@ -211,12 +219,13 @@ export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeK
     // before anything else, stop any future activity on this vault
     active = false;
 
+    debugTick();
     // First, take all the collateral away from collateralHolderOffer, so we
     // can sell it
-    const { Collateral: currentCollateral } = zcf.getCurrentAllocation(collateralHolderOffer);
-
     const liqOfferKit = await makeEmptyOfferWithResult(zcf);
     const liqOfferHandle = await liqOfferKit.offerHandle;
+    // AWAIT
+    const { Collateral: currentCollateral } = zcf.getCurrentAllocation(collateralHolderOffer);
     trade(
       {
         offerHandle: collateralHolderOffer,
@@ -227,50 +236,64 @@ export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeK
         gains: { Collateral:  currentCollateral },
       },
     );
+    debugTick();
     zcf.complete([liqOfferHandle]);
     const payout2 = await liqOfferKit.payout;
+    const collateralPayment = await payout2.Collateral;
+    const collateralPaymentAmount = await collateralIssuer.getAmountOf(collateralPayment);
     // AWAIT
-
+    debugTick('separated collateral');
+    console.log("RETRIEVED ", collateralPaymentAmount);
     // Then, sell off all their collateral. We really only need enough to
     // cover 'sconeDebt', but our autoswap API doesn't give us a way to
     // specify just the output amount yet.
     const swapInvite = E(autoswap).makeSwapInvite(); // really inviteP, that's ok
     const saleOffer = harden({
-      give: { Collateral: currentCollateral },
-      want: { Scones: sconeMath.getEmpty() }, // we'll take anything we can get
+      give: { In: collateralPaymentAmount },
+      want: { Out: sconeMath.getEmpty() }, // we'll take anything we can get
     });
-    const { payout: salesPayoutP } = await E(zoe).offer(swapInvite, saleOffer, payout2);
-    const { Scones: sconeProceeds, ...otherProceeds } = await salesPayoutP;
+    const swapResult = await E(zoe).offer(swapInvite, saleOffer, { In: collateralPayment });
+    const salesPayout = await swapResult.payout;
+    debugTick('swapping');
+    // const { Scones: sconeProceeds, ...otherProceeds } = await salesPayoutP.Scones;
+    const sconeProceeds = await salesPayout.Out;
+    debugTick('retrieving');
     // we now claim enough from sconeProceeds to cover the debt (if there's
     // enough). They get back the rest, as well as any remaining scones.
+    const sconeProceedsAmount = await sconeIssuer.getAmountOf(sconeProceeds);
+    debugTick('swapped');
 
-    const isUnderwater = !sconeMath.isGTE(sconeProceeds, sconeDebt);
-    const underwaterBy = isUnderwater ? sconeMath.subtract(sconeDebt, sconeProceeds) : sconeMath.empty();
-    const sconesToBurn = isUnderwater ? sconeProceeds : sconeDebt;
+    const isUnderwater = !sconeMath.isGTE(sconeProceedsAmount, sconeDebt);
+    const sconesToBurn = isUnderwater ? sconeProceedsAmount : sconeDebt;
+    console.log("LIQ ", sconeDebt, sconeProceedsAmount, sconesToBurn);
+    sconeDebt = sconeMath.subtract(sconeDebt, sconesToBurn);
     const [sconePaymentToBurn, sconePaymentToRefund] = await E(sconeIssuer).split(sconeProceeds, sconesToBurn);
 
     // refund any remaining scones, plus anything else leftover from the sale
     // (perhaps some collateral, who knows maybe autoswap threw in a free
     // toaster)
-    const refund = { Scones: sconePaymentToRefund, ...otherProceeds };
-    for (const keyword of refund.keys()) {
-      const payment = refund[keyword];
-      const allegedBrand = await E(payment).getAllegedBrand();
-      const issuer = zcf.getIssuerForBrand(allegedBrand); // TODO: requires a zoe addition
-      const amount = await E(issuer).getAmountOf(payment);
-      // TODO refactor to not have an inner await
-      await escrowAndAllocateTo({
-        amount,
-        payment: refund[keyword],
-        keyword,
-        recipientHandle: collateralHolderOffer,
-      });
-    }
+
+    // const collateralRefund = await salesPayout.In; 
+    // const collateralRefundAmount = await collateralRefund 
+    //     ? collateralIssuer.getAmountOf(collateralRefund) 
+    //     : collateralMath.getEmpty();
+
+    // debugTick('refund1');
+    // const refundAmounts = { Scones: sconeRefundAmount, Collateral: collateralRefundAmount };
+    // const refunds = { Scones: sconePaymentToRefund, Collateral: collateralRefund };
+    // debugTick('refund2');
+
+    const sconeRefundAmount = await sconeIssuer.getAmountOf(sconePaymentToRefund);
+    const refundAmounts = { Scones: sconeRefundAmount };
+    const refunds = { Scones: sconePaymentToRefund };
+    await escrowAllTo(zcf, collateralHolderOffer, refundAmounts, refunds);
+    debugTick('escrowed refund');
 
     zcf.complete([collateralHolderOffer]);
+    debugTick('complete');
 
     if (isUnderwater) {
-      console.log(`underwater by`, underwaterBy);
+      console.log(`underwater by`, sconeDebt);
       // todo: fall back to next recovery layer. The vaultManager holds
       // liquidity tokens, it will sell some to give us the needed scones.
       // moreSconesToBurn = vaultManager.helpLiquidateFallback(underwaterBy);
@@ -279,7 +302,7 @@ export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeK
     // finally burn
     await E(sconeIssuer).burn(sconePaymentToBurn);
     // await E(sconeIssuer).burn(moreSconesToBurn);
-
+    debugTick('burned');
   }
 
   // Call this each time the price changes, and after some other operations.
@@ -313,11 +336,11 @@ export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeK
 
   // todo: add liquidateSome(collateralAmount): sells some collateral, reduces some debt
 
-
   function getCollateralAmount() {
     // todo?: assert(active, 'vault has been liquidated');
-    const { Collateral: collateralAmount } = zcf.getCurrentAllocation(collateralHolderOffer);
-    return collateralAmount;
+    return zcf.isOfferActive(collateralHolderOffer) 
+          ? zcf.getCurrentAllocation(collateralHolderOffer).Collateral 
+          : collateralMath.getEmpty()
   }
 
   function getDebtAmount() {

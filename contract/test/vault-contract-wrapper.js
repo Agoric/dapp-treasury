@@ -33,13 +33,13 @@ export async function makeContract(zcf) {
       recipientHandle: collateralHoldingOffer,
     });
 
-    const autoswap = {
+    const autoswapMock = {
       getCurrentPrice(amountIn, brandOut) {
         assert.equal(brandOut, sconeBrand);
         return sconeMath.make(4 * amountIn.extent); 
       },
     };
-    const manager = {
+    const managerMock = {
       getLiquidationMargin() { return 1.2; },
       getInitialMargin() { return 1.5; },
       collateralMath,
@@ -49,7 +49,7 @@ export async function makeContract(zcf) {
       vault,
       liquidate,
       checkMargin,
-    } = makeVault(zcf, manager, collateralHoldingOffer, sconeDebt, sconeKit, autoswap);
+    } = makeVault(zcf, managerMock, collateralHoldingOffer, sconeDebt, sconeKit, autoswapMock);
 
     zcf.complete([offerHandle]);
 

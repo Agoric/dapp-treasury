@@ -6,7 +6,6 @@ import { makeZoe } from '@agoric/zoe';
 import bundleSource from '@agoric/bundle-source';
 
 import produceIssuer from '@agoric/ertp';
-import { makeVault } from '../src/vault';
 
 const stablecoinRoot = '../src/stablecoinMachine.js';
 const autoswapRoot = '@agoric/zoe/src/contracts/multipoolAutoswap';
@@ -121,6 +120,14 @@ tap.test('first', async t => {
     'vault holds 10 Collateral');
   t.ok(aethMath.isEqual(returnedAmount, aethMath.make(1)),
     'withdrew 1 collateral');
+
+  await aethVaultManager.liquidateAll();
+  console.log("DEBT ", vault.getDebtAmount());
+  t.ok(sconeMath.isEmpty(vault.getDebtAmount()), 'debt is paid off');
+  console.log("COLLATERAL ", vault.getCollateralAmount());
+  t.ok(aethMath.isEmpty(vault.getCollateralAmount()), 'vault is cleared');
+  // t.ok(aethMath.isEqual(returnedAmount, aethMath.make(1)),
+  //   'withdrew 1 collateral');
 
   // await liquidate();
   

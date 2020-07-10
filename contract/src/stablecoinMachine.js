@@ -12,7 +12,6 @@ async function installRoot(zoe, sourceRoot) {
   const contractBundle = await bundleSource(require.resolve(sourceRoot));
   return E(zoe).install(contractBundle);
 }
-
 let debugCount = 1;
 function debugTick(msg = '') {
   console.log('SC ', debugCount++, msg);
