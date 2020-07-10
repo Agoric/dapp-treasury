@@ -1,5 +1,6 @@
 // I run in a vat
 
+import { assert, details, q } from '@agoric/assert';
 import produceIssuer from '@agoric/ertp';
 import { makeZoeHelpers } from '@agoric/zoe/src/contractSupport';
 import { makeVault } from '../src/vault';
@@ -10,10 +11,10 @@ export async function makeContract(zcf) {
 
   const { escrowAndAllocateTo } = makeZoeHelpers(zcf);
   const collateralKit = produceIssuer('collateral');
-  const { mint: collateralMint, amountMath: collateralMath } = collateralKit;
+  const { mint: collateralMint, amountMath: collateralMath, brand: collateralBrand } = collateralKit;
 
   const sconeKit = produceIssuer('scone');
-  const { mint: sconeMint, issuer: sconeIssuer, amountMath: sconeMath } = sconeKit;
+  const { mint: sconeMint, issuer: sconeIssuer, amountMath: sconeMath, brand: sconeBrand } = sconeKit;
   const sconeDebt = sconeMath.make(10);
   await zcf.addNewIssuer(sconeIssuer, 'Scones');
   await zcf.addNewIssuer(collateralKit.issuer, 'Collateral'); // todo: CollateralETH, etc
@@ -33,11 +34,16 @@ export async function makeContract(zcf) {
     });
 
     const autoswap = {
-      getCurrentPrice() { return sconeMath.make(4); },
+      getCurrentPrice(amountIn, brandOut) {
+        assert.equal(brandOut, sconeBrand);
+        return sconeMath.make(4 * amountIn.extent); 
+      },
     };
     const manager = {
       getLiquidationMargin() { return 1.2; },
-      getInitialMargin() { return 1.5; }
+      getInitialMargin() { return 1.5; },
+      collateralMath,
+      collateralBrand,
     };
     const {
       vault,

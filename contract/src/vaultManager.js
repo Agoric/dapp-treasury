@@ -13,8 +13,10 @@ import { makeEmptyOfferWithResult } from './make-empty';
 // todo: two timers: one to increment fees, second (not really timer) when
 // the autoswap price changes, to check if we need to liquidate
 
-export function makeVaultManager(zcf, autoswap, sconeKit) {
+export function makeVaultManager(zcf, autoswap, sconeKit, collateralBrand) {
   const { mint: sconeMint, issuer: sconeIssuer, amountMath: sconeMath } = sconeKit;
+  const collateralMath = zcf.getAmountMath(collateralBrand);
+
   const {
     trade,
     makeEmptyOffer,
@@ -64,7 +66,9 @@ export function makeVaultManager(zcf, autoswap, sconeKit) {
 
   const innerFacet = harden({
     getLiquidationMargin() { return liquidationMargin; },
-    getInitialMargin() { return initialMargin; }
+    getInitialMargin() { return initialMargin; },
+    collateralBrand,
+    collateralMath,
   })
 
   function makeLoanInvite() {
@@ -91,7 +95,7 @@ export function makeVaultManager(zcf, autoswap, sconeKit) {
       // payout from it will be handed to the user: if the vault dies early
       // (because the StableCoinMachine vat died), they'll get all their
       // collateral back.
-      const collP = await makeEmptyOfferWithResult();
+      const collP = await makeEmptyOfferWithResult(zcf);
       // AWAIT 
       const collateralHolderOffer = await collP.offerHandle;
       // AWAIT
@@ -99,10 +103,10 @@ export function makeVaultManager(zcf, autoswap, sconeKit) {
       // contract abandons
       const collateralPayoutP = collP.payout;
 
-      const stalePrice = await E(autoswap).getCurrentPrice();
+      const salePrice = await E(autoswap).getCurrentPrice(collateralAmount, sconeKit.brand);
       // AWAIT
-
-      const maxScones = sconeMath.make(stalePrice.extent * collateralAmount.extent / initialMargin); // todo fee
+      //console.log("SALE PRICE  ", salePrice, salePrice.extent / initialMargin);
+      const maxScones = sconeMath.make(Math.ceil(salePrice.extent / initialMargin)); // todo fee
       assert(sconeMath.isGTE(maxScones, sconesWanted), 'you ask for too much');
       // todo fee: maybe mint new Scones, send to reward pool, increment how
       // much must be paid back
@@ -145,7 +149,7 @@ export function makeVaultManager(zcf, autoswap, sconeKit) {
       // todo: nicer to return single objects, find a better way to give them
       // the payout object
       return harden({
-        userFacet: vault.userFacet,
+        vault,
         liquidationPayout: collateralPayoutP,
       });
     }

@@ -134,7 +134,7 @@ export async function makeContract(zcf) {
       // const { Scones: sconeProceeds, ...otherProceeds } = await salesPayoutP;
 
       // do something with the liquidity we just bought
-      const vm = makeVaultManager(zcf, autoswapAPI, sconeKit);
+      const vm = makeVaultManager(zcf, autoswapAPI, sconeKit, collateralBrand);
       // TODO add vm to table of vault manager
       return vm;
     }

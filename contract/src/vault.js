@@ -9,13 +9,16 @@ import { makeEmptyOfferWithResult } from './make-empty';
 // a Vault is an individual loan, using some collateralType as the
 // collateral, and lending Scones to the borrower
 
-export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeStuff, autoswap) {
+export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeKit, autoswap) {
   let active = true; // liquidation halts all user actions
   let accumulatedFee = 0;
+  const collateralMath = manager.collateralMath;
+  const collateralBrand = manager.collateralBrand;
+
 
   // 'collateralHolderOffer' is the Offer that currently holds the borrower's
   // collateral (zoe owns the tokens for the benefit of this Offer)
-  const { mint: sconeMint, issuer: sconeIssuer, amountMath: sconeMath } = sconeStuff;
+  const { mint: sconeMint, issuer: sconeIssuer, amountMath: sconeMath } = sconeKit;
   const { trade, checkHook, escrowAndAllocateTo } = makeZoeHelpers(zcf);
   const zoe = zcf.getZoeService();
 
@@ -89,23 +92,28 @@ export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeS
       },
     } = zcf.getOffer(offerHandle);
 
-    const stalePrice = await E(autoswap).getCurrentPrice();
+    // precheckCollateral MUST NOT be relied on after a turn boundary
+    const precheckCollateral = zcf.getCurrentAllocation(collateralHolderOffer).Collateral;
+    assert(collateralMath.isGTE(precheckCollateral, collateralWanted), 'want is more collateral than is available');
+    const remainingCollateral = collateralMath.subtract(precheckCollateral, collateralWanted);
+    const salePrice = await E(autoswap).getCurrentPrice(remainingCollateral, sconeKit.brand);
     // AWAIT
 
+    // IF THE COLLATERAL HAS CHANGED, RESTART
+    const currentCollateral = zcf.getCurrentAllocation(collateralHolderOffer).Collateral;
+    if (! collateralMath.isGTE(precheckCollateral, currentCollateral)) {
+      // collateral has changed. Retry in the new world.
+      return paybackHook(offerHandle);
+    }
+
     // you might offer too much: we won't take more than you owe
-    const acceptedScones = sconeMath.make(Math.min(sconesReturned.extent,
-                                                   sconeDebt.extent));
+    const acceptedScones = sconeMath.isGTE(sconesReturned, sconeDebt) ? sconeDebt : sconesReturned;
     // if we accept your scones, this is how much you'd still owe
     const remainingDebt = sconeMath.subtract(sconeDebt, acceptedScones);
 
-    const { Collateral: currentCollateral } = zcf.getCurrentAllocation(collateralHolderOffer);
-    const collateralMath = zcf.getAmountMath(currentCollateral.brand);
-    // and you'd have this much collateral left:
-    const remainingCollateral = collateralMath.subtract(currentCollateral, collateralWanted);
-
     // that will require at least this much collateral:
-    const liquidationMargin = manager.getLiquidationMargin();
-    const maxScones = sconeMath.make(stalePrice.extent * remainingCollateral.extent / liquidationMargin);
+    const margin = manager.getLiquidationMargin();
+    const maxScones = sconeMath.make(Math.ceil(salePrice.extent / margin));
     // TODO is there a better policy than:
     //      don't reject if they are not taking out collateral
     if (!collateralMath.isEmpty(collateralWanted)) {
@@ -227,7 +235,6 @@ export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeS
     // cover 'sconeDebt', but our autoswap API doesn't give us a way to
     // specify just the output amount yet.
     const swapInvite = E(autoswap).makeSwapInvite(); // really inviteP, that's ok
-    console.log('SMOKING  ', await swapInvite);
     const saleOffer = harden({
       give: { Collateral: currentCollateral },
       want: { Scones: sconeMath.getEmpty() }, // we'll take anything we can get
@@ -282,18 +289,21 @@ export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeS
   // didn't yield enough scones to cover their debt, liquidate() will appeal
   // to the next layer (the vaultManager).
   async function checkMargin() {
+    if (!active) {
+      return;
+    }
+
     // get current price
-    const stalePrice = await E(autoswap).getCurrentPrice();
+    const { Collateral: currentCollateral } = zcf.getCurrentAllocation(collateralHolderOffer);
+    const salePrice = await E(autoswap).getCurrentPrice(currentCollateral, sconeKit.brand);
     // AWAIT
     if (!active) {
       return;
     }
 
-    const { Collateral: currentCollateral } = zcf.getCurrentAllocation(collateralHolderOffer);
-
     // compute how much debt is supported by the current collateral at that price
     const liquidationMargin = manager.getLiquidationMargin();
-    const maxScones = sconeMath.make(stalePrice.extent * currentCollateral.extent / liquidationMargin);
+    const maxScones = sconeMath.make(salePrice.extent / liquidationMargin);
 
     if (!sconeMath.isGTE(maxScones, sconeDebt)) {
       liquidate();

@@ -46,68 +46,81 @@ tap.test('first', async t => {
   const adminHandle = await stablecoinKit.offerHandle;
   const stablecoineMachine = await stablecoinKit.outcome;
   const govMath = await E(stablecoineMachine.governanceIssuer).getAmountMath();
+  const sconeIssuer = stablecoineMachine.stablecoinIssuer;
+  const sconeMath = await E(sconeIssuer).getAmountMath();
   //const govMath = await stablecoineMachine.stablecoinIssuer;
   // Our wrapper gives us a Vault which holds 5 Collateral, has lent out 10
   // Scones, which uses an autoswap that presents a fixed price of 4 Scones
   // per Collateral.
 
-  const collateralAmount = aethMath.make(99);
+  // Add a pool with 99 aeth collateral at a 201 aeth/scones rate
+  const capitalAmount = aethMath.make(99);
   const aethVaultsKit = await E(zoe).offer(
     stablecoineMachine.makeAddTypeInvite(aethIssuer, "AEth", 201),
     harden({
-      give: { Collateral: collateralAmount },
+      give: { Collateral: capitalAmount },
       want: { Governance: govMath.getEmpty() },
+    }),
+    harden({
+      Collateral: aethMint.mintPayment(capitalAmount),
+    }));
+
+  const aethVaultManager = await aethVaultsKit.outcome;
+
+  // Create a loan for 47 scones with 11 aeth collateral
+  const collateralAmount = aethMath.make(11);
+  const loanAmount = sconeMath.make(47);
+  const loanKit = await E(zoe).offer(
+    aethVaultManager.makeLoanInvite(),
+    harden({
+      give: { Collateral: collateralAmount },
+      want: { Scones: loanAmount },
     }),
     harden({
       Collateral: aethMint.mintPayment(collateralAmount),
     }));
 
-  const aethVaultManager = await aethVaultsKit.outcome;
+  const {
+    vault,
+    liquidationPayout,
+  } = await loanKit.outcome;
+  t.ok(sconeMath.isEqual(vault.getDebtAmount(), loanAmount),
+    'vault lent 47 Scones');
 
-  // t.ok(cMath.isEqual(vault.getCollateralAmount(), cMath.make(7)),
-  //   'vault holds 7 Collateral');
+  const loanProceeds = await loanKit.payout;
+  const sconesLent = await loanProceeds.Scones;
+  const lentAmount = await sconeIssuer.getAmountOf(sconesLent);
+  t.ok(sconeMath.isEqual(lentAmount, loanAmount), 'received 47 Scones');
+  t.ok(aethMath.isEqual(vault.getCollateralAmount(), aethMath.make(11)),
+       'vault holds 11 Collateral');
 
+  // Add more collateral to an existing loan. We get nothing back but a warm
+  // fuzzy feeling.
 
+  // partially payback
+  const collateralWanted = aethMath.make(1);
+  const paybackAmount = sconeMath.make(5);
+  const [paybackPayment, remainingPayment] = await E(sconeIssuer).split(sconesLent, paybackAmount);
+  const { payout, outcome } = await E(zoe).offer(
+    vault.makePaybackInvite(),
+    harden({
+      give: { Scones: paybackAmount },
+      want: { Collateral: collateralWanted },
+    }),
+    harden({
+      Scones: paybackPayment,
+    }));
+  const message = await outcome;
+  t.equals(message, 'thank you for your payment');
 
-
-  // const { vault,
-  //     liquidationPayout,
-  //     liquidate,
-  //     sconeKit: { mint: sconeMint, amountMath: sconeMath },
-  //     collateralKit: {  mint: cMint, issuer: cIssuer, amountMath: cMath },
-  //   } = await offerKit.outcome;
-  // t.ok(cMath.isEqual(vault.getCollateralAmount(), cMath.make(5)),
-  //      'vault holds 5 Collateral');
-  // t.ok(sconeMath.isEqual(vault.getDebtAmount(), sconeMath.make(10)),
-  //      'vault lent 10 Scones');
-
-  // // Add more collateral to an existing loan. We get nothing back but a warm
-  // // fuzzy feeling.
-
-
-  // // partially payback
-  // const collateralWanted = cMath.make(1);
-  // const paybackAmount = sconeMath.make(3);
-  // const { payout, outcome } = await E(zoe).offer(
-  //   vault.makePaybackInvite(),
-  //   harden({
-  //     give: { Scones: paybackAmount },
-  //     want: { Collateral: collateralWanted },
-  //   }),
-  //   harden({
-  //     Scones: sconeMint.mintPayment(paybackAmount),
-  //   }));
-  // const message = await outcome;
-  // t.equals(message, 'thank you for your payment');
-
-  // const { Collateral: returnedCollateral } = await payout;
-  // const returnedAmount = await cIssuer.getAmountOf(returnedCollateral);
-  // t.ok(sconeMath.isEqual(vault.getDebtAmount(), sconeMath.make(7)),
-  //   'debt reduced to 7 scones');
-  // t.ok(cMath.isEqual(vault.getCollateralAmount(), cMath.make(6)),
-  //   'vault holds 6 Collateral');
-  // t.ok(cMath.isEqual(returnedAmount, cMath.make(1)),
-  //   'withdrew 1 collateral');
+  const { Collateral: returnedCollateral } = await payout;
+  const returnedAmount = await aethIssuer.getAmountOf(returnedCollateral);
+  t.ok(sconeMath.isEqual(vault.getDebtAmount(), sconeMath.make(42)),
+    'debt reduced to 42 scones');
+  t.ok(aethMath.isEqual(vault.getCollateralAmount(), aethMath.make(10)),
+    'vault holds 10 Collateral');
+  t.ok(aethMath.isEqual(returnedAmount, aethMath.make(1)),
+    'withdrew 1 collateral');
 
   // await liquidate();
   
@@ -124,5 +137,15 @@ tap.test('first', async t => {
   // t.equals(cLiq, undefined, 'currently we sell all collateral on liquidation');
 
   //   makeCloseInvite
+
+  // Yucky too many promise layers:
+  // const { Scones: sconesLent } = await loanKit.payout;
+  // console.log("GGR", sconesLent);
+  // const lentAmount = await sconeIssuer.getAmountOf(sconesLent);
+  // became
+  // const sconesLent = await loanProceeds.Scones;
+  // const lentAmount = await sconeIssuer.getAmountOf(sconesLent);
+  // t.ok(sconeMath.isEqual(lentAmount, loanAmount), 'received 47 Scones');
+
   t.end();
 });
