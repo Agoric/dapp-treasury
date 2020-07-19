@@ -1,3 +1,4 @@
+// @ts-check
 /* global harden */
 
 import { assert, details, q } from '@agoric/assert';
@@ -8,10 +9,29 @@ import { makeEmptyOfferWithResult } from './make-empty';
 
 // a Vault is an individual loan, using some collateralType as the
 // collateral, and lending Scones to the borrower
+/**
+ * 
+ * @typedef {import('@agoric/zoe/src/contracts/multipoolAutoswap')} Autoswapppp
+ *
+ */
+let debugInstance = 1; 
 
-let debugInstance = 1;
+/** 
+ * @typedef {import('./vaultManager').InnerVaultManager} InnerVaultManager
+ * @typedef {ReturnType<typeof import('./vaultManager').makeVaultManager>} VaultManager
+ */
 
-export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeKit, autoswap) {
+/**
+ * @typedef {IssuerResults} IssuerKit
+ * @param {ContractFacet} zcf 
+ * @param {InnerVaultManager} manager
+ * @param {OfferHandle} collateralHolderOffer
+ * @param {Amount} sconeDebt
+ * @param {IssuerKit} sconeKit
+ * @param {Autoswap} autoswap
+ * @param {Invite} invite 
+ */
+export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeKit, autoswap, invite) {
 
   let debugCount = debugInstance++ * 1000 + 1;
   function debugTick(msg = '') {
@@ -30,6 +50,11 @@ export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeK
   const { trade, checkHook, escrowAndAllocateTo } = makeZoeHelpers(zcf);
   const zoe = zcf.getZoeService();
 
+  const FixMeEmptyGO = {};
+
+  /**
+   * @param {OfferHandle} offerHandle
+   */
   function addCollateralHook(offerHandle) {
     const {
       proposal: {
@@ -82,7 +107,7 @@ export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeK
     );
     sconeDebt = sconeMath.getEmpty();
     // burn the scones. first we need zoe to make us a payment
-    await burn(trade, collateralHolderOffer, { Scones: sconeDebt });
+    await burn(zcf, collateralHolderOffer, { Scones: sconeDebt });
     // AWAIT
 
     zcf.complete([offerHandle]);
@@ -91,6 +116,9 @@ export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeK
   }
   */
 
+  /**
+   * @param {OfferHandle} offerHandle
+   */
   async function paybackHook(offerHandle) {
     assert(active, 'vault has been liquidated');
     const {
@@ -161,7 +189,6 @@ export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeK
     return zcf.makeInvitation(checkHook(paybackHook, expected), 'pay back partially');
   }
 
-
   async function closeHook(offerHandle) {
     assert(active, 'vault has been liquidated');
     const {
@@ -196,7 +223,7 @@ export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeK
     zcf.complete([offerHandle]);
 
     // burn the scones. first we need zoe to make us a payment
-    await burn(trade, collateralHolderOffer, { Scones: acceptedScones });
+    await burn(zcf, collateralHolderOffer, { Scones: acceptedScones });
     // AWAIT
     
     // todo: close the vault
@@ -241,13 +268,15 @@ export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeK
     const payout2 = await liqOfferKit.payout;
     const collateralPayment = await payout2.Collateral;
     const collateralPaymentAmount = await collateralIssuer.getAmountOf(collateralPayment);
+    // const { payout: { Collateral: collateralPayment }} = ???;
+
     // AWAIT
-    debugTick('separated collateral');
+    debugTick('separated collateral'); 
     console.log("RETRIEVED ", collateralPaymentAmount);
     // Then, sell off all their collateral. We really only need enough to
     // cover 'sconeDebt', but our autoswap API doesn't give us a way to
     // specify just the output amount yet.
-    const swapInvite = E(autoswap).makeSwapInvite(); // really inviteP, that's ok
+    const swapInvite = await E(autoswap).makeSwapInvite(); // really inviteP, that's ok
     const saleOffer = harden({
       give: { In: collateralPaymentAmount },
       want: { Out: sconeMath.getEmpty() }, // we'll take anything we can get

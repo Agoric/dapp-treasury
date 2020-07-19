@@ -1,5 +1,5 @@
 /* global harden */
-import '@agoric/install-ses';
+//import '@agoric/install-ses';
 import tap from 'tap';
 import { E } from '@agoric/eventual-send';
 import { makeZoe } from '@agoric/zoe';

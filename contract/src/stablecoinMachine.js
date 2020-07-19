@@ -1,13 +1,24 @@
+// @ts-check
 // The StableCoinMachine owns a number of VaultManagers, and a mint for the
 // "Scone" stablecoin.
 
 import { E } from '@agoric/eventual-send';
+import { assert, details, q } from '@agoric/assert';
 import makeStore from '@agoric/store';
 import produceIssuer from '@agoric/ertp';
 import { makeZoeHelpers } from '@agoric/zoe/src/contractSupport';
 import { makeVaultManager } from './vaultManager';
 import { makeEmptyOfferWithResult } from './make-empty';
 
+
+/** 
+ * @typedef {import('@agoric/zoe/src/contracts/multipoolAutoswap')} Autoswap
+ */
+
+ /*
+ * @param { Zoe } zoe
+ * @param {string} sourceRoot
+ */
 async function installRoot(zoe, sourceRoot) {
   const contractBundle = await bundleSource(require.resolve(sourceRoot));
   return E(zoe).install(contractBundle);
@@ -16,6 +27,9 @@ let debugCount = 1;
 function debugTick(msg = '') {
   console.log('SC ', debugCount++, msg);
 }
+/**
+ * @param {ContractFacet} zcf
+ */
 export async function makeContract(zcf) {
 
   const { trade, checkHook, escrowAndAllocateTo } = makeZoeHelpers(zcf);
@@ -48,6 +62,7 @@ export async function makeContract(zcf) {
   // dollar value of their collateral, and we create that make Scones.
   // collateralKeyword = 'aEth'
   async function makeAddTypeInvite(collateralIssuer, collateralKeyword, rate) {
+    // TODO add to the issuer in the same turn
     assert(!collateralTypes.has(collateralIssuer));
     await zcf.addNewIssuer(collateralIssuer, collateralKeyword);
     const collateralBrand = await collateralIssuer.getBrand();

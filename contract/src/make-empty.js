@@ -1,5 +1,11 @@
 import { E } from '@agoric/eventual-send';
+/**
+ * @typedef {import('@agoric/zoe').ContractFacet} ContractFacet
+ */
 
+/**
+ * @param { ContractFacet } zcf
+ */
 export function makeEmptyOfferWithResult(zcf) {
   const invite = zcf.makeInvitation(_ => undefined, 'empty offer');
   const zoe = zcf.getZoeService();

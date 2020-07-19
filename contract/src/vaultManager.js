@@ -1,3 +1,4 @@
+// @ts-check
 /* global harden */
 import { assert, details, q } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
@@ -13,13 +14,28 @@ import { makeEmptyOfferWithResult } from './make-empty';
 // todo: two timers: one to increment fees, second (not really timer) when
 // the autoswap price changes, to check if we need to liquidate
 
+/**
+ *
+ * @typedef {Object} InnerVaultManager
+ * @property {AmountMath} collateralMath
+ * @property {Brand} collateralBrand
+ * @property {() => number} getLiquidationMargin
+ */
+
+/**
+ * @param {ContractFacet} zcf
+ * @param {Autoswap} autoswap
+ * @param {{ mint?: any; issuer?: any; amountMath?: any; brand?: any; }} sconeKit
+ * @param {Brand} collateralBrand
+ */
 export function makeVaultManager(zcf, autoswap, sconeKit, collateralBrand) {
   const { mint: sconeMint, issuer: sconeIssuer, amountMath: sconeMath } = sconeKit;
   const collateralMath = zcf.getAmountMath(collateralBrand);
 
   const {
     trade,
-    makeEmptyOffer,
+
+
     checkHook,
     escrowAndAllocateTo,
   } = makeZoeHelpers(zcf);
@@ -34,6 +50,9 @@ export function makeVaultManager(zcf, autoswap, sconeKit, collateralBrand) {
 
   // the SCM can call invest. This will mint Scones and buy liquidity tokens
   // from the pool
+  /**
+   * @param {any} collateralTokens
+   */
   function invest(collateralTokens) // -> Ownership Tokens
   {
     // we hold the liquidity tokens as an asset, and have the ownership
@@ -56,6 +75,9 @@ export function makeVaultManager(zcf, autoswap, sconeKit, collateralBrand) {
     // shares in those VMs
   }
 
+  /**
+   * @param {any} ownershipTokens
+   */
   function sellOwnershipTokens(ownershipTokens) // -> collateralTokens
   {}
 
@@ -68,6 +90,7 @@ export function makeVaultManager(zcf, autoswap, sconeKit, collateralBrand) {
   // loans below this margin may be liquidated
   const liquidationMargin = 1.2;
 
+  /** @type {InnerVaultManager} */
   const innerFacet = harden({
     getLiquidationMargin() { return liquidationMargin; },
     getInitialMargin() { return initialMargin; },
@@ -81,6 +104,9 @@ export function makeVaultManager(zcf, autoswap, sconeKit, collateralBrand) {
       want: { Scones: null },
     });
 
+    /**
+     * @param {any} offerHandle
+     */
     async function makeLoanHook(offerHandle) {
       const {
         //handle, instanceHandle, currentAllocation,
@@ -166,6 +192,9 @@ export function makeVaultManager(zcf, autoswap, sconeKit, collateralBrand) {
 
   // Called by the vault when liquidation is insufficient. We're expected to
   // come up with 'underwaterBy' Scones.
+  /**
+   * @param {any} underwaterBy
+   */
   function helpLiquidateFallback(underwaterBy) {
   }
 
