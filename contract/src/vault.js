@@ -29,9 +29,8 @@ let debugInstance = 1;
  * @param {Amount} sconeDebt
  * @param {IssuerKit} sconeKit
  * @param {Autoswap} autoswap
- * @param {Invite} invite 
  */
-export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeKit, autoswap, invite) {
+export function makeVault(zcf, manager, collateralHolderOffer, sconeDebt, sconeKit, autoswap) {
 
   let debugCount = debugInstance++ * 1000 + 1;
   function debugTick(msg = '') {
