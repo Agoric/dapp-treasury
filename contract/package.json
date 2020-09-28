@@ -5,7 +5,7 @@
   "description": "Contract for the token economy Dapp",
   "scripts": {
     "build": "exit 0",
-    "test": "tap --no-coverage --no-color 'test/**/test*.js'",
+    "test": "ava",
     "lint": "eslint '**/*.{js,jsx}'",
     "lint-fix": "eslint --fix '**/*.{js,jsx}'",
     "lint-check": "echo disabling lint in contract until files are lint compliant",
@@ -20,17 +20,34 @@
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-prettier": "^3.1.0",
     "prettier": "^1.18.2",
-    "tap-spec": "^5.0.0",
-    "tape": "^4.11.0",
-    "tape-promise": "^4.0.0"
+    "@agoric/install-ses": "*",
+    "ava": "^3.11.1"
   },
   "dependencies": {
     "esm": "^3.2.5",
-    "@agoric/ertp": "^0.6.0",
+    "ses": "^0.10.1",
+    "@agoric/ertp": "*",
     "@agoric/nat": "^2.0.1",
-    "@agoric/zoe": "^0.7.0",
-    "@agoric/bundle-source": "^1.1.6",
-    "@agoric/eventual-send": "^0.9.3"
+    "@agoric/zoe": "*",
+    "@agoric/bundle-source": "*",
+    "@agoric/eventual-send": "*"
+  },
+  "ava": {
+    "files": [
+      "test/**/test-*"
+    ],
+    "concurrency": 12,
+    "failFast": false,
+    "failWithoutAssertions": true,
+    "verbose": true,
+    "require": [
+      "esm",
+      "@agoric/install-ses"
+    ],
+    "nodeArguments": [
+      "--trace-deprecation",
+      "--napi-modules"
+    ]
   },
   "keywords": [],
   "repository": {

@@ -1,30 +1,29 @@
+// @ts-check
+import '@agoric/zoe/exported';
+
 import { assert, details, q } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
-import { makeZoeHelpers } from '@agoric/zoe/src/contractSupport';
+import { trade } from '@agoric/zoe/src/contractSupport';
 import { makeEmptyOfferWithResult } from './make-empty';
 
 // burn(zcf, o, { Scones: sconeMath.make(4) })
 /**
  * @param {ContractFacet} zcf
- * @param {any} fromOffer
+ * @param {ZCFSeat} fromSeat
  * @param {{ Scones: any; }} what
  */
-export async function burn(zcf, fromOffer, what) {
-  assert(zcf.isOfferActive(fromOffer), "An active offer is required");
-  const { trade } = makeZoeHelpers(zcf);
-  const resultRecord = await makeEmptyOfferWithResult(zcf);
-  // AWAIT
-  const burnOffer = await resultRecord.offerHandle;
-  // AWAIT
+export async function burn(zcf, fromSeat, what) {
+  assert(!fromSeat.hasExited(), "An active offer is required");
+  const { zcfSeat: burnSeat } = zcf.makeEmptySeatKit();
 
-  trade(
-    { offerHandle: burnOffer, gains: what },
-    { offerHandle: fromOffer, gains: {} },
+  trade(zcf, 
+    { seat: burnSeat, gains: what },
+    { seat: fromSeat, gains: {} },
   );
-  zcf.complete([burnOffer]);
-  const payoutRecord = await resultRecord.payout;
-  // AWAIT
-
+  burnSeat.exit();
+  const payoutRecord = await burnSeat.getPayouts();
+// TODO this is just all wrong, since this shoudl use 
+// `burnLosses`.
   const burns = Object.values(payoutRecord).map(async payment => {
     const allegedBrand = await E(payment).getAllegedBrand();
     const issuer = zcf.getIssuerForBrand(allegedBrand); // TODO: requires a zoe addition
@@ -33,46 +32,97 @@ export async function burn(zcf, fromOffer, what) {
   return Promise.all(burns);
 }
 
+// Await all the properties of the `record`
+export async function whenAllProps(recordP) {
+  const record = await recordP;
+  const values = await Promise.all(Object.values(record));
+  var entries = Object.keys(record).map((e, i) => [e, values[i]]);
+  return Object.fromEntries(entries);
+}
+harden(whenAllProps);
+
 /**
  * @param {ContractFacet} zcf
- * @param {OfferHandle} recipientHandle
- * @param {import('@agoric/zoe').PaymentKeywordRecord} payments
+ * @param {ZCFSeat} recipientSeat
+ * @param {AmountKeywordRecord} amounts
+ * @param {PaymentPKeywordRecord} payments
  */
-export async function escrowAllTo(zcf, recipientHandle, amounts, payments) {
-  assert(zcf.isOfferActive(recipientHandle), "An active offer is required");
+export async function escrowAllTo(zcf, recipientSeat, amounts, payments) {
+  assert(!recipientSeat.hasExited(), "An active seat is required");
 
   // We will create a temporary offer to be able to escrow our payment
   // with Zoe.
-  const { trade } = makeZoeHelpers(zcf);
-  const invite = zcf.makeInvitation(_ => undefined, 'empty offer');
+  function onReceipt(seat) {
+    // we could assert that `amounts` arrived but Zoe checks that
+    // const { give } = seat.getProposal();
+    // When the assets arrive, move them onto the target seat and 
+    // exit
+    trade(zcf,
+      { seat, gains: {} },
+      { seat: recipientSeat,
+        gains: amounts,
+      },
+    );
+    seat.exit();
+  }
+  const invitation = zcf.makeInvitation(onReceipt, 'escrowAllTo landing place');
   const proposal = harden({ give: amounts });
   harden(payments);
   // To escrow the payment, we must get the Zoe Service facet and
   // make an offer
   const zoe = zcf.getZoeService();
-  const resultRecord = await E(zoe).offer(invite, proposal, payments);
-  // AWAIT
-  const transferOffer = await resultRecord.offerHandle;
-  // AWAIT
+  const tempSeat = E(zoe).offer(invitation, proposal, payments);
+  // We aren't expecting anything back, so just return the outcome
+  // so the caller can wait till this completes
+  return E(tempSeat).getOfferResult();
+}
 
-  // At this point, the temporary offer has the amount from the
-  // payment but nothing else. The recipient offer may have any
-  // allocation, so we can't assume the allocation is currently empty for this
-  // keyword.
-  trade(
-    {
-      offerHandle: transferOffer,
-      gains: {},
-    },
-    {
-      offerHandle: recipientHandle,
-      gains: amounts,
-    },
+/**
+ * The `proposal` must use the same keywords as are present on the srcSeat.
+ * Otherwise there will be a `rights were not conserved for brand` error.
+ * 
+ * @param {ContractFacet} zcf
+ * @param {ERef<Invitation>} invitation
+ * @param {ZCFSeat} srcSeat
+ * @param {Proposal} proposal
+ * @param {ZCFSeat} toSeat
+ * @returns {Promise<Omit<UserSeat, "getPayouts" | "getPayout">>}
+ */
+export async function offerTo(zcf, invitation, srcSeat, proposal, toSeat) {
+  assert(!srcSeat.hasExited(), "An active seat is required");
+  const zoe = zcf.getZoeService();
+  // Synchronously pull the assets off the source onto a temporary seat
+  const { zcfSeat, userSeat } = zcf.makeEmptySeatKit();
+  trade(zcf,
+    { seat: srcSeat, gains: {} },
+    { seat: zcfSeat, gains: proposal.give || {} },
   );
+  zcfSeat.exit();
+  // extract the assets to Payments and make the offer
+  const extracts = E(userSeat).getPayouts();
+  const payments = await whenAllProps(extracts);
+  const offerSeat = await E(zoe).offer(invitation, proposal, payments);
 
-  // Complete the temporary offerHandle
-  zcf.complete([transferOffer]);
+  // When the payouts are available, add them to the toSeat
+  // but don't wait for that
+  await E(offerSeat).getPayouts().then(async payouts => {
+    const amounts = await E(offerSeat).getCurrentAllocation();
+    const offerPayouts = await whenAllProps(payouts);
+    return escrowAllTo(zcf, toSeat, amounts, offerPayouts);
+  });
+  // TODO add `isComplete` to the return type
+  // TODO this should not expose the payouts directly
+  return offerSeat;
+}
 
-  // Now, the temporary offer no longer exists, but the recipient
-  // offer is allocated the value of the payment.
+/**
+ * @param {ContractFacet} zcf
+ * @param {ZCFMint} zcfMint
+ * @param {Amount} amount
+ */
+export async function paymentFromZCFMint(zcf, zcfMint, amount) {
+  const { zcfSeat, userSeat } = zcf.makeEmptySeatKit();
+  zcfMint.mintGains({ Temp: amount }, zcfSeat);
+  zcfSeat.exit();
+  return E(userSeat).getPayout('Temp');
 }

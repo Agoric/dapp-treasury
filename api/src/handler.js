@@ -1,6 +1,6 @@
 import harden from '@agoric/harden';
 
-export default harden(({ registry, publicAPI }, _inviteMaker) => {
+export default harden(({ registry, publicAPI }, _invitationMaker) => {
    
   const cacheOfPromiseForValue = new Map();
   const getFromRegistry = registryKey => {

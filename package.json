@@ -10,11 +10,12 @@
     "_agstate/agoric-servers"
   ],
   "devDependencies": {
-    "@agoric/install-ses": "^0.1.0",
+    "@agoric/install-ses": "*",
+    "ses": "^0.10.1",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-config-jessie": "^0.0.4",
+    "eslint-config-jessie": "^0.0.6",
     "eslint-config-prettier": "^6.9.0",
     "eslint-plugin-import": "^2.20.0",
     "eslint-plugin-jsx-a11y": "^6.2.3",
@@ -33,8 +34,8 @@
   },
   "dependencies": {
     "@agoric/babel-parser": "^7.6.4",
-    "agoric": "^0.4.0",
-    "@agoric/notifier": "0.0.1",
+    "agoric": "*",
+    "@agoric/notifier": "*",
     "babel-eslint": ">=11.0.0-beta.2",
     "eslint-plugin-eslint-comments": "^3.1.2"
   }

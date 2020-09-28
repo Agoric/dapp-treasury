@@ -1,71 +1,89 @@
-// I run in a vat
+// @ts-check
+import '@agoric/zoe/src/types';
+
+import { makeIssuerKit } from '@agoric/ertp';
 
 import { assert, details, q } from '@agoric/assert';
-import produceIssuer from '@agoric/ertp';
-import { makeZoeHelpers } from '@agoric/zoe/src/contractSupport';
+import { E } from '@agoric/eventual-send';
 import { makeVault } from '../src/vault';
-import { makeEmptyOfferWithResult as makeEmptyOfferWithResult } from '../src/make-empty';
+import { escrowAllTo, paymentFromZCFMint } from '../src/burn';
 
-export async function makeContract(zcf) {
-  console.log(`makeContract invoked`);
+/**
+ * 
+ * @param {ContractFacet} zcf
+ *
+ */
+export async function start(zcf) {
+  console.log(`contract started`);
 
-  const { escrowAndAllocateTo } = makeZoeHelpers(zcf);
-  const collateralKit = produceIssuer('collateral');
+  const collateralKit = makeIssuerKit('Collateral');
   const { mint: collateralMint, amountMath: collateralMath, brand: collateralBrand } = collateralKit;
+  await zcf.saveIssuer(collateralKit.issuer, 'Collateral'); // todo: CollateralETH, etc
 
-  const sconeKit = produceIssuer('scone');
-  const { mint: sconeMint, issuer: sconeIssuer, amountMath: sconeMath, brand: sconeBrand } = sconeKit;
+  // const collateralKit = await zcf.makeZCFMint('Collateral');
+  // const { amountMath: collateralMath, brand: collateralBrand } = collateralKit.getIssuerRecord();
+
+  const sconeKit = await zcf.makeZCFMint('Scones');
+  const { issuer: sconeIssuer, amountMath: sconeMath, brand: sconeBrand } = sconeKit.getIssuerRecord();
   const sconeDebt = sconeMath.make(10);
-  await zcf.addNewIssuer(sconeIssuer, 'Scones');
-  await zcf.addNewIssuer(collateralKit.issuer, 'Collateral'); // todo: CollateralETH, etc
 
-  async function makeHook(offerHandle) {
-    console.log(`makeHook invoked`, offerHandle);
-    //    const collateralHoldingOffer = (await makeEmptyOfferWithResult(zcf)).offerHandle;
-    const collateralResult = await makeEmptyOfferWithResult(zcf);
-    const collateralHoldingOffer = await collateralResult.offerHandle;
-    console.log(`-- collateralHoldingOffer is`, collateralHoldingOffer);
+  const { zcfSeat: collateralSeat, userSeat: liqSeat } = zcf.makeEmptySeatKit();
+
+  const autoswapMock = {
+    getInputPrice(amountIn, brandOut) {
+      assert.equal(brandOut, sconeBrand);
+      return sconeMath.make(4 * amountIn.value);
+    },
+  };
+  const managerMock = {
+    getLiquidationMargin() { return 1.2; },
+    getInitialMargin() { return 1.5; },
+    collateralMath,
+    collateralBrand,
+  };
+  const {
+    vault,
+    liquidate,
+    checkMargin,
+  } = makeVault(zcf, managerMock, collateralSeat, sconeDebt, sconeKit, autoswapMock);
+
+  zcf.setTestJig(() => ({ collateralKit, sconeKit, vault }));
+
+  async function makeHook(seat) {
+    console.log(`makeHook invoked`, seat);
+    // console.log(`-- collateralHoldingOffer is`, collateralSeat);
     const initialCollateralAmount = collateralMath.make(5);
-    await escrowAndAllocateTo({
-      amount: initialCollateralAmount,
-      payment: collateralMint.mintPayment(initialCollateralAmount),
-      keyword: 'Collateral',
-      recipientHandle: collateralHoldingOffer,
-    });
+    await escrowAllTo(zcf, collateralSeat,
+      { Collateral: initialCollateralAmount },
+      { Collateral: collateralMint.mintPayment(initialCollateralAmount) });
 
-    const autoswapMock = {
-      getCurrentPrice(amountIn, brandOut) {
-        assert.equal(brandOut, sconeBrand);
-        return sconeMath.make(4 * amountIn.extent); 
-      },
-    };
-    const managerMock = {
-      getLiquidationMargin() { return 1.2; },
-      getInitialMargin() { return 1.5; },
-      collateralMath,
-      collateralBrand,
-    };
-    const {
-      vault,
-      liquidate,
-      checkMargin,
-    } = makeVault(zcf, managerMock, collateralHoldingOffer, sconeDebt, sconeKit, autoswapMock);
-
-    zcf.complete([offerHandle]);
+    seat.exit();
 
     return {
       vault,
-      liquidationPayout: collateralResult.payout,
+      liquidationPayout: E(liqSeat).getPayout('Collateral'),
       sconeKit,
       collateralKit,
-      liquidate,
-      checkMargin,
-      go() { console.log('go'); },
-      add() { vault.makeAddCollateralInvite(); },
+      actions: {
+        liquidate,
+        checkMargin,
+        add() { return vault.makeAddCollateralInvitation(); },
+      },
     };
   }
 
   console.log(`makeContract returning`);
-  return zcf.makeInvitation(makeHook, 'foo');
+
+  const vaultAPI = harden({
+    liquidate,
+    checkMargin,
+    makeAddCollateralInvitation() { return vault.makeAddCollateralInvitation(); },
+    mintScones(amount) {
+      return paymentFromZCFMint(zcf, sconeKit, amount)
+    },
+  });
+
+  const testInvitation = zcf.makeInvitation(makeHook, 'foo');
+  return harden({ creatorInvitation: testInvitation, creatorFacet: vaultAPI });
 }
 

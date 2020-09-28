@@ -1,176 +1,155 @@
 // @ts-check
+import '@agoric/zoe/exported';
+import '@agoric/zoe/src/contracts/exported';
 // The StableCoinMachine owns a number of VaultManagers, and a mint for the
 // "Scone" stablecoin.
+
 
 import { E } from '@agoric/eventual-send';
 import { assert, details, q } from '@agoric/assert';
 import makeStore from '@agoric/store';
-import produceIssuer from '@agoric/ertp';
-import { makeZoeHelpers } from '@agoric/zoe/src/contractSupport';
+import { makeTracer } from '../src/makeTracer';
+
+import {makeIssuerKit} from '@agoric/ertp';
+import { trade, assertProposalShape } from '@agoric/zoe/src/contractSupport';
 import { makeVaultManager } from './vaultManager';
 import { makeEmptyOfferWithResult } from './make-empty';
-
-
-/** 
- * @typedef {import('@agoric/zoe/src/contracts/multipoolAutoswap')} Autoswap
- */
+import { offerTo } from './burn';
 
  /*
  * @param { Zoe } zoe
  * @param {string} sourceRoot
  */
-async function installRoot(zoe, sourceRoot) {
-  const contractBundle = await bundleSource(require.resolve(sourceRoot));
-  return E(zoe).install(contractBundle);
-}
-let debugCount = 1;
-function debugTick(msg = '') {
-  console.log('SC ', debugCount++, msg);
-}
+
+const trace = makeTracer("ST");
+
 /**
- * @param {ContractFacet} zcf
+ * @type {ContractStartFn}
  */
-export async function makeContract(zcf) {
+export async function start(zcf) {
+  const {
+    autoswapInstall,
+  } = zcf.getTerms();
 
-  const { trade, checkHook, escrowAndAllocateTo } = makeZoeHelpers(zcf);
+  trace("terms", autoswapInstall);
 
-  const sconeKit = produceIssuer('scone');
-  const { mint: sconeMint, issuer: sconeIssuer, amountMath: sconeMath } = sconeKit;
-  const govKit = produceIssuer('governance');
-  const { mint: govMint, issuer: govIssuer, amountMath: govMath } = govKit;
-  await Promise.all([zcf.addNewIssuer(sconeIssuer, "Scones"),
-                     zcf.addNewIssuer(govIssuer, "Governance")]);
+  const [sconeMint, govMint] = await Promise.all([
+        zcf.makeZCFMint('Scones'), 
+        zcf.makeZCFMint('Governance')]);
+  const { issuer: sconeIssuer, amountMath: sconeMath, brand: sconeBrand } = sconeMint.getIssuerRecord();
+  const { issuer: govIssuer, amountMath: govMath, brand: govBrand } = govMint.getIssuerRecord();
 
   // TODO sinclair+us: is there a scm/gov token per collateralType (joe says yes), or just one?
   const collateralTypes = makeStore(); // Issuer -> xxx
-
-  const {
-    publicAPI,
-    terms: { autoswapInstall },
-  } = zcf.getInstanceRecord();
 
   const zoe = zcf.getZoeService();
   
   // we assume the multipool-autoswap is public, so folks can buy/sell
   // through it without our involvement
-  const { 
-    instanceRecord: { publicAPI: autoswapAPI, handle },
-  } = await E(zoe).makeInstance(autoswapInstall, { CentralToken: sconeIssuer });
-  // console.log("SC:  ", autoswapAPI);
-  
+  // Should it use creatorFacet, creatorInvitation, instance?
+  /** @type {{ publicFacet: MultipoolAutoswap}} */
+  const { publicFacet: autoswapAPI } = await E(zoe).startInstance(autoswapInstall, { Central: sconeIssuer });
+  trace("autoswap", autoswapAPI);
+
   // We process only one offer per collateralType. They must tell us the
   // dollar value of their collateral, and we create that make Scones.
   // collateralKeyword = 'aEth'
-  async function makeAddTypeInvite(collateralIssuer, collateralKeyword, rate) {
+  async function makeAddTypeInvitation(collateralIssuer, collateralKeyword, rate) {
     // TODO add to the issuer in the same turn
     assert(!collateralTypes.has(collateralIssuer));
-    await zcf.addNewIssuer(collateralIssuer, collateralKeyword);
-    const collateralBrand = await collateralIssuer.getBrand();
-    
-    async function addTypeHook(offerHandle) {
+    await zcf.saveIssuer(collateralIssuer, collateralKeyword);
+    const collateralBrand = zcf.getBrandForIssuer(collateralIssuer);
+    trace("collateralBrand", collateralBrand);
 
+    async function addTypeHook(seat) {
+      assertProposalShape(seat, {
+        give: { Collateral: null },
+        want: { Governance: null },
+      });
       const {
-        proposal: {
-          give: { Collateral: collateralIn },
-          want: { Governance: govOut }, // ownership of the whole stablecoin machine
-        },
-      } = zcf.getOffer(offerHandle);
+        give: { Collateral: collateralIn },
+        want: { Governance: govOut }, // ownership of the whole stablecoin machine
+      } = seat.getProposal();
       assert(!collateralTypes.has(collateralIssuer));
       //TODO assert that the collateralIn is of the right brand
-      debugTick();
-      const sconesAmount = sconeMath.make(rate * collateralIn.extent);
-      const govAmount = govMath.make(sconesAmount.extent); //TODO what's the right amount?
+      trace("add collateral", collateralIn);
+      const sconesAmount = sconeMath.make(rate * collateralIn.value);
+      const govAmount = govMath.make(sconesAmount.value); //TODO what's the right amount?
+      trace("math", sconesAmount);
 
       // Create new governance tokens, trade with the incoming offer to 
       // provide them in exchange for the collateral
-      const govOfferKit = await makeEmptyOfferWithResult(zcf);
-      const govOffer = await govOfferKit.offerHandle;
-      console.log(`-- govHoldingOffer is`, govOffer);
-      await escrowAndAllocateTo({
-        amount: govAmount,
-        payment: govMint.mintPayment(govAmount),
-        keyword: 'Governance',
-        recipientHandle: govOffer,
-      });
-      trade(
-        {
-          offerHandle: offerHandle,
+      const { zcfSeat: govSeat } = zcf.makeEmptySeatKit();
+      // TODO this should create the seat for us
+      govMint.mintGains({ Governance: govAmount }, govSeat);
+      trace("mint governance", govAmount);
+
+      // trade the governance tokens for collateral, putting the 
+      // collateral on Secondary to be positioned for Autoswap
+      trade(zcf, 
+        { seat,
           gains: { Governance: govAmount },
+          losses: { Collateral: collateralIn },
         },
-        {
-          offerHandle: govOffer,
-          gains: { Collateral: collateralIn },
+        { seat: govSeat,
+          gains: { Secondary: collateralIn },
         },
       );
-      zcf.complete([offerHandle, govOffer]);
-      const govPayout = await govOfferKit.payout;
-      const collateralPayment= await govPayout.Collateral;
-      debugTick();
+      // the collateral is now on the temporary seat
+      // govSeat.exit();
+      trace("traded");
 
       // once we've done that, we can put both the collateral and the minted
       // scones into the autoswap, giving us liquidity tokens, which we store
 
+      // mint the new scones to teh Central position on the govSet
+      // so we can setup the autoswap pool
+      sconeMint.mintGains({ Central: sconesAmount }, govSeat);
+      trace("prepped");
+
       // TODO: check for existing pool, use it's price instead of the
       // user-provided 'rate'. Or throw an error if it already exists.
-      // const collateralBrand = await collateralIn
-      const {
-        tokenIssuer,
-        tokenBrand,
-        liquidityIssuer,
-        liquidityBrand,
-        tokenKeyword,
-        liquidityKeyword,
-      } = await E(autoswapAPI).addPool(collateralIssuer, collateralKeyword);
-      const liquidityMath = await zcf.getAmountMath(liquidityBrand);
-      const liquidity = liquidityMath.make;
-      debugTick();
+      // `addPool` should combine initial liquidity with pool setup
 
-      // mint the new scones
-      const sconesPayment = sconeMint.mintPayment(sconesAmount);
+      const liquidityIssuer = await E(autoswapAPI).addPool(collateralIssuer, collateralKeyword);
+      const { brand: liquidityBrand, amountMath: liquidityMath} 
+        = await zcf.saveIssuer(liquidityIssuer, `${collateralKeyword}_Liquidity`);
+      trace("pool setup", liquidityMath);
 
       // inject both the collateral and the scones into the new autoswap, to
       // provide the initial liquidity pool
+      // TODO I'm here in the conversion
       const liqProposal = harden({
-        give: { SecondaryToken: collateralIn, CentralToken: sconesAmount },
+        give: { Secondary: collateralIn, Central: sconesAmount },
         want: { Liquidity: liquidityMath.getEmpty() },
       });
-      const liqPayments = {
-        SecondaryToken: collateralPayment,
-        CentralToken: sconesPayment,
-      };
-      const {
-        outcome: liquidityOkP,
-        payout: liquidityPayoutP,
-      } = await zoe.offer(E(autoswapAPI).makeAddLiquidityInvite(), liqProposal, liqPayments);
-      debugTick();
+      const liqInvitation = E(autoswapAPI).makeAddLiquidityInvitation();
+      trace("liq prep", liqInvitation, liqProposal);
+      const poolSeat = await offerTo(zcf, liqInvitation, govSeat, liqProposal, govSeat);
+      // isComplete: () => done
+      trace("liquidity setup");
 
-      // const { payout: salesPayoutP } = await E(zoe).offer(swapInvite, saleOffer, payout2);
+      // const { payout: salesPayoutP } = await E(zoe).offer(swapInvitation, saleOffer, payout2);
       // const { Scones: sconeProceeds, ...otherProceeds } = await salesPayoutP;
 
       // do something with the liquidity we just bought
-      const vm = makeVaultManager(zcf, autoswapAPI, sconeKit, collateralBrand);
+      const vm = makeVaultManager(zcf, autoswapAPI, sconeMint, collateralBrand);
       // TODO add vm to table of vault manager
       return vm;
     }
 
-    const expected = harden({
-      give: { Collateral: null },
-      want: { Governance: null },
-    });
-    return zcf.makeInvitation(checkHook(addTypeHook, expected), 'add a new kind of collateral to the machine');
+    return zcf.makeInvitation(addTypeHook, 'add a new kind of collateral to the machine');
   }
 
-  function recapitalizeHook(offerHandle) {
+  function recapitalizeHook(seat) {
     const {
-      proposal: {
-        give: { Collateral: collateralIn },
-        want: { Governance: govOut }, // ownership of the whole stablecoin machine
-      },
-    } = zcf.getOffer(offerHandle);
+      give: { Collateral: collateralIn },
+      want: { Governance: govOut }, // ownership of the whole stablecoin machine
+    } = seat.getProposal();
     assert(collateralTypes.has(collateralIn.ISSUER));
 
   }
-  function makeRecapitalizeInvite() {
+  function makeRecapitalizeInvitation() {
   }
   // this overarching SCM holds ownershipTokens in the individual per-type
   // vaultManagers
@@ -188,14 +167,17 @@ export async function makeContract(zcf) {
   // govTokens entitle you to distributions, but you can't redeem them
   // outright, that would drain the utility form the economy
 
-  const stablecoinMachine = harden({
-    makeAddTypeInvite,
-    stablecoinIssuer: sconeIssuer,
-    governanceIssuer: govIssuer,
-    autoswap: autoswapAPI,
-    // for status/debugging
-  });
 
-  return zcf.makeInvitation(handle => stablecoinMachine, 'stablecoin admin');
+  zcf.setTestJig(() => ({
+    stablecoin: sconeMint.getIssuerRecord(),
+    governance: govMint.getIssuerRecord(),
+    autoswap: autoswapAPI,
+  }));
+  
+  /** @type {StablecoinMachine} */
+  const stablecoinMachine = harden({
+    makeAddTypeInvitation,
+  });
+return harden({ creatorFacet: stablecoinMachine });
 }
 

@@ -1,0 +1,102 @@
+contract started
+contract started
+makeContract returning
+makeContract returning
+makeHook invoked Object <[Object: null prototype] {}> {
+  exit: [36m[Function: exit] Function <Function <[Object: null prototype] {}>>[39m,
+  kickOut: [36m[Function: kickOut] Function <Function <[Object: null prototype] {}>>[39m,
+  getNotifier: [36m[Function: getNotifier] Function <Function <[Object: null prototype] {}>>[39m,
+  hasExited: [36m[Function: hasExited] Function <Function <[Object: null prototype] {}>>[39m,
+  getProposal: [36m[Function: getProposal] Function <Function <[Object: null prototype] {}>>[39m,
+  getAmountAllocated: [36m[Function: getAmountAllocated] Function <Function <[Object: null prototype] {}>>[39m,
+  getCurrentAllocation: [36m[Function: getCurrentAllocation] Function <Function <[Object: null prototype] {}>>[39m,
+  isOfferSafe: [36m[Function: isOfferSafe] Function <Function <[Object: null prototype] {}>>[39m,
+  stage: [36m[Function: stage] Function <Function <[Object: null prototype] {}>>[39m
+}
+makeHook invoked Object <[Object: null prototype] {}> {
+  exit: [36m[Function: exit] Function <Function <[Object: null prototype] {}>>[39m,
+  kickOut: [36m[Function: kickOut] Function <Function <[Object: null prototype] {}>>[39m,
+  getNotifier: [36m[Function: getNotifier] Function <Function <[Object: null prototype] {}>>[39m,
+  hasExited: [36m[Function: hasExited] Function <Function <[Object: null prototype] {}>>[39m,
+  getProposal: [36m[Function: getProposal] Function <Function <[Object: null prototype] {}>>[39m,
+  getAmountAllocated: [36m[Function: getAmountAllocated] Function <Function <[Object: null prototype] {}>>[39m,
+  getCurrentAllocation: [36m[Function: getCurrentAllocation] Function <Function <[Object: null prototype] {}>>[39m,
+  isOfferSafe: [36m[Function: isOfferSafe] Function <Function <[Object: null prototype] {}>>[39m,
+  stage: [36m[Function: stage] Function <Function <[Object: null prototype] {}>>[39m
+}
+contract started
+contract started
+makeContract returning
+makeContract returning
+makeHook invoked Object <[Object: null prototype] {}> {
+  exit: [36m[Function: exit] Function <Function <[Object: null prototype] {}>>[39m,
+  kickOut: [36m[Function: kickOut] Function <Function <[Object: null prototype] {}>>[39m,
+  getNotifier: [36m[Function: getNotifier] Function <Function <[Object: null prototype] {}>>[39m,
+  hasExited: [36m[Function: hasExited] Function <Function <[Object: null prototype] {}>>[39m,
+  getProposal: [36m[Function: getProposal] Function <Function <[Object: null prototype] {}>>[39m,
+  getAmountAllocated: [36m[Function: getAmountAllocated] Function <Function <[Object: null prototype] {}>>[39m,
+  getCurrentAllocation: [36m[Function: getCurrentAllocation] Function <Function <[Object: null prototype] {}>>[39m,
+  isOfferSafe: [36m[Function: isOfferSafe] Function <Function <[Object: null prototype] {}>>[39m,
+  stage: [36m[Function: stage] Function <Function <[Object: null prototype] {}>>[39m
+}
+makeHook invoked Object <[Object: null prototype] {}> {
+  exit: [36m[Function: exit] Function <Function <[Object: null prototype] {}>>[39m,
+  kickOut: [36m[Function: kickOut] Function <Function <[Object: null prototype] {}>>[39m,
+  getNotifier: [36m[Function: getNotifier] Function <Function <[Object: null prototype] {}>>[39m,
+  hasExited: [36m[Function: hasExited] Function <Function <[Object: null prototype] {}>>[39m,
+  getProposal: [36m[Function: getProposal] Function <Function <[Object: null prototype] {}>>[39m,
+  getAmountAllocated: [36m[Function: getAmountAllocated] Function <Function <[Object: null prototype] {}>>[39m,
+  getCurrentAllocation: [36m[Function: getCurrentAllocation] Function <Function <[Object: null prototype] {}>>[39m,
+  isOfferSafe: [36m[Function: isOfferSafe] Function <Function <[Object: null prototype] {}>>[39m,
+  stage: [36m[Function: stage] Function <Function <[Object: null prototype] {}>>[39m
+}
+LOGGED ERROR: payment not found for Collateral [Error <Object <[Object: null prototype] {}>>: payment not found for (a string)
+See console for error data.
+  at Object.complain (/bundled-source/mnt/c/dev/git/agoric-sdk/packages/assert/src/assert.js:162:19)
+  at fail (/bundled-source/mnt/c/dev/git/agoric-sdk/packages/assert/src/assert.js:189:20)
+  at Object.assert (/bundled-source/mnt/c/dev/git/agoric-sdk/packages/assert/src/assert.js:199:11)
+  at assertKnownPayment (/bundled-source/mnt/c/dev/git/agoric-sdk/packages/ERTP/src/issuer.js:39:12)
+  at Alleged: Collateral purse.deposit (/bundled-source/mnt/c/dev/git/agoric-sdk/packages/ERTP/src/issuer.js:74:9)
+  at /mnt/c/dev/git/agoric-sdk/packages/eventual-send/src/index.js:366:23
+  at Object.applyMethod (/mnt/c/dev/git/agoric-sdk/packages/eventual-send/src/index.js:351:14)
+  at win (/mnt/c/dev/git/agoric-sdk/packages/eventual-send/src/index.js:383:52)
+  at /mnt/c/dev/git/agoric-sdk/packages/eventual-send/src/index.js:400:20]
+yup, it was rejected
+contract started
+contract started
+makeContract returning
+makeContract returning
+makeHook invoked Object <[Object: null prototype] {}> {
+  exit: [36m[Function: exit] Function <Function <[Object: null prototype] {}>>[39m,
+  kickOut: [36m[Function: kickOut] Function <Function <[Object: null prototype] {}>>[39m,
+  getNotifier: [36m[Function: getNotifier] Function <Function <[Object: null prototype] {}>>[39m,
+  hasExited: [36m[Function: hasExited] Function <Function <[Object: null prototype] {}>>[39m,
+  getProposal: [36m[Function: getProposal] Function <Function <[Object: null prototype] {}>>[39m,
+  getAmountAllocated: [36m[Function: getAmountAllocated] Function <Function <[Object: null prototype] {}>>[39m,
+  getCurrentAllocation: [36m[Function: getCurrentAllocation] Function <Function <[Object: null prototype] {}>>[39m,
+  isOfferSafe: [36m[Function: isOfferSafe] Function <Function <[Object: null prototype] {}>>[39m,
+  stage: [36m[Function: stage] Function <Function <[Object: null prototype] {}>>[39m
+}
+makeHook invoked Object <[Object: null prototype] {}> {
+  exit: [36m[Function: exit] Function <Function <[Object: null prototype] {}>>[39m,
+  kickOut: [36m[Function: kickOut] Function <Function <[Object: null prototype] {}>>[39m,
+  getNotifier: [36m[Function: getNotifier] Function <Function <[Object: null prototype] {}>>[39m,
+  hasExited: [36m[Function: hasExited] Function <Function <[Object: null prototype] {}>>[39m,
+  getProposal: [36m[Function: getProposal] Function <Function <[Object: null prototype] {}>>[39m,
+  getAmountAllocated: [36m[Function: getAmountAllocated] Function <Function <[Object: null prototype] {}>>[39m,
+  getCurrentAllocation: [36m[Function: getCurrentAllocation] Function <Function <[Object: null prototype] {}>>[39m,
+  isOfferSafe: [36m[Function: isOfferSafe] Function <Function <[Object: null prototype] {}>>[39m,
+  stage: [36m[Function: stage] Function <Function <[Object: null prototype] {}>>[39m
+}
+LOGGED ERROR: payment not found for Collateral [Error <Object <[Object: null prototype] {}>>: payment not found for (a string)
+See console for error data.
+  at Object.complain (/bundled-source/mnt/c/dev/git/agoric-sdk/packages/assert/src/assert.js:162:19)
+  at fail (/bundled-source/mnt/c/dev/git/agoric-sdk/packages/assert/src/assert.js:189:20)
+  at Object.assert (/bundled-source/mnt/c/dev/git/agoric-sdk/packages/assert/src/assert.js:199:11)
+  at assertKnownPayment (/bundled-source/mnt/c/dev/git/agoric-sdk/packages/ERTP/src/issuer.js:39:12)
+  at Alleged: Collateral purse.deposit (/bundled-source/mnt/c/dev/git/agoric-sdk/packages/ERTP/src/issuer.js:74:9)
+  at /mnt/c/dev/git/agoric-sdk/packages/eventual-send/src/index.js:366:23
+  at Object.applyMethod (/mnt/c/dev/git/agoric-sdk/packages/eventual-send/src/index.js:351:14)
+  at win (/mnt/c/dev/git/agoric-sdk/packages/eventual-send/src/index.js:383:52)
+  at /mnt/c/dev/git/agoric-sdk/packages/eventual-send/src/index.js:400:20]
+yup, it was rejected

@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x, 13.x]
+        node-version: [12.x, 14.x]
     steps:
     - name: Checkout dapp-encouragement
       uses: actions/checkout@v2
@@ -40,7 +40,7 @@ jobs:
         repository: Agoric/agoric-sdk
         path: agoric-sdk
         ref: ${{steps.get-branch.outputs.result}}
-  
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:

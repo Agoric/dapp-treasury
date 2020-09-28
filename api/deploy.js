@@ -75,8 +75,8 @@ export default async function deployApi(referencesPromise, { bundleSource, pathR
   // Second, we can use the installationHandle to create a new
   // instance of our contract code on Zoe. A contract instance is a running
   // program that can take offers through Zoe. Creating a contract
-  // instance gives you an invite to the contract. In this case, it is
-  // an invite to add liquidity to the liquidity pool.
+  // instance gives you an invitation to the contract. In this case, it is
+  // an invitation to add liquidity to the liquidity pool.
 
   // At the time that we make the contract instance, we need to tell
   // Zoe what kind of token to accept as the two liquidity tokens. In
@@ -110,13 +110,13 @@ export default async function deployApi(referencesPromise, { bundleSource, pathR
   const simoleanAmountMath = await getLocalAmountMath(simoleanIssuer);
 
   const issuerKeywordRecord = { TokenA: moolaIssuer, TokenB: simoleanIssuer };
-  const { invite: addLiquidityInvite, instanceRecord: { publicAPI, handle: instanceHandle } } = await E(zoe).makeInstance(autoswapContractInstallationHandle, issuerKeywordRecord);
+  const { invitation: addLiquidityInvitation, instanceRecord: { publicAPI, handle: instanceHandle } } = await E(zoe).makeInstance(autoswapContractInstallationHandle, issuerKeywordRecord);
   console.log('- SUCCESS! contract instance is running on Zoe');
 
   const liquidityIssuer = await E(publicAPI).getLiquidityIssuer();
   const liquidityAmountMath = await getLocalAmountMath(liquidityIssuer);
 
-  // Let's add liquidity using our wallet and the addLiquidityInvite
+  // Let's add liquidity using our wallet and the addLiquidityInvitation
   // we have.
   const proposal = {
     give: {
@@ -141,12 +141,12 @@ export default async function deployApi(referencesPromise, { bundleSource, pathR
     TokenA: moolaPayment,
     TokenB: simoleanPayment,
   };
-  const { outcome, payout } = await E(zoe).offer(addLiquidityInvite, proposal, payments);
+  const { outcome, payout } = await E(zoe).offer(addLiquidityInvitation, proposal, payments);
   console.log(await outcome);
 
   // Now that we've done all the admin work, let's share this
   // instanceHandle by adding it to the registry. Any users of our
-  // contract will use this instanceHandle to get invites to the
+  // contract will use this instanceHandle to get invitations to the
   // contract in order to make an offer.
   const INSTANCE_REG_KEY = await E(registry).register(`${dappConstants.CONTRACT_NAME}instance`, instanceHandle);
 

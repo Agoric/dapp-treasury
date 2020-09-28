@@ -1,15 +1,12 @@
 import { E } from '@agoric/eventual-send';
-/**
- * @typedef {import('@agoric/zoe').ContractFacet} ContractFacet
- */
 
 /**
  * @param { ContractFacet } zcf
  */
 export function makeEmptyOfferWithResult(zcf) {
-  const invite = zcf.makeInvitation(_ => undefined, 'empty offer');
+  const invitation = zcf.makeInvitation(_ => undefined, 'empty offer');
   const zoe = zcf.getZoeService();
-  return E(zoe).offer(invite);  // Promise<OfferResultRecord>, 
+  return E(zoe).offer(invitation);  // Promise<OfferResultRecord>, 
 }
 
 /**
@@ -18,28 +15,28 @@ export function makeEmptyOfferWithResult(zcf) {
    *
    * @param {{amount: Amount, keyword: Keyword, donorHandle: OfferHandle}} arg0
    */
-export async function unescrow({ amount, keyword, donorHandle }) {
-  const {
-    offerHandle: ourOfferHandleP,
-    payout: ourPayoutP,
-  } = await makeEmptyOfferWithResult(zcf);
+// export async function unescrow({ amount, keyword, donorHandle }) {
+//   const {
+//     offerHandle: ourOfferHandleP,
+//     payout: ourPayoutP,
+//   } = await makeEmptyOfferWithResult(zcf);
 
-  const ourOfferHandle = await ourOfferHandleP;
-  const originalAmount = zcf.getCurrentAllocation(donorHandle)[keyword];
+//   const ourOfferHandle = await ourOfferHandleP;
+//   const originalAmount = zcf.getCurrentAllocation(donorHandle)[keyword];
 
-  // Take the payment from the donor.
-  const remaining = zcf
-    .getAmountMath(amount.brand)
-    .subtract(originalAmount, amount);
-  zcf.reallocate(
-    [donorHandle, ourOfferHandle],
-    [{ [keyword]: remaining }, { [keyword]: amount }],
-  );
-  zcf.complete(harden([ourOfferHandle]));
+//   // Take the payment from the donor.
+//   const remaining = zcf
+//     .getAmountMath(amount.brand)
+//     .subtract(originalAmount, amount);
+//   zcf.reallocate(
+//     [donorHandle, ourOfferHandle],
+//     [{ [keyword]: remaining }, { [keyword]: amount }],
+//   );
+//   zcf.complete(harden([ourOfferHandle]));
 
-  // Wait for the payout to get the payment promise.
-  const { [keyword]: paymentP } = await ourPayoutP;
+//   // Wait for the payout to get the payment promise.
+//   const { [keyword]: paymentP } = await ourPayoutP;
 
-  // The caller can wait.
-  return paymentP;
-};
+//   // The caller can wait.
+//   return paymentP;
+// };

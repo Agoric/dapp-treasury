@@ -1,109 +1,153 @@
-/* global harden */
-//import '@agoric/install-ses';
-import tap from 'tap';
+// @ts-check
+import '@agoric/zoe/exported';
+
+import test from 'ava';
 import { E } from '@agoric/eventual-send';
+import { makeFakeVatAdmin } from '@agoric/zoe/test/unitTests/contracts/fakeVatAdmin';
+import { makeLoopback } from '@agoric/captp';
 import { makeZoe } from '@agoric/zoe';
 import bundleSource from '@agoric/bundle-source';
 
-import produceIssuer from '@agoric/ertp';
+import { makeIssuerKit } from '@agoric/ertp';
 import { makeVault } from '../src/vault';
 
 const vaultRoot = './vault-contract-wrapper.js';
+import { whenAllProps } from '../src/burn';
 
-async function launch(zoe, sourceRoot) {
+import { makeTracer } from '../src/makeTracer';
+const trace = makeTracer("TestVault");
+
+/**
+ * The properties will be asssigned by `setTestJig` in the contract.
+ *
+ * @typedef {Object} TestContext
+ * @property {ContractFacet} zcf
+ * @property {ZCFMint} sconeKit
+ * @property {IssuerKit} collateralKit
+ * @property {Vault} vault
+ */
+/*
+ * @type {TestContext}
+ */
+let testJig;
+const setJig = jig => { testJig = jig; };
+
+const { makeFar, makeNear: makeRemote } = makeLoopback("zoeTest");
+
+/** @type {ERef<ZoeService>} */
+const zoe = makeFar(makeZoe(makeFakeVatAdmin(setJig, makeRemote)));
+trace("makeZoe");
+
+/**
+ *
+ * @param {ERef<ZoeService>} zoeP
+ * @param {string} sourceRoot
+ *
+ */
+async function launch(zoeP, sourceRoot) {
   const contractBundle = await bundleSource(require.resolve(sourceRoot));
-  const installationHandle = await E(zoe).install(contractBundle);
-  const { invite: adminInvite } = await E(zoe).makeInstance(installationHandle);
-  return E(zoe).offer(adminInvite);
+  const installation = await E(zoeP).install(contractBundle);
+  const { creatorInvitation, creatorFacet, instance } = await E(zoeP).startInstance(installation);
+  return { creatorSeat: E(zoeP).offer(creatorInvitation), creatorFacet, instance };
 }
 
-tap.test('first', async t => {
-  const zoe = makeZoe();
-  const offerKit = await launch(zoe, vaultRoot);
+const helperContract = launch(zoe, vaultRoot);
+
+test('first', async t => {
+  const { creatorSeat, creatorFacet, instance } = await helperContract;
 
   // Our wrapper gives us a Vault which holds 5 Collateral, has lent out 10
   // Scones, which uses an autoswap that presents a fixed price of 4 Scones
   // per Collateral.
+  const {
+    liquidationPayout,
+  } = await E(creatorSeat).getOfferResult();
 
-  const { vault,
-      liquidationPayout,
-      liquidate,
-      sconeKit: { mint: sconeMint, amountMath: sconeMath },
-      collateralKit: {  mint: cMint, issuer: cIssuer, amountMath: cMath },
-    } = await offerKit.outcome;
-  t.ok(cMath.isEqual(vault.getCollateralAmount(), cMath.make(5)),
-       'vault holds 5 Collateral');
-  t.ok(sconeMath.isEqual(vault.getDebtAmount(), sconeMath.make(10)),
-       'vault lent 10 Scones');
+  const { sconeKit: sconeMint, collateralKit, vault } = testJig;
+
+  const { issuer: cIssuer, amountMath: cMath, mint: cMint } = collateralKit;
+  const { issuer: sconeIssuer, amountMath: sconeMath, brand: sconeBrand } = sconeMint.getIssuerRecord();
+
+  t.truthy(sconeMath.isEqual(vault.getDebtAmount(), sconeMath.make(10)),
+    'vault lent 10 Scones');
+  t.truthy(cMath.isEqual(vault.getCollateralAmount(), cMath.make(5)),
+    'vault holds 5 Collateral');
 
   // Add more collateral to an existing loan. We get nothing back but a warm
   // fuzzy feeling.
+  trace("vault starts correct", creatorFacet);
 
   const collateralAmount = cMath.make(2);
+  const invite = await E(creatorFacet).makeAddCollateralInvitation();
+  trace("invite collateral", invite);
   await E(zoe).offer(
-    vault.makeAddCollateralInvite(),
-    harden({ 
+    invite,
+    harden({
       give: { Collateral: collateralAmount },
-      want: { }, //Scones: sconeMath.make(2) },
+      want: {}, //Scones: sconeMath.make(2) },
     }),
     harden({
+      // TODO
       Collateral: cMint.mintPayment(collateralAmount),
     }));
-
-  t.ok(cMath.isEqual(vault.getCollateralAmount(), cMath.make(7)),
+  trace("addCollateral");
+  t.truthy(cMath.isEqual(vault.getCollateralAmount(), cMath.make(7)),
     'vault holds 7 Collateral');
+  trace("addCollateral");
 
   // partially payback
   const collateralWanted = cMath.make(1);
   const paybackAmount = sconeMath.make(3);
-  const { payout, outcome } = await E(zoe).offer(
-    vault.makePaybackInvite(),
+  const payback = await E(creatorFacet).mintScones(paybackAmount)
+  const paybackSeat = E(zoe).offer(
+    vault.makePaybackInvitation(),
     harden({
       give: { Scones: paybackAmount },
       want: { Collateral: collateralWanted },
     }),
-    harden({
-      Scones: sconeMint.mintPayment(paybackAmount),
-    }));
-  const message = await outcome;
-  t.equals(message, 'thank you for your payment');
+    harden({ Scones: payback }));
+  trace("payBack requested", paybackSeat);
+  const message = await E(paybackSeat).getOfferResult();;
+  trace("result retrieved", message);
+  t.is(message, 'thank you for your payment');
 
-  const { Collateral: returnedCollateral } = await payout;
+  trace("all payouts", await whenAllProps(E(paybackSeat).getPayouts()));
+  const returnedCollateral = await E(paybackSeat).getPayout("Collateral");
+  trace("returnedCollateral", returnedCollateral, cIssuer);
   const returnedAmount = await cIssuer.getAmountOf(returnedCollateral);
-  t.ok(sconeMath.isEqual(vault.getDebtAmount(), sconeMath.make(7)),
+  trace("returnedAmount", returnedAmount, cMath.make(1));
+  t.truthy(sconeMath.isEqual(vault.getDebtAmount(), sconeMath.make(7)),
     'debt reduced to 7 scones');
-  t.ok(cMath.isEqual(vault.getCollateralAmount(), cMath.make(6)),
+  t.truthy(cMath.isEqual(vault.getCollateralAmount(), cMath.make(6)),
     'vault holds 6 Collateral');
-  t.ok(cMath.isEqual(returnedAmount, cMath.make(1)),
+  t.truthy(cMath.isEqual(returnedAmount, cMath.make(1)),
     'withdrew 1 collateral');
-
-  //   makeCloseInvite
-  t.end();
+  // t.is(returnedAmount.value, 1, 'withdrew 1 collateral');
 });
 
-tap.test('bad collateral', async t => {
-  const zoe = makeZoe();
-  const offerKit = await launch(zoe, vaultRoot);
+test('bad collateral', async t => {
+  const { creatorSeat: offerKit, other } = await helperContract;
+
+  const { sconeKit: sconeMint, collateralKit, vault } = testJig;
 
   // Our wrapper gives us a Vault which holds 5 Collateral, has lent out 10
   // Scones, which uses an autoswap that presents a fixed price of 4 Scones
   // per Collateral.
+  await E(offerKit).getOfferResult();
+  const { amountMath: cMath, mint: cMint } = collateralKit;
+  const { amountMath: sconeMath } = sconeMint.getIssuerRecord();
 
-  const { vault,
-    sconeKit: { amountMath: sconeMath },
-    collateralKit: { mint: cMint, amountMath: cMath },
-  } = await offerKit.outcome;
-  t.ok(cMath.isEqual(vault.getCollateralAmount(), cMath.make(5)),
+  t.assert(cMath.isEqual(vault.getCollateralAmount(), cMath.make(5)),
     'vault holds 5 Collateral');
-  t.ok(sconeMath.isEqual(vault.getDebtAmount(), sconeMath.make(10)),
+  t.assert(sconeMath.isEqual(vault.getDebtAmount(), sconeMath.make(10)),
     'vault lent 10 Scones');
 
   const collateralAmount = cMath.make(2);
 
   // adding the wrong kind of collateral should be rejected
-  const wrongKit = produceIssuer('wrong');
+  const wrongKit = makeIssuerKit('wrong');
   const wrongAmount = wrongKit.amountMath.make(2);
-  const p = E(zoe).offer(vault.makeAddCollateralInvite(),
+  const p = E(zoe).offer(vault.makeAddCollateralInvitation(),
     harden({
       give: { Collateral: collateralAmount },
       want: {},
@@ -116,12 +160,10 @@ tap.test('bad collateral', async t => {
     t.fail('not rejected when it should have been');
   } catch (e) {
     console.log(`yup, it was rejected`);
-    t.ok(true, 'yay rejection');
+    t.truthy(true, 'yay rejection');
   }
   //p.then(_ => console.log('oops passed'),
   //       rej => console.log('reg', rej));
   //t.rejects(p, / /, 'addCollateral requires the right kind', {});
   //t.throws(async () => { await p; }, /payment not found for/);
-
-  t.end();
 });
