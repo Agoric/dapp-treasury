@@ -6,7 +6,7 @@ import test from 'ava';
 import { E } from '@agoric/eventual-send';
 import bundleSource from '@agoric/bundle-source';
 
-import { makeFakeVatAdmin } from '@agoric/zoe/test/unitTests/contracts/fakeVatAdmin';
+import { makeFakeVatAdmin } from '@agoric/zoe/src/contractFacet/fakeVatAdmin';
 import { makeLoopback } from '@agoric/captp';
 
 import { makeZoe } from '@agoric/zoe';
@@ -42,7 +42,7 @@ function makeRemote(arg) {
 }
 
 /** @type {ERef<ZoeService>} */
-const zoe = makeFar(makeZoe(makeFakeVatAdmin(setJig, makeRemote)));
+const zoe = makeFar(makeZoe(makeFakeVatAdmin(setJig, makeRemote).admin));
 trace("makeZoe");
 
 async function makeInstall(sourceRoot) {

@@ -3,7 +3,7 @@ import '@agoric/zoe/exported';
 
 import test from 'ava';
 import { E } from '@agoric/eventual-send';
-import { makeFakeVatAdmin } from '@agoric/zoe/test/unitTests/contracts/fakeVatAdmin';
+import { makeFakeVatAdmin } from '@agoric/zoe/src/contractFacet/fakeVatAdmin';
 import { makeLoopback } from '@agoric/captp';
 import { makeZoe } from '@agoric/zoe';
 import bundleSource from '@agoric/bundle-source';
@@ -35,7 +35,7 @@ const setJig = jig => { testJig = jig; };
 const { makeFar, makeNear: makeRemote } = makeLoopback("zoeTest");
 
 /** @type {ERef<ZoeService>} */
-const zoe = makeFar(makeZoe(makeFakeVatAdmin(setJig, makeRemote)));
+const zoe = makeFar(makeZoe(makeFakeVatAdmin(setJig, makeRemote).admin));
 trace("makeZoe");
 
 /**
