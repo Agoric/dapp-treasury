@@ -4,9 +4,11 @@ name: Lint and Test from Root
 # branches)
 
 on:
- push:
-   branches: [master]
- pull_request:
+  push:
+    branches: [master]
+  pull_request:
+  schedule:
+    - cron: "0 * * * *"
 
 jobs:
   build:
