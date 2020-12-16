@@ -2,17 +2,14 @@
 /**
  * @typedef  {Object} AutoswapLocal
  * @property {(amount: Amount, brand: Brand) => Amount} getInputPrice
- * @property {() => Invitation} makeSwapInvitation 
+ * @property {() => Invitation} makeSwapInvitation
  */
 
- // copied from @typedef {Object} AutoswapPublicFacet
- // TODO make it reuse the definition
- /**
+// copied from @typedef {Object} AutoswapPublicFacet
+// TODO make it reuse the definition
+/**
  * @typedef {Object} MultipoolAutoswap
  * @property {(secondaryIssuer: Issuer, keyword: Keyword) => Promise<Issuer>} addPool add a new autoswap pool
- * @property {(amount: Amount, brand: Brand) => Amount} getInputPrice
- * @property {(amount: Amount, brand: Brand) => Amount} getOutputPrice
- *
  * @property {() => Promise<Invitation>} makeSwapInvitation synonym for
  * makeSwapInInvitation
  * @property {() => Promise<Invitation>} makeSwapInInvitation make an invitation
@@ -41,10 +38,8 @@
 /**
  * @typedef  {Object} StablecoinMachine
  * @property {() => Invitation} makeAddTypeInvitation
-*/ 
+ */
 
 /**
  * @typedef { ReturnType<typeof import('../src/vault').makeVault>['vault']} Vault
- */ 
-
-
+ */

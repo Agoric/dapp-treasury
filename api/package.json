@@ -5,12 +5,15 @@
   "description": "dapp-autoswap Agoric Dapp web server handler",
   "scripts": {
     "build": "exit 0",
-    "test": "tape -r esm 'test/**/*.js'",
-    "lint": "eslint '**/*.{js,jsx}'",
-    "lint-fix": "eslint --fix '**/*.{js,jsx}'",
-    "lint-check": "echo disabling lint in api until files are lint compliant",
-    "lint-fix-jessie": "eslint -c '.eslintrc-jessie.js' --fix '**/*.{js,jsx}'",
-    "lint-check-jessie": "eslint -c '.eslintrc-jessie.js' '**/*.{js,jsx}'"
+    "test": "ava --verbose",
+    "test:nyc": "nyc ava",
+    "lint-fix": "yarn lint --fix",
+    "lint-check": "yarn lint",
+    "lint": "yarn lint:eslint",
+    "lint:eslint": "eslint '**/*.js'",
+    "lint:types": "tsc -p jsconfig.json",
+    "lint-fix-jessie": "eslint -c '.eslintrc-jessie.js' --fix '**/*.js'",
+    "lint-check-jessie": "eslint -c '.eslintrc-jessie.js' '**/*.js'"
   },
   "devDependencies": {
     "@agoric/install-ses": "*",
@@ -39,5 +42,9 @@
   "bugs": {
     "url": "https://github.com/Agoric/agoric/issues"
   },
-  "homepage": "https://github.com/Agoric/agoric#readme"
+  "homepage": "https://github.com/Agoric/agoric#readme",
+  "prettier": {
+    "trailingComma": "all",
+    "singleQuote": true
+  }
 }

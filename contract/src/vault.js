@@ -1,23 +1,20 @@
 // @ts-check
 import '@agoric/zoe/exported';
 
-import { assert, details, q } from '@agoric/assert';
+import { assert } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
 import { trade, assertProposalShape } from '@agoric/zoe/src/contractSupport';
-import { burn, escrowAllTo, offerTo, whenAllProps } from './burn';
-import { makeEmptyOfferWithResult } from './make-empty';
+import { burn, escrowAllTo, whenAllProps } from './burn';
 import { makeTracer } from './makeTracer';
 
 // a Vault is an individual loan, using some collateralType as the
 // collateral, and lending Scones to the borrower
 
-
-
 /**
  * @typedef {import('./vaultManager').InnerVaultManager} InnerVaultManager
-*/
+ */
 
- /**
+/**
  * @typedef {ReturnType<typeof import('./vaultManager').makeVaultManager>} VaultManager
  * @typedef {ReturnType<typeof makeVault>} Vault
  * @param {ContractFacet} zcf
@@ -27,23 +24,34 @@ import { makeTracer } from './makeTracer';
  * @param {ZCFMint} sconeMint
  * @param {MultipoolAutoswap} autoswap
  */
-export function makeVault(zcf, manager, collateralSeat, sconeDebt, sconeMint, autoswap) {
-
-  const trace = makeTracer("VV");
+export function makeVault(
+  zcf,
+  manager,
+  collateralSeat,
+  sconeDebt,
+  sconeMint,
+  autoswap,
+) {
+  const trace = makeTracer('VV');
 
   let active = true; // liquidation halts all user actions
-  let accumulatedFee = 0;
+  // eslint-disable-next-line no-unused-vars
+  const accumulatedFee = 0;
   const collateralMath = manager.collateralMath;
   const collateralBrand = manager.collateralBrand;
+  // eslint-disable-next-line no-unused-vars
   const collateralIssuer = zcf.getIssuerForBrand(collateralBrand);
 
   // 'collateralHolderOffer' is the Offer that currently holds the borrower's
   // collateral (zoe owns the tokens for the benefit of this Offer)
-  const { issuer: sconeIssuer, amountMath: sconeMath, brand: sconeBrand } = sconeMint.getIssuerRecord();
+  const {
+    issuer: _sconeIssuer,
+    amountMath: sconeMath,
+    brand: sconeBrand,
+  } = sconeMint.getIssuerRecord();
   const zoe = zcf.getZoeService();
 
-  const FixMeEmptyGO = {};
-
+  // const FixMeEmptyGO = {};
 
   /**
    * @param {ZCFSeat} seat
@@ -53,11 +61,12 @@ export function makeVault(zcf, manager, collateralSeat, sconeDebt, sconeMint, au
       give: { Collateral: null },
       want: {},
     });
-    const { give: { Collateral: collateralAmount } } = seat.getProposal();
-    trade(zcf,
-      { seat: collateralSeat,
-        gains: { Collateral: collateralAmount },
-      },
+    const {
+      give: { Collateral: collateralAmount },
+    } = seat.getProposal();
+    trade(
+      zcf,
+      { seat: collateralSeat, gains: { Collateral: collateralAmount } },
       { seat, gains: {} },
     );
     seat.exit();
@@ -117,22 +126,39 @@ export function makeVault(zcf, manager, collateralSeat, sconeDebt, sconeMint, au
     } = seat.getProposal();
 
     // precheckCollateral MUST NOT be relied on after a turn boundary
-    const precheckCollateral = collateralSeat.getAmountAllocated('Collateral', collateralBrand);
+    const precheckCollateral = collateralSeat.getAmountAllocated(
+      'Collateral',
+      collateralBrand,
+    );
     // const precheckCollateral = collateralSeat.getCurrentAllocation().Collateral;
-    assert(collateralMath.isGTE(precheckCollateral, collateralWanted), 'want is more collateral than is available');
-    const remainingCollateral = collateralMath.subtract(precheckCollateral, collateralWanted);
-    const salePrice = await E(autoswap).getInputPrice(remainingCollateral, sconeBrand);
+    assert(
+      collateralMath.isGTE(precheckCollateral, collateralWanted),
+      'want is more collateral than is available',
+    );
+    const remainingCollateral = collateralMath.subtract(
+      precheckCollateral,
+      collateralWanted,
+    );
+    const salePrice = await E(autoswap).getInputPrice(
+      remainingCollateral,
+      sconeBrand,
+    );
     // AWAIT
 
     // IF THE COLLATERAL HAS CHANGED, RESTART
-    const currentCollateral = collateralSeat.getAmountAllocated('Collateral', collateralBrand);
+    const currentCollateral = collateralSeat.getAmountAllocated(
+      'Collateral',
+      collateralBrand,
+    );
     if (!collateralMath.isGTE(precheckCollateral, currentCollateral)) {
       // collateral has changed. Retry in the new world.
       return paybackHook(seat);
     }
 
     // you might offer too much: we won't take more than you owe
-    const acceptedScones = sconeMath.isGTE(sconesReturned, sconeDebt) ? sconeDebt : sconesReturned;
+    const acceptedScones = sconeMath.isGTE(sconesReturned, sconeDebt)
+      ? sconeDebt
+      : sconesReturned;
     // if we accept your scones, this is how much you'd still owe
     const remainingDebt = sconeMath.subtract(sconeDebt, acceptedScones);
 
@@ -142,16 +168,20 @@ export function makeVault(zcf, manager, collateralSeat, sconeDebt, sconeMint, au
     // TODO is there a better policy than:
     //      don't reject if they are not taking out collateral
     if (!collateralMath.isEmpty(collateralWanted)) {
-      assert(sconeMath.isGTE(maxScones, remainingDebt), 'insufficient remaining collateral');
+      assert(
+        sconeMath.isGTE(maxScones, remainingDebt),
+        'insufficient remaining collateral',
+      );
     }
 
-    trade(zcf,
+    trade(
+      zcf,
       {
         seat: collateralSeat,
         gains: { Scones: acceptedScones }, // return any overpayment
       },
       {
-        seat: seat,
+        seat,
         gains: { Collateral: collateralWanted },
       },
     );
@@ -182,7 +212,7 @@ export function makeVault(zcf, manager, collateralSeat, sconeDebt, sconeMint, au
     });
     const {
       give: { Scones: sconesReturned },
-      want: { Collateral: collateralWanted },
+      want: { Collateral: _collateralWanted },
     } = seat.getProposal();
 
     // you're paying off the debt, you get everything back. If you were
@@ -192,12 +222,17 @@ export function makeVault(zcf, manager, collateralSeat, sconeDebt, sconeMint, au
     // you must pay off the entire remainder
     assert(sconeMath.isGTE(sconesReturned, sconeDebt));
     // but if you offer too much, we won't take more than you owe
-    const acceptedScones = sconeMath.make(Math.min(sconesReturned.value,
-      sconeDebt.value));
+    const acceptedScones = sconeMath.make(
+      Math.min(sconesReturned.value, sconeDebt.value),
+    );
 
-    const currentCollateral = collateralSeat.getAmountAllocated('Collateral', collateralBrand);
+    const currentCollateral = collateralSeat.getAmountAllocated(
+      'Collateral',
+      collateralBrand,
+    );
 
-    trade(zcf,
+    trade(
+      zcf,
       {
         seat: collateralSeat,
         gains: { Scones: acceptedScones }, // return any overpayment
@@ -211,7 +246,7 @@ export function makeVault(zcf, manager, collateralSeat, sconeDebt, sconeMint, au
     seat.exit();
 
     // burn the scones. first we need zoe to make us a payment
-    // TODO 
+    // TODO
     await burn(zcf, collateralSeat, { Scones: acceptedScones });
     // AWAIT
 
@@ -232,19 +267,27 @@ export function makeVault(zcf, manager, collateralSeat, sconeDebt, sconeMint, au
     // cover 'sconeDebt', but earlier autoswap API didn't give a way to
     // specify just the output amount yet.
     // TODO change to SwapOut
-    const currentCollateral = collateralSeat.getAmountAllocated('Collateral', collateralBrand);
-    trace("liquidating", currentCollateral);
+    const currentCollateral = collateralSeat.getAmountAllocated(
+      'Collateral',
+      collateralBrand,
+    );
+    trace('liquidating', currentCollateral);
 
     // Move assets to a new seat to extract to Payments
     const { zcfSeat: swapSeat, userSeat } = zcf.makeEmptySeatKit();
-    trade(zcf,
-      { seat: collateralSeat, gains: {}, losses: { Collateral: currentCollateral } },
+    trade(
+      zcf,
+      {
+        seat: collateralSeat,
+        gains: {},
+        losses: { Collateral: currentCollateral },
+      },
       { seat: swapSeat, gains: { In: currentCollateral } },
     );
     swapSeat.exit();
     // extract the assets to Payments and make the offer
     const payments = await whenAllProps(E(userSeat).getPayouts());
-    trace("selling collateral", payments);
+    trace('selling collateral', payments);
 
     const liqProposal = harden({
       give: { In: currentCollateral },
@@ -254,7 +297,7 @@ export function makeVault(zcf, manager, collateralSeat, sconeDebt, sconeMint, au
     const offerSeat = E(zoe).offer(swapInvitation, liqProposal, payments);
     const swapPayouts = await whenAllProps(E(offerSeat).getPayouts());
     const swapAmounts = await whenAllProps(E(offerSeat).getCurrentAllocation());
-    trace("sold collateral", swapAmounts, swapPayouts);
+    trace('sold collateral', swapAmounts, swapPayouts);
 
     const cAmounts = {
       Scones: swapAmounts.Out,
@@ -265,22 +308,25 @@ export function makeVault(zcf, manager, collateralSeat, sconeDebt, sconeMint, au
       Collateral: swapPayouts.In,
     };
     await escrowAllTo(zcf, collateralSeat, cAmounts, cPayments);
-    trace("re-escrowed", cAmounts, cPayments);
+    trace('re-escrowed', cAmounts, cPayments);
 
-    // NOTE that this synchronously separates the collateral out, so it's not on the 
+    // NOTE that this synchronously separates the collateral out, so it's not on the
     // collateralSeat while the sale is in progress.
-    trace("");
+    trace('');
 
     // Now we need to know how much was sold so we can payoff the debt
-    const sconeProceedsAmount = collateralSeat.getAmountAllocated("Scones", sconeBrand);
-    trace("scones", sconeProceedsAmount);
+    const sconeProceedsAmount = collateralSeat.getAmountAllocated(
+      'Scones',
+      sconeBrand,
+    );
+    trace('scones', sconeProceedsAmount);
 
     // we now claim enough from sconeProceeds to cover the debt (if there's
     // enough). They get back the rest, as well as any remaining scones.
 
     const isUnderwater = !sconeMath.isGTE(sconeProceedsAmount, sconeDebt);
     const sconesToBurn = isUnderwater ? sconeProceedsAmount : sconeDebt;
-    trace("LIQ ", sconeDebt, sconeProceedsAmount, sconesToBurn);
+    trace('LIQ ', sconeDebt, sconeProceedsAmount, sconesToBurn);
     sconeMint.burnLosses({ Scones: sconesToBurn }, collateralSeat);
     sconeDebt = sconeMath.subtract(sconeDebt, sconesToBurn);
     trace('burned', sconesToBurn);
@@ -289,9 +335,9 @@ export function makeVault(zcf, manager, collateralSeat, sconeDebt, sconeMint, au
     // (perhaps some collateral, who knows maybe autoswap threw in a free
     // toaster)
 
-    // const collateralRefund = await salesPayout.In; 
-    // const collateralRefundAmount = await collateralRefund 
-    //     ? collateralIssuer.getAmountOf(collateralRefund) 
+    // const collateralRefund = await salesPayout.In;
+    // const collateralRefundAmount = await collateralRefund
+    //     ? collateralIssuer.getAmountOf(collateralRefund)
     //     : collateralMath.getEmpty();
 
     // debugTick('refund1');
@@ -322,8 +368,14 @@ export function makeVault(zcf, manager, collateralSeat, sconeDebt, sconeMint, au
     }
 
     // get current price
-    const currentCollateral = collateralSeat.getAmountAllocated('Collateral', collateralBrand);
-    const salePrice = await E(autoswap).getInputPrice(currentCollateral, sconeBrand);
+    const currentCollateral = collateralSeat.getAmountAllocated(
+      'Collateral',
+      collateralBrand,
+    );
+    const salePrice = await E(autoswap).getInputPrice(
+      currentCollateral,
+      sconeBrand,
+    );
     // AWAIT
     if (!active) {
       return;
@@ -336,15 +388,14 @@ export function makeVault(zcf, manager, collateralSeat, sconeDebt, sconeMint, au
     if (!sconeMath.isGTE(maxScones, sconeDebt)) {
       liquidate();
     }
-
   }
 
   // todo: add liquidateSome(collateralAmount): sells some collateral, reduces some debt
 
   function getCollateralAmount() {
     // todo?: assert(active, 'vault has been liquidated');
-    return collateralSeat.hasExited() 
-      ? collateralMath.getEmpty() 
+    return collateralSeat.hasExited()
+      ? collateralMath.getEmpty()
       : collateralSeat.getAmountAllocated('Collateral', collateralBrand);
   }
 
@@ -354,9 +405,9 @@ export function makeVault(zcf, manager, collateralSeat, sconeDebt, sconeMint, au
   }
 
   // how do I get a floating point number ration here?
-  function getCollateralizationPercent() {
-    return sconeDebt.value / getCollateralAmount().value;
-  }
+  // function getCollateralizationPercent() {
+  //   return sconeDebt.value / getCollateralAmount().value;
+  // }
 
   const vault = harden({
     makeAddCollateralInvitation,
@@ -366,7 +417,7 @@ export function makeVault(zcf, manager, collateralSeat, sconeDebt, sconeMint, au
     // for status/debugging
     getCollateralAmount,
     getDebtAmount,
-    //getFeeAmount,
+    // getFeeAmount,
   });
 
   return harden({
@@ -376,14 +427,12 @@ export function makeVault(zcf, manager, collateralSeat, sconeDebt, sconeMint, au
   });
 }
 
+// payback could be split into:
+// * returnScones: reduces sconeDebt
+// * withdrawSomeCollateral: do margin check, remove collateral
+// * close: do margin check, remove all collateral, close Vault
+//
+// the downside is that a buggy vault contract could accept returnScones()
+// but break before withdrawSomeCollateral() finishes
 
-
-  // payback could be split into:
-  // * returnScones: reduces sconeDebt
-  // * withdrawSomeCollateral: do margin check, remove collateral
-  // * close: do margin check, remove all collateral, close Vault
-  //
-  // the downside is that a buggy vault contract could accept returnScones()
-  // but break before withdrawSomeCollateral() finishes
-
-  // consider payback() and close()
+// consider payback() and close()

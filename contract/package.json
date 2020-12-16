@@ -5,12 +5,15 @@
   "description": "Contract for the token economy Dapp",
   "scripts": {
     "build": "exit 0",
-    "test": "ava",
-    "lint": "eslint '**/*.{js,jsx}'",
-    "lint-fix": "eslint --fix '**/*.{js,jsx}'",
-    "lint-check": "echo disabling lint in contract until files are lint compliant",
-    "lint-fix-jessie": "eslint -c '.eslintrc-jessie.js' --fix '**/*.{js,jsx}'",
-    "lint-check-jessie": "eslint -c '.eslintrc-jessie.js' '**/*.{js,jsx}'"
+    "test": "ava --verbose",
+    "test:nyc": "nyc ava",
+    "lint-fix": "yarn lint --fix",
+    "lint-check": "yarn lint",
+    "lint": "yarn lint:eslint",
+    "lint:eslint": "eslint '**/*.js'",
+    "lint:types": "tsc -p jsconfig.json",
+    "lint-fix-jessie": "eslint -c '.eslintrc-jessie.js' --fix '**/*.js'",
+    "lint-check-jessie": "eslint -c '.eslintrc-jessie.js' '**/*.js'"
   },
   "devDependencies": {
     "eslint": "^6.1.0",
@@ -26,8 +29,11 @@
   "dependencies": {
     "esm": "^3.2.5",
     "ses": "^0.10.1",
+    "@agoric/assert": "*",
+    "@agoric/captp": "*",
     "@agoric/ertp": "*",
     "@agoric/nat": "^2.0.1",
+    "@agoric/store": "*",
     "@agoric/zoe": "*",
     "@agoric/bundle-source": "*",
     "@agoric/eventual-send": "*"
@@ -59,5 +65,9 @@
   "bugs": {
     "url": "https://github.com/Agoric/agoric/issues"
   },
-  "homepage": "https://github.com/Agoric/agoric#readme"
+  "homepage": "https://github.com/Agoric/agoric#readme",
+  "prettier": {
+    "trailingComma": "all",
+    "singleQuote": true
+  }
 }

@@ -1,11 +1,10 @@
 // @ts-check
 import '@agoric/zoe/exported';
 
-import { assert, details, q } from '@agoric/assert';
+import { assert } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
 import { trade, assertProposalShape } from '@agoric/zoe/src/contractSupport';
 import { makeVault } from './vault';
-import { makeEmptyOfferWithResult } from './make-empty';
 
 // Each VaultManager manages a single collateralType. It owns an autoswap
 // instance which trades this collateralType against Scones. It also manages
@@ -30,7 +29,11 @@ import { makeEmptyOfferWithResult } from './make-empty';
  * @param {Brand} collateralBrand
  */
 export function makeVaultManager(zcf, autoswap, sconeMint, collateralBrand) {
-  const { issuer: sconeIssuer, amountMath: sconeMath, brand: sconeBrand } = sconeMint.getIssuerRecord();
+  const {
+    issuer: _sconeIssuer,
+    amountMath: sconeMath,
+    brand: sconeBrand,
+  } = sconeMint.getIssuerRecord();
   const collateralMath = zcf.getAmountMath(collateralBrand);
 
   // todo: sort by price at which we need to liquidate
@@ -46,34 +49,29 @@ export function makeVaultManager(zcf, autoswap, sconeMint, collateralBrand) {
   /**
    * @param {any} collateralTokens
    */
-  function invest(collateralTokens) // -> Ownership Tokens
-  {
-    // we hold the liquidity tokens as an asset, and have the ownership
-    // tokens as a liability
-
-    // option 1: add only the collateralTokens to the autoswap's liquidity
-    // pool, hold
-
-    // option 2: get the current price from the autoswap, mint a matching
-    // number of Scones for the collateral, add both (collateral+scones) into
-    // the autoswap pool, hold the resulting liquidity tokens. When we redeem
-    // the liquidity tokens, burn those scones.
-
-
-    // ltokens = autoswap.addLiquidity(collateralTokens)
-    // otokens = ownershipMint.mintPayment(count)
-    // return otokens
-
-    // this VM can choose to invest in other VMs, getting back ownership
-    // shares in those VMs
-  }
+  // function invest(_collateralTokens) {
+  //   // -> Ownership Tokens
+  //   // we hold the liquidity tokens as an asset, and have the ownership
+  //   // tokens as a liability
+  //   // option 1: add only the collateralTokens to the autoswap's liquidity
+  //   // pool, hold
+  //   // option 2: get the current price from the autoswap, mint a matching
+  //   // number of Scones for the collateral, add both (collateral+scones) into
+  //   // the autoswap pool, hold the resulting liquidity tokens. When we redeem
+  //   // the liquidity tokens, burn those scones.
+  //   // ltokens = autoswap.addLiquidity(collateralTokens)
+  //   // otokens = ownershipMint.mintPayment(count)
+  //   // return otokens
+  //   // this VM can choose to invest in other VMs, getting back ownership
+  //   // shares in those VMs
+  // }
 
   /**
    * @param {any} ownershipTokens
    */
-  function sellOwnershipTokens(ownershipTokens) // -> collateralTokens
-  {}
-
+  // function sellOwnershipTokens(ownershipTokens) {
+  //   // -> collateralTokens
+  // }
 
   // end users can the SCM for loans with some collateral, and the SCM asks
   // us to make a new Vault
@@ -85,11 +83,15 @@ export function makeVaultManager(zcf, autoswap, sconeMint, collateralBrand) {
 
   /** @type {InnerVaultManager} */
   const innerFacet = harden({
-    getLiquidationMargin() { return liquidationMargin; },
-    getInitialMargin() { return initialMargin; },
+    getLiquidationMargin() {
+      return liquidationMargin;
+    },
+    getInitialMargin() {
+      return initialMargin;
+    },
     collateralBrand,
     collateralMath,
-  })
+  });
 
   function makeLoanInvitation() {
     /**
@@ -110,12 +112,17 @@ export function makeVaultManager(zcf, autoswap, sconeMint, collateralBrand) {
       // (because the StableCoinMachine vat died), they'll get all their
       // collateral back.
       const { zcfSeat: collateralSeat, userSeat } = zcf.makeEmptySeatKit();
-      // get the payout to provide access to the collateral if the 
+      // get the payout to provide access to the collateral if the
       // contract abandons
       const collateralPayoutP = E(userSeat).getPayouts();
-      const salePrice = await E(autoswap).getInputPrice(collateralAmount, sconeBrand);
-      //console.log("SALE PRICE  ", salePrice, salePrice.value / initialMargin);
-      const maxScones = sconeMath.make(Math.ceil(salePrice.value / initialMargin)); // todo fee
+      const salePrice = await E(autoswap).getInputPrice(
+        collateralAmount,
+        sconeBrand,
+      );
+      // console.log("SALE PRICE  ", salePrice, salePrice.value / initialMargin);
+      const maxScones = sconeMath.make(
+        Math.ceil(salePrice.value / initialMargin),
+      ); // todo fee
       assert(sconeMath.isGTE(maxScones, sconesWanted), 'you ask for too much');
       // todo fee: maybe mint new Scones, send to reward pool, increment how
       // much must be paid back
@@ -128,20 +135,22 @@ export function makeVaultManager(zcf, autoswap, sconeMint, collateralBrand) {
 
       sconeMint.mintGains({ Scones: sconesWanted }, collateralSeat);
 
-      trade(zcf, 
-        { seat: collateralSeat,
-          gains: { Collateral: collateralAmount },
-        },
-        { seat: seat,
-          gains: { Scones: sconesWanted },
-        },
+      trade(
+        zcf,
+        { seat: collateralSeat, gains: { Collateral: collateralAmount } },
+        { seat, gains: { Scones: sconesWanted } },
       );
 
       const sconeDebt = sconesWanted; // todo +fee
-      const vaultKit = makeVault(zcf, innerFacet, collateralSeat, sconeDebt, sconeMint, autoswap);
-      const {
-        vault,
-      } = vaultKit;
+      const vaultKit = makeVault(
+        zcf,
+        innerFacet,
+        collateralSeat,
+        sconeDebt,
+        sconeMint,
+        autoswap,
+      );
+      const { vault } = vaultKit;
       allVaults.push(vaultKit);
 
       seat.exit();
@@ -157,19 +166,21 @@ export function makeVaultManager(zcf, autoswap, sconeMint, collateralBrand) {
     return zcf.makeInvitation(makeLoanHook, 'make a loan');
   }
 
-
   // Called by the vault when liquidation is insufficient. We're expected to
   // come up with 'underwaterBy' Scones.
   /**
    * @param {any} underwaterBy
    */
-  function helpLiquidateFallback(underwaterBy) {
-  }
+  // function helpLiquidateFallback(underwaterBy) {}
 
   return harden({
     makeLoanInvitation,
-    getLiquidationMargin() { return liquidationMargin; },
-    getInitialMargin() { return initialMargin; },
+    getLiquidationMargin() {
+      return liquidationMargin;
+    },
+    getInitialMargin() {
+      return initialMargin;
+    },
     liquidateAll,
   });
 }

@@ -1,10 +1,9 @@
 // @ts-check
 import '@agoric/zoe/exported';
 
-import { assert, details, q } from '@agoric/assert';
+import { assert } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
 import { trade } from '@agoric/zoe/src/contractSupport';
-import { makeEmptyOfferWithResult } from './make-empty';
 
 // burn(zcf, o, { Scones: sconeMath.make(4) })
 /**
@@ -13,22 +12,19 @@ import { makeEmptyOfferWithResult } from './make-empty';
  * @param {{ Scones: any; }} what
  */
 export async function burn(zcf, fromSeat, what) {
-  assert(!fromSeat.hasExited(), "An active offer is required");
+  assert(!fromSeat.hasExited(), 'An active offer is required');
   const { zcfSeat: burnSeat } = zcf.makeEmptySeatKit();
 
-  trade(zcf, 
-    { seat: burnSeat, gains: what },
-    { seat: fromSeat, gains: {} },
-  );
+  trade(zcf, { seat: burnSeat, gains: what }, { seat: fromSeat, gains: {} });
   burnSeat.exit();
   const payoutRecord = await burnSeat.getPayouts();
-// TODO this is just all wrong, since this shoudl use 
-// `burnLosses`.
+  // TODO this is just all wrong, since this should use
+  // `burnLosses`.
   const burns = Object.values(payoutRecord).map(async payment => {
     const allegedBrand = await E(payment).getAllegedBrand();
     const issuer = zcf.getIssuerForBrand(allegedBrand); // TODO: requires a zoe addition
     return E(issuer).burn(payment);
-  })
+  });
   return Promise.all(burns);
 }
 
@@ -36,7 +32,7 @@ export async function burn(zcf, fromSeat, what) {
 export async function whenAllProps(recordP) {
   const record = await recordP;
   const values = await Promise.all(Object.values(record));
-  var entries = Object.keys(record).map((e, i) => [e, values[i]]);
+  const entries = Object.keys(record).map((e, i) => [e, values[i]]);
   return Object.fromEntries(entries);
 }
 harden(whenAllProps);
@@ -48,21 +44,16 @@ harden(whenAllProps);
  * @param {PaymentPKeywordRecord} payments
  */
 export async function escrowAllTo(zcf, recipientSeat, amounts, payments) {
-  assert(!recipientSeat.hasExited(), "An active seat is required");
+  assert(!recipientSeat.hasExited(), 'An active seat is required');
 
   // We will create a temporary offer to be able to escrow our payment
   // with Zoe.
   function onReceipt(seat) {
     // we could assert that `amounts` arrived but Zoe checks that
     // const { give } = seat.getProposal();
-    // When the assets arrive, move them onto the target seat and 
+    // When the assets arrive, move them onto the target seat and
     // exit
-    trade(zcf,
-      { seat, gains: {} },
-      { seat: recipientSeat,
-        gains: amounts,
-      },
-    );
+    trade(zcf, { seat, gains: {} }, { seat: recipientSeat, gains: amounts });
     seat.exit();
   }
   const invitation = zcf.makeInvitation(onReceipt, 'escrowAllTo landing place');
@@ -80,7 +71,7 @@ export async function escrowAllTo(zcf, recipientSeat, amounts, payments) {
 /**
  * The `proposal` must use the same keywords as are present on the srcSeat.
  * Otherwise there will be a `rights were not conserved for brand` error.
- * 
+ *
  * @param {ContractFacet} zcf
  * @param {ERef<Invitation>} invitation
  * @param {ZCFSeat} srcSeat
@@ -89,11 +80,12 @@ export async function escrowAllTo(zcf, recipientSeat, amounts, payments) {
  * @returns {Promise<Omit<UserSeat, "getPayouts" | "getPayout">>}
  */
 export async function offerTo(zcf, invitation, srcSeat, proposal, toSeat) {
-  assert(!srcSeat.hasExited(), "An active seat is required");
+  assert(!srcSeat.hasExited(), 'An active seat is required');
   const zoe = zcf.getZoeService();
   // Synchronously pull the assets off the source onto a temporary seat
   const { zcfSeat, userSeat } = zcf.makeEmptySeatKit();
-  trade(zcf,
+  trade(
+    zcf,
     { seat: srcSeat, gains: {} },
     { seat: zcfSeat, gains: proposal.give || {} },
   );
@@ -105,11 +97,13 @@ export async function offerTo(zcf, invitation, srcSeat, proposal, toSeat) {
 
   // When the payouts are available, add them to the toSeat
   // but don't wait for that
-  await E(offerSeat).getPayouts().then(async payouts => {
-    const amounts = await E(offerSeat).getCurrentAllocation();
-    const offerPayouts = await whenAllProps(payouts);
-    return escrowAllTo(zcf, toSeat, amounts, offerPayouts);
-  });
+  await E(offerSeat)
+    .getPayouts()
+    .then(async payouts => {
+      const amounts = await E(offerSeat).getCurrentAllocation();
+      const offerPayouts = await whenAllProps(payouts);
+      return escrowAllTo(zcf, toSeat, amounts, offerPayouts);
+    });
   // TODO add `isComplete` to the return type
   // TODO this should not expose the payouts directly
   return offerSeat;
