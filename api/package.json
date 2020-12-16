@@ -5,7 +5,7 @@
   "description": "dapp-autoswap Agoric Dapp web server handler",
   "scripts": {
     "build": "exit 0",
-    "test": "ava --verbose",
+    "test": "echo nothing to test, update api/package.json when there is.",
     "test:nyc": "nyc ava",
     "lint-fix": "yarn lint --fix",
     "lint-check": "yarn lint",
