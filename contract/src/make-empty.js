@@ -6,15 +6,15 @@ import { E } from '@agoric/eventual-send';
 export function makeEmptyOfferWithResult(zcf) {
   const invitation = zcf.makeInvitation(_ => undefined, 'empty offer');
   const zoe = zcf.getZoeService();
-  return E(zoe).offer(invitation);  // Promise<OfferResultRecord>, 
+  return E(zoe).offer(invitation); // Promise<OfferResultRecord>,
 }
 
 /**
-   * TODO: Add this to Zoe helpers!
-   * XXXXXXXX
-   *
-   * @param {{amount: Amount, keyword: Keyword, donorHandle: OfferHandle}} arg0
-   */
+ * TODO: Add this to Zoe helpers!
+ * XXXXXXXX
+ *
+ * @param {{amount: Amount, keyword: Keyword, donorHandle: OfferHandle}} arg0
+ */
 // export async function unescrow({ amount, keyword, donorHandle }) {
 //   const {
 //     offerHandle: ourOfferHandleP,
