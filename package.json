@@ -25,7 +25,11 @@
     "eslint-plugin-prettier": "^3.1.2",
     "lerna": "^3.20.2",
     "nyc": "^15.1.0",
-    "prettier": "^1.18.2"
+    "prettier": "^1.18.2",
+    "@agoric/babel-parser": "^7.6.4",
+    "babel-eslint": ">=11.0.0-beta.2",
+    "eslint-plugin-eslint-comments": "^3.1.2",
+    "typescript": "^4.0.3"
   },
   "scripts": {
     "OFF-clean": "yarn workspaces run clean",
@@ -40,14 +44,6 @@
     "test": "yarn workspaces run test",
     "build": "yarn workspaces run build",
     "build-xs-worker": "cd packages/xs-vat-worker && yarn build:xs-lin"
-  },
-  "dependencies": {
-    "@agoric/babel-parser": "^7.6.4",
-    "agoric": "*",
-    "@agoric/notifier": "*",
-    "babel-eslint": ">=11.0.0-beta.2",
-    "eslint-plugin-eslint-comments": "^3.1.2",
-    "typescript": "^4.0.3"
   },
   "eslintConfig": {
     "extends": [

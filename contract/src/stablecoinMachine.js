@@ -141,6 +141,8 @@ export async function start(zcf) {
       });
       const liqInvitation = E(autoswapAPI).makeAddLiquidityInvitation();
       trace('liq prep', liqInvitation, liqProposal);
+
+      // eslint-disable-next-line no-underscore-dangle
       const _poolSeat = await offerTo(
         zcf,
         liqInvitation,

@@ -1,7 +1,6 @@
-import harden from '@agoric/harden';
+import { E } from '@agoric/eventual-send';
 
 export default harden(({ registry, publicAPI }, _invitationMaker) => {
-   
   const cacheOfPromiseForValue = new Map();
   const getFromRegistry = registryKey => {
     let valueP = cacheOfPromiseForValue.get(registryKey);
@@ -11,11 +10,11 @@ export default harden(({ registry, publicAPI }, _invitationMaker) => {
       cacheOfPromiseForValue.set(registryKey, valueP);
     }
     return valueP;
-  }
+  };
 
   // returns a promise
   const hydrateBrand = dehydratedBrand => getFromRegistry(dehydratedBrand);
-  
+
   // returns a promise
   const hydrateAmount = dehydratedAmount => {
     return hydrateBrand(dehydratedAmount.brand).then(brand => {
@@ -23,7 +22,7 @@ export default harden(({ registry, publicAPI }, _invitationMaker) => {
         brand,
         extent: dehydratedAmount.extent,
       };
-    })
+    });
   };
 
   return harden({
@@ -38,9 +37,9 @@ export default harden(({ registry, publicAPI }, _invitationMaker) => {
           const { type, data } = obj;
           switch (type) {
             case 'autoswapGetCurrentPrice': {
-              const { 
+              const {
                 amountIn: dehydratedAmountIn,
-                brandOut: dehydratedBrandOut
+                brandOut: dehydratedBrandOut,
               } = data;
 
               // A dehydrated amount has the form: { brand:
@@ -48,10 +47,13 @@ export default harden(({ registry, publicAPI }, _invitationMaker) => {
 
               // dehydratedBrandOut is a brandRegKey
               const [amountIn, brandOut] = await Promise.all([
-                hydrateAmount(dehydratedAmountIn), 
-                hydrateBrand(dehydratedBrandOut)
+                hydrateAmount(dehydratedAmountIn),
+                hydrateBrand(dehydratedBrandOut),
               ]);
-              const { extent } = await E(publicAPI).getCurrentPrice(amountIn, brandOut);
+              const { extent } = await E(publicAPI).getCurrentPrice(
+                amountIn,
+                brandOut,
+              );
               return { type: 'autoswapGetCurrentPriceResponse', data: extent };
             }
 

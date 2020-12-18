@@ -2,9 +2,9 @@
 // Agoric Dapp api deployment script
 
 import fs from 'fs';
-import dappConstants from '../ui/src/utils/constants';
 import { E } from '@agoric/eventual-send';
 import makeAmountMath from '@agoric/ertp/src/amountMath';
+import dappConstants from '../ui/src/utils/constants';
 
 // deploy.js runs in an ephemeral Node.js outside of swingset. The
 // spawner runs within ag-solo, so is persistent.  Once the deploy.js
@@ -21,24 +21,25 @@ import makeAmountMath from '@agoric/ertp/src/amountMath';
  * available from REPL home
  * @param {DeployPowers} powers
  */
-export default async function deployApi(referencesPromise, { bundleSource, pathResolve }) {
-  
+export default async function deployApi(
+  referencesPromise,
+  { bundleSource, pathResolve },
+) {
   // Let's wait for the promise to resolve.
   const references = await referencesPromise;
 
   // Unpack the references.
-  const { 
-
+  const {
     // *** LOCAL REFERENCES ***
 
     // This wallet only exists on this machine, and only you have
     // access to it. The wallet stores purses and handles transactions.
-    wallet, 
+    wallet,
 
     // Scratch is a map only on this machine, and can be used for
     // communication in objects between processes/scripts on this
     // machine.
-    uploads: scratch,  
+    uploads: _scratch,
 
     // The spawner persistently runs scripts within ag-solo, off-chain.
     spawner,
@@ -48,7 +49,7 @@ export default async function deployApi(referencesPromise, { bundleSource, pathR
     // Zoe lives on-chain and is shared by everyone who has access to
     // the chain. In this demo, that's just you, but on our testnet,
     // everyone has access to the same Zoe.
-    zoe, 
+    zoe,
 
     // The registry also lives on-chain, and is used to make private
     // objects public to everyone else on-chain. These objects get
@@ -59,19 +60,16 @@ export default async function deployApi(referencesPromise, { bundleSource, pathR
     // The http request handler.
     // TODO: add more explanation
     http,
-
-
-  }  = references;
-
+  } = references;
 
   // To get the backend of our dapp up and running, first we need to
   // grab the installationHandle that our contract deploy script put
   // in the public registry.
-  const { 
-    INSTALLATION_REG_KEY
-  } = dappConstants;
-  const autoswapContractInstallationHandle = await E(registry).get(INSTALLATION_REG_KEY);
-  
+  const { INSTALLATION_REG_KEY } = dappConstants;
+  const autoswapContractInstallationHandle = await E(registry).get(
+    INSTALLATION_REG_KEY,
+  );
+
   // Second, we can use the installationHandle to create a new
   // instance of our contract code on Zoe. A contract instance is a running
   // program that can take offers through Zoe. Creating a contract
@@ -104,13 +102,21 @@ export default async function deployApi(referencesPromise, { bundleSource, pathR
     Promise.all([
       E(issuer).getBrand(),
       E(issuer).getMathHelpersName(),
-    ]).then(([brand, mathHelpersName]) => makeAmountMath(brand, mathHelpersName));
-    
+    ]).then(([brand, mathHelpersName]) =>
+      makeAmountMath(brand, mathHelpersName),
+    );
+
   const moolaAmountMath = await getLocalAmountMath(moolaIssuer);
   const simoleanAmountMath = await getLocalAmountMath(simoleanIssuer);
 
   const issuerKeywordRecord = { TokenA: moolaIssuer, TokenB: simoleanIssuer };
-  const { invitation: addLiquidityInvitation, instanceRecord: { publicAPI, handle: instanceHandle } } = await E(zoe).makeInstance(autoswapContractInstallationHandle, issuerKeywordRecord);
+  const {
+    invitation: addLiquidityInvitation,
+    instanceRecord: { publicAPI, handle: instanceHandle },
+  } = await E(zoe).makeInstance(
+    autoswapContractInstallationHandle,
+    issuerKeywordRecord,
+  );
   console.log('- SUCCESS! contract instance is running on Zoe');
 
   const liquidityIssuer = await E(publicAPI).getLiquidityIssuer();
@@ -125,7 +131,7 @@ export default async function deployApi(referencesPromise, { bundleSource, pathR
     },
     want: {
       Liquidity: liquidityAmountMath.getEmpty(),
-    }
+    },
   };
 
   const pursesArray = await E(wallet).getPurses();
@@ -136,19 +142,26 @@ export default async function deployApi(referencesPromise, { bundleSource, pathR
 
   const moolaPayment = await E(moolaPurse).withdraw(proposal.give.TokenA);
   const simoleanPayment = await E(simoleanPurse).withdraw(proposal.give.TokenB);
-  
+
   const payments = {
     TokenA: moolaPayment,
     TokenB: simoleanPayment,
   };
-  const { outcome, payout } = await E(zoe).offer(addLiquidityInvitation, proposal, payments);
+  const { outcome, _payout } = await E(zoe).offer(
+    addLiquidityInvitation,
+    proposal,
+    payments,
+  );
   console.log(await outcome);
 
   // Now that we've done all the admin work, let's share this
   // instanceHandle by adding it to the registry. Any users of our
   // contract will use this instanceHandle to get invitations to the
   // contract in order to make an offer.
-  const INSTANCE_REG_KEY = await E(registry).register(`${dappConstants.CONTRACT_NAME}instance`, instanceHandle);
+  const INSTANCE_REG_KEY = await E(registry).register(
+    `${dappConstants.CONTRACT_NAME}instance`,
+    instanceHandle,
+  );
 
   console.log(`-- Contract Name: ${dappConstants.CONTRACT_NAME}`);
   console.log(`-- InstanceHandle Register Key: ${INSTANCE_REG_KEY}`);

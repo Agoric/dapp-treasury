@@ -30,6 +30,8 @@
     "tape-promise": "^4.0.0"
   },
   "dependencies": {
+    "@agoric/ertp": "*",
+    "@agoric/eventual-send": "*",
     "esm": "^3.2.5"
   },
   "keywords": [],
