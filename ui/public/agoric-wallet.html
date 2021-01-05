@@ -14,7 +14,7 @@
       let walletURL;
       function fromFrame(ev) {
         if (ev.origin === localAgoricOrigin) {
-          walletURL = ev.data;
+          walletURL = `${ev.data}${location.search}`;
 
           console.log('found Agoric wallet', walletURL);
           walletOrigin = new URL(walletURL).origin;

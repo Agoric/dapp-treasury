@@ -16,15 +16,10 @@ import AssetInput from './AssetInput';
 import Steps from './Steps';
 
 import { useApplicationContext } from '../contexts/Application';
-import {
-  changePurse,
-  changeAmount,
-  swapInputs,
-  createOffer,
-} from '../store/actions';
+import { changePurse, changeAmount, swapInputs, createOffer } from '../store';
 import dappConstants from '../utils/constants';
 
-const { INSTANCE_REG_KEY } = dappConstants;
+const { INSTANCE_BOARD_ID, INSTALLATION_BOARD_ID } = dappConstants;
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -63,24 +58,25 @@ export default function Swap() {
     outputPurse = {},
     inputAmount,
     outputAmount,
+    invitationDepositId,
     connected,
   } = state;
 
   // const purses = [
-  //   { name: 'Marketing', extent: 230, issuerPetname: 'simolean' },
-  //   { name: 'Operating Account', extent: 194, issuerPetname: 'moola ' },
-  //   { name: 'Savings', extent: 3500, issuerPetname: 'moola ' },
-  //   { name: 'Concert Tickets', extent: 64, issuerPetname: 'tickets' },
+  //   { name: 'Marketing', value: 230, brandPetname: 'simolean' },
+  //   { name: 'Operating Account', value: 194, brandPetname: 'moola' },
+  //   { name: 'Savings', value: 3500, brandPetname: 'moola ' },
+  //   { name: 'Concert Tickets', value: 64, brandPetname: 'tickets' },
   // ];
 
   const inputAmountError =
-    inputAmount < 0 || (inputPurse && inputAmount > inputPurse.extent);
+    inputAmount < 0 || (inputPurse && inputAmount > inputPurse.value);
   const outputAmountError = outputAmount < 0;
 
   const pursesError =
     inputPurse &&
     outputPurse &&
-    inputPurse.issuerPetname === outputPurse.issuerPetname;
+    inputPurse.brandPetname === outputPurse.brandPetname;
 
   const hasError = pursesError || inputAmountError || outputAmountError;
 
@@ -122,7 +118,7 @@ export default function Swap() {
   function getExchangeRate(decimal) {
     if (isValid) {
       const exchangeRate = (outputAmount / inputAmount).toFixed(decimal);
-      return `Exchange rate: 1 ${inputPurse.issuerPetname} = ${exchangeRate} ${outputPurse.issuerPetname}`;
+      return `Exchange rate: 1 ${inputPurse.brandPetname} = ${exchangeRate} ${outputPurse.brandPetname}`;
     }
     return '';
   }
@@ -130,7 +126,9 @@ export default function Swap() {
   function handleSwap() {
     dispatch(
       createOffer(
-        INSTANCE_REG_KEY,
+        INSTANCE_BOARD_ID,
+        INSTALLATION_BOARD_ID,
+        invitationDepositId,
         inputAmount,
         outputAmount,
         inputPurse,

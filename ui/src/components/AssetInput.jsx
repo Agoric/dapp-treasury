@@ -91,14 +91,14 @@ export default function AssetInput({
           error={purseError}
         >
           {Array.isArray(purses) && purses.length > 0 ? (
-            purses.map(({ pursePetname, issuerPetname, extent }) => (
+            purses.map(({ pursePetname, brandPetname, value }) => (
               <MenuItem key={pursePetname} value={pursePetname} divider>
                 <ListItemIcon className={classes.icon}>
                   <PurseIcon />
                 </ListItemIcon>
                 <ListItemText
                   primary={pursePetname}
-                  secondary={`${extent} ${issuerPetname}`}
+                  secondary={`${value} ${brandPetname}`}
                 />
               </MenuItem>
             ))
