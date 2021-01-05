@@ -32,23 +32,11 @@
     "typescript": "^4.0.3"
   },
   "scripts": {
-    "OFF-clean": "yarn workspaces run clean",
-    "check-dependencies": "node ./scripts/check-mismatched-dependencies.js",
-    "prettier": "yarn workspaces run prettier",
-    "lerna": "lerna",
-    "link-cli": "yarn run create-agoric-cli",
-    "create-agoric-cli": "node ./scripts/create-agoric-cli.cjs",
     "lint-fix": "yarn workspaces run lint-fix",
-    "lint-check": "yarn workspaces run lint-check",
+    "lint-check": "yarn workspaces run lint-check && (cd ui && yarn lint-check)",
     "lint": "yarn workspaces run lint-check",
     "test": "yarn workspaces run test",
-    "build": "yarn workspaces run build",
-    "build-xs-worker": "cd packages/xs-vat-worker && yarn build:xs-lin"
-  },
-  "eslintConfig": {
-    "extends": [
-      "@agoric"
-    ]
+    "build": "yarn workspaces run build"
   },
   "prettier": {
     "trailingComma": "all",

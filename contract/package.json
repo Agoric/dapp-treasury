@@ -55,6 +55,11 @@
       "--napi-modules"
     ]
   },
+  "eslintConfig": {
+    "extends": [
+      "@agoric"
+    ]
+  },
   "keywords": [],
   "repository": {
     "type": "git",
