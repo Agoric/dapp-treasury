@@ -1,4 +1,3 @@
-/* globals document */
 import React from 'react';
 import { render } from 'react-dom';
 

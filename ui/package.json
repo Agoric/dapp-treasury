@@ -29,23 +29,56 @@
   "dependencies": {
     "@material-ui/core": "^4.9.3",
     "@material-ui/icons": "^4.9.1",
+    "autodux": "^5.0.3",
     "clsx": "^1.0.4",
     "http-proxy-middleware": "^1.0.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0"
   },
   "devDependencies": {
-    "eslint": "^6.8.0",
-    "eslint-config-airbnb": "^18.0.1",
-    "eslint-config-prettier": "^6.10.0",
-    "eslint-plugin-eslint-comments": "^3.1.2",
-    "eslint-plugin-import": "^2.20.1",
-    "eslint-plugin-jsx-a11y": "^6.2.3",
-    "eslint-plugin-prettier": "^3.1.2",
+    "@babel/eslint-plugin": "^7.12.1",
+    "babel-eslint": "^10.1.0",
     "eslint-plugin-react": "^7.18.3",
     "eslint-plugin-react-hooks": "^2.4.0",
     "prettier": "^1.19.1",
-    "react-scripts": "^3.4.0",
+    "react-scripts": "^4.0.1",
     "rimraf": "^3.0.2"
+  },
+  "eslintConfig": {
+    "parser": "babel-eslint",
+    "parserOptions": {
+      "ecmaFeatures": {
+        "jsx": true
+      },
+      "ecmaVersion": 2018,
+      "sourceType": "module"
+    },
+    "plugins": [
+      "react"
+    ],
+    "env": {
+      "browser": true
+    },
+    "settings": {
+      "import/resolver": {
+        "node": {
+          "extensions": [
+            ".js",
+            ".jsx"
+          ]
+        }
+      },
+      "react": {
+        "version": "detect"
+      }
+    },
+    "extends": [
+      "@agoric",
+      "plugin:react/recommended"
+    ]
+  },
+  "prettier": {
+    "trailingComma": "all",
+    "singleQuote": true
   }
 }
