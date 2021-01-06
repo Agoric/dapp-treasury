@@ -45,7 +45,8 @@ export default function AssetInput({
       <Grid
         item
         xs={12}
-        sm={8}
+        sm={12}
+        md={8}
         container
         direction="column"
         alignItems="flex-end"
@@ -76,7 +77,7 @@ export default function AssetInput({
           error={amountError}
         />
       </Grid>
-      <Grid item xs={12} sm={4}>
+      <Grid item xs={12} sm={12} md={4}>
         <TextField
           select
           label="Currency"
