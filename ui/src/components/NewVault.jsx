@@ -1,13 +1,15 @@
-import React, { useReducer } from 'react';
+import React from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
 
 import { Button, Paper, Typography } from '@material-ui/core';
 
-import autodux from 'autodux';
 import VaultSteps from './VaultSteps';
 
 import { useApplicationContext } from '../contexts/Application';
+import { useVaultContext, actions } from '../contexts/Vault';
+
+const { resetState, setCollateralBrand, setVaultParams } = actions;
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -35,25 +37,6 @@ const useStyles = makeStyles(theme => ({
     marginTop: theme.spacing(3),
   },
 }));
-
-const {
-  reducer,
-  initial: defaultState,
-  actions: { resetState, setCollateralBrand, setVaultParams },
-} = autodux({
-  slice: 'vault',
-  initial: {
-    collateralBrand: null,
-    vaultParams: null,
-  },
-  actions: {
-    resetState: state => ({
-      ...state,
-      collateralBrand: null,
-      vaultParams: null,
-    }),
-  },
-});
 
 function VaultCollateral({ dispatch }) {
   return (
@@ -103,15 +86,16 @@ function VaultCreate({ dispatch }) {
 }
 
 /* eslint-disable complexity */
-export default function Vault() {
+export default function NewVault() {
   const classes = useStyles();
 
   const {
     state: { connected },
   } = useApplicationContext();
-  const [state, dispatch] = useReducer(reducer, defaultState);
-
-  const { collateralBrand, vaultParams } = state;
+  const {
+    state: { collateralBrand, vaultParams },
+    dispatch,
+  } = useVaultContext();
 
   return (
     <Paper className={classes.paper}>
