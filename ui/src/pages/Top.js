@@ -12,6 +12,7 @@ import NavDrawer from '../components/NavDrawer';
 // import Shuttle from './Shuttle';
 // import Vault from './Vault';
 import Swap from '../components/Swap';
+import Vault from '../components/Vault';
 import Web3Status from '../components/Web3Status';
 
 const navigationDrawerWidth = 200;
@@ -64,7 +65,9 @@ function Top() {
               <Route path="/swap">
                 <Swap />
               </Route>
-              <Route path="/">Vault</Route>
+              <Route path="/">
+                <Vault />
+              </Route>
             </Switch>
           </main>
         </div>
