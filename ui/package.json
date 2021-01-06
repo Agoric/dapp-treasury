@@ -37,6 +37,7 @@
     "http-proxy-middleware": "^1.0.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
+    "react-number-format": "^4.4.3",
     "react-router-dom": "^5.2.0"
   },
   "devDependencies": {

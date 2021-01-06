@@ -13,6 +13,7 @@ import MonetizationIcon from '@material-ui/icons/MonetizationOn';
 import AccountBalanceIcon from '@material-ui/icons/AccountBalance';
 import SwapIcon from '@material-ui/icons/SwapHoriz';
 import TrendingUpIcon from '@material-ui/icons/TrendingUp';
+import HowToVoteIcon from '@material-ui/icons/HowToVote';
 
 function ListItemLink(props) {
   const { icon, primary, to, replace } = props;
@@ -66,6 +67,12 @@ function NavDrawer() {
           icon={<TrendingUpIcon />}
           primary="Rewards"
           to="/rewards"
+          replace
+        />
+        <ListItemLink
+          icon={<HowToVoteIcon />}
+          primary="Governance"
+          to="/gov"
           replace
         />
       </List>
