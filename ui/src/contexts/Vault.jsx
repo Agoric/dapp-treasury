@@ -7,12 +7,14 @@ const { reducer, initial: defaultState, actions } = autodux({
   initial: {
     collateralBrand: null,
     vaultParams: null,
+    workingVaultParams: {},
   },
   actions: {
     resetState: state => ({
       ...state,
       collateralBrand: null,
       vaultParams: null,
+      workingVaultParams: {},
     }),
   },
 });

@@ -62,6 +62,7 @@ function Top() {
               <Route path="/pegasus">Pegasus</Route>
               <Route path="/treasury">Treasury</Route>
               <Route path="/rewards">Rewards</Route>
+              <Route path="/gov">Governance</Route>
               <Route path="/swap">
                 <Swap />
               </Route>
