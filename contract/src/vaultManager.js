@@ -27,8 +27,15 @@ import { makeVault } from './vault';
  * @param {MultipoolAutoswap} autoswap
  * @param {ZCFMint} sconeMint
  * @param {Brand} collateralBrand
+ * @param {PriceAuthoritySource} priceAuthoritySource
  */
-export function makeVaultManager(zcf, autoswap, sconeMint, collateralBrand) {
+export function makeVaultManager(
+  zcf,
+  autoswap,
+  sconeMint,
+  collateralBrand,
+  priceAuthoritySource,
+) {
   const {
     issuer: _sconeIssuer,
     amountMath: sconeMath,
@@ -73,7 +80,7 @@ export function makeVaultManager(zcf, autoswap, sconeMint, collateralBrand) {
   //   // -> collateralTokens
   // }
 
-  // end users can the SCM for loans with some collateral, and the SCM asks
+  // end users can ask the SCM for loans with some collateral, and the SCM asks
   // us to make a new Vault
 
   // loans must initially have at least 1.5x collateralization
@@ -142,6 +149,11 @@ export function makeVaultManager(zcf, autoswap, sconeMint, collateralBrand) {
       );
 
       const sconeDebt = sconesWanted; // todo +fee
+
+      const priceAuthority = priceAuthoritySource.getPriceAuthority(
+        collateralMath,
+        sconeMath,
+      );
       const vaultKit = makeVault(
         zcf,
         innerFacet,
@@ -149,6 +161,7 @@ export function makeVaultManager(zcf, autoswap, sconeMint, collateralBrand) {
         sconeDebt,
         sconeMint,
         autoswap,
+        priceAuthority,
       );
       const { vault } = vaultKit;
       allVaults.push(vaultKit);

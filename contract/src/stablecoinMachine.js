@@ -25,7 +25,7 @@ const trace = makeTracer('ST');
  * @type {ContractStartFn}
  */
 export async function start(zcf) {
-  const { autoswapInstall } = zcf.getTerms();
+  const { autoswapInstall, priceAuthoritySource } = zcf.getTerms();
 
   trace('terms', autoswapInstall);
 
@@ -59,7 +59,7 @@ export async function start(zcf) {
   trace('autoswap', autoswapAPI);
 
   // We process only one offer per collateralType. They must tell us the
-  // dollar value of their collateral, and we create that make Scones.
+  // dollar value of their collateral, and we create that many Scones.
   // collateralKeyword = 'aEth'
   async function makeAddTypeInvitation(
     collateralIssuer,
@@ -113,12 +113,12 @@ export async function start(zcf) {
       // once we've done that, we can put both the collateral and the minted
       // scones into the autoswap, giving us liquidity tokens, which we store
 
-      // mint the new scones to teh Central position on the govSet
+      // mint the new scones to the Central position on the govSeat
       // so we can setup the autoswap pool
       sconeMint.mintGains({ Central: sconesAmount }, govSeat);
       trace('prepped');
 
-      // TODO: check for existing pool, use it's price instead of the
+      // TODO: check for existing pool, use its price instead of the
       // user-provided 'rate'. Or throw an error if it already exists.
       // `addPool` should combine initial liquidity with pool setup
 
@@ -157,7 +157,13 @@ export async function start(zcf) {
       // const { Scones: sconeProceeds, ...otherProceeds } = await salesPayoutP;
 
       // do something with the liquidity we just bought
-      const vm = makeVaultManager(zcf, autoswapAPI, sconeMint, collateralBrand);
+      const vm = makeVaultManager(
+        zcf,
+        autoswapAPI,
+        sconeMint,
+        collateralBrand,
+        priceAuthoritySource,
+      );
       // TODO add vm to table of vault manager
       return vm;
     }
@@ -192,7 +198,7 @@ export async function start(zcf) {
   // function invest_existing(collateral) -> govTokens
 
   // govTokens entitle you to distributions, but you can't redeem them
-  // outright, that would drain the utility form the economy
+  // outright, that would drain the utility from the economy
 
   zcf.setTestJig(() => ({
     stablecoin: sconeMint.getIssuerRecord(),

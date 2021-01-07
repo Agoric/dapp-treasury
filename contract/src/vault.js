@@ -3,9 +3,16 @@ import '@agoric/zoe/exported';
 
 import { assert } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
-import { trade, assertProposalShape } from '@agoric/zoe/src/contractSupport';
+import {
+  trade,
+  assertProposalShape,
+  natSafeMath,
+} from '@agoric/zoe/src/contractSupport';
+
 import { burn, escrowAllTo, whenAllProps } from './burn';
 import { makeTracer } from './makeTracer';
+
+const { floorDivide } = natSafeMath;
 
 // a Vault is an individual loan, using some collateralType as the
 // collateral, and lending Scones to the borrower
@@ -23,6 +30,7 @@ import { makeTracer } from './makeTracer';
  * @param {Amount} sconeDebt
  * @param {ZCFMint} sconeMint
  * @param {MultipoolAutoswap} autoswap
+ * @param {Promise<PriceAuthority>} priceAuthority
  */
 export function makeVault(
   zcf,
@@ -31,6 +39,7 @@ export function makeVault(
   sconeDebt,
   sconeMint,
   autoswap,
+  priceAuthority,
 ) {
   const trace = makeTracer('VV');
 
@@ -111,6 +120,13 @@ export function makeVault(
   }
   */
 
+  function getCollateralAmount() {
+    // todo?: assert(active, 'vault has been liquidated');
+    return collateralSeat.hasExited()
+      ? collateralMath.getEmpty()
+      : collateralSeat.getAmountAllocated('Collateral', collateralBrand);
+  }
+
   /**
    * @param {ZCFSeat} seat
    */
@@ -126,10 +142,7 @@ export function makeVault(
     } = seat.getProposal();
 
     // precheckCollateral MUST NOT be relied on after a turn boundary
-    const precheckCollateral = collateralSeat.getAmountAllocated(
-      'Collateral',
-      collateralBrand,
-    );
+    const precheckCollateral = getCollateralAmount();
     // const precheckCollateral = collateralSeat.getCurrentAllocation().Collateral;
     assert(
       collateralMath.isGTE(precheckCollateral, collateralWanted),
@@ -146,11 +159,7 @@ export function makeVault(
     // AWAIT
 
     // IF THE COLLATERAL HAS CHANGED, RESTART
-    const currentCollateral = collateralSeat.getAmountAllocated(
-      'Collateral',
-      collateralBrand,
-    );
-    if (!collateralMath.isGTE(precheckCollateral, currentCollateral)) {
+    if (!collateralMath.isGTE(precheckCollateral, getCollateralAmount())) {
       // collateral has changed. Retry in the new world.
       return paybackHook(seat);
     }
@@ -226,11 +235,6 @@ export function makeVault(
       Math.min(sconesReturned.value, sconeDebt.value),
     );
 
-    const currentCollateral = collateralSeat.getAmountAllocated(
-      'Collateral',
-      collateralBrand,
-    );
-
     trade(
       zcf,
       {
@@ -239,7 +243,7 @@ export function makeVault(
       },
       {
         seat,
-        gains: { Collateral: currentCollateral },
+        gains: { Collateral: getCollateralAmount() },
       },
     );
     sconeDebt = sconeMath.getEmpty();
@@ -267,11 +271,8 @@ export function makeVault(
     // cover 'sconeDebt', but earlier autoswap API didn't give a way to
     // specify just the output amount yet.
     // TODO change to SwapOut
-    const currentCollateral = collateralSeat.getAmountAllocated(
-      'Collateral',
-      collateralBrand,
-    );
-    trace('liquidating', currentCollateral);
+    const collateral = getCollateralAmount();
+    trace('liquidating', collateral);
 
     // Move assets to a new seat to extract to Payments
     const { zcfSeat: swapSeat, userSeat } = zcf.makeEmptySeatKit();
@@ -280,9 +281,9 @@ export function makeVault(
       {
         seat: collateralSeat,
         gains: {},
-        losses: { Collateral: currentCollateral },
+        losses: { Collateral: collateral },
       },
-      { seat: swapSeat, gains: { In: currentCollateral } },
+      { seat: swapSeat, gains: { In: collateral } },
     );
     swapSeat.exit();
     // extract the assets to Payments and make the offer
@@ -290,7 +291,7 @@ export function makeVault(
     trace('selling collateral', payments);
 
     const liqProposal = harden({
-      give: { In: currentCollateral },
+      give: { In: collateral },
       want: { Out: sconeMath.getEmpty() },
     });
     const swapInvitation = E(autoswap).makeSwapInvitation();
@@ -356,48 +357,44 @@ export function makeVault(
     }
   }
 
-  // Call this each time the price changes, and after some other operations.
   // If the collateral no longer has sufficient value to meet the margin
   // requirement, this will sell off all the collateral, deduct (and burn)
   // the scones they still owe, and return any remaining scones. If the sale
   // didn't yield enough scones to cover their debt, liquidate() will appeal
   // to the next layer (the vaultManager).
-  async function checkMargin() {
+  function checkMargin(saleProceeds) {
     if (!active) {
       return;
     }
 
-    // get current price
-    const currentCollateral = collateralSeat.getAmountAllocated(
-      'Collateral',
-      collateralBrand,
-    );
-    const salePrice = await E(autoswap).getInputPrice(
-      currentCollateral,
-      sconeBrand,
-    );
-    // AWAIT
-    if (!active) {
-      return;
-    }
-
-    // compute how much debt is supported by the current collateral at that price
-    const liquidationMargin = manager.getLiquidationMargin();
-    const maxScones = sconeMath.make(salePrice.value / liquidationMargin);
-
-    if (!sconeMath.isGTE(maxScones, sconeDebt)) {
+    if (!sconeMath.isGTE(saleProceeds, sconeDebt)) {
       liquidate();
     }
   }
 
-  // todo: add liquidateSome(collateralAmount): sells some collateral, reduces some debt
-
-  function getCollateralAmount() {
-    // todo?: assert(active, 'vault has been liquidated');
-    return collateralSeat.hasExited()
-      ? collateralMath.getEmpty()
-      : collateralSeat.getAmountAllocated('Collateral', collateralBrand);
+  // We're currently only calling this once, but as we add or remove collateral,
+  // and as the debt accrues, it should be called multiple times. When we do,
+  // previous requests for quotes will be able to fire, but should be ignored.
+  function scheduleLiquidation() {
+    const liquidationMargin = manager.getLiquidationMargin();
+    // compute how much debt is supported by the current collateral
+    const debtAllowed = collateralMath.make(
+      floorDivide(getCollateralAmount().value, liquidationMargin),
+    );
+    E(priceAuthority)
+      .quoteWhenLT(debtAllowed, sconeDebt)
+      // priceQuote is { amountIn, amountOut, timer, timestamp }
+      .then(quote => {
+        const { amountIn, amountOut } = quote.quoteAmount.value[0];
+        // If this quote doesn't correspond to the current balance, ignore it.
+        if (collateralMath.isEqual(debtAllowed, amountIn)) {
+          checkMargin(amountOut);
+        }
+      });
   }
+  scheduleLiquidation();
+
+  // todo: add liquidateSome(collateralAmount): sells some collateral, reduces some debt
 
   function getDebtAmount() {
     // todo?: assert(active, 'vault has been liquidated');

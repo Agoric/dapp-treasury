@@ -13,7 +13,10 @@ import { makeLoopback } from '@agoric/captp';
 import { makeZoe } from '@agoric/zoe';
 import { makeIssuerKit } from '@agoric/ertp';
 
+import { makeFakePriceAuthority } from '@agoric/zoe/tools/fakePriceAuthority';
+import buildManualTimer from '@agoric/zoe/tools/manualTimer';
 import { makeTracer } from '../src/makeTracer';
+import { MathKind } from '../../_agstate/yarn-links/@agoric/ertp';
 
 const stablecoinRoot = '../src/stablecoinMachine.js';
 const autoswapRoot =
@@ -41,7 +44,7 @@ const { makeFar, makeNear } = makeLoopback('zoeTest');
 let isFirst = true;
 function makeRemote(arg) {
   const result = isFirst ? makeNear(arg) : arg;
-  isFirst = false;
+  isFirst = !isFirst;
   return result;
 }
 
@@ -70,23 +73,61 @@ function setupAssets() {
   });
 }
 
+const makePriceAuthoritySource = (
+  priceList,
+  tradeList,
+  timer,
+  quoteMint,
+  unitAmountIn,
+) =>
+  harden({
+    getPriceAuthority: async (mathIn, mathOut) => {
+      const nameIn = await E(mathIn.getBrand()).getAllegedName();
+      const nameOut = await E(mathOut.getBrand()).getAllegedName();
+      const options = {
+        mathIn,
+        mathOut,
+        priceList: priceList ? priceList[nameIn][nameOut] : null,
+        tradeList: tradeList ? tradeList[nameIn][nameOut] : null,
+        timer,
+        quoteMint,
+        unitAmountIn,
+      };
+      return Promise.resolve(makeFakePriceAuthority(options));
+    },
+  });
+
 test('first', async t => {
   const autoswapInstall = await makeInstall(autoswapRoot);
 
   const stablecoinInstall = await makeInstall(stablecoinRoot);
-  const { creatorFacet: stablecoinMachine } = await E(zoe).startInstance(
-    stablecoinInstall,
-    {},
-    { autoswapInstall },
-  );
-  trace('start stablecoin', stablecoinMachine);
 
   const {
     aethKit: { mint: aethMint, issuer: aethIssuer, amountMath: aethMath },
   } = setupAssets();
 
-  trace('got jig', testJig);
+  const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
+  const manualTimer = buildManualTimer(console.log);
 
+  const priceAuthoritySource = makePriceAuthoritySource(
+    harden({
+      aEth: {
+        Scones: [5, 15],
+      },
+    }),
+    null,
+    manualTimer,
+    quoteMint,
+    aethMath.make(10),
+  );
+  const { creatorFacet: stablecoinMachine } = await E(zoe).startInstance(
+    stablecoinInstall,
+    {},
+    { autoswapInstall, priceAuthoritySource },
+  );
+  trace('start stablecoin', stablecoinMachine);
+
+  trace('got jig', testJig);
   const { stablecoin, governance, autoswap: _autoswapAPI } = testJig;
 
   trace('stablecoin machine', stablecoinMachine);
@@ -227,4 +268,111 @@ test('first', async t => {
   // const sconesLent = await loanProceeds.Scones;
   // const lentAmount = await sconeIssuer.getAmountOf(sconesLent);
   // t.truthy(sconeMath.isEqual(lentAmount, loanAmount), 'received 47 Scones');
+});
+
+test('price drop', async t => {
+  const autoswapInstall = await makeInstall(autoswapRoot);
+
+  const stablecoinInstall = await makeInstall(stablecoinRoot);
+
+  const {
+    aethKit: { mint: aethMint, issuer: aethIssuer, amountMath: aethMath },
+  } = setupAssets();
+
+  const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
+  const manualTimer = buildManualTimer(console.log);
+
+  // When the price falls to 5, the loan gets liquidated.
+  const priceAuthoritySource = makePriceAuthoritySource(
+    harden({
+      aEth: {
+        Scones: [60, 32, 6, 5],
+      },
+    }),
+    null,
+    manualTimer,
+    quoteMint,
+    aethMath.make(11),
+  );
+  const { creatorFacet: stablecoinMachine } = await E(zoe).startInstance(
+    stablecoinInstall,
+    {},
+    { autoswapInstall, priceAuthoritySource },
+  );
+  trace('start stablecoin', stablecoinMachine);
+
+  trace('got jig', testJig);
+  const { stablecoin, governance, autoswap: _autoswapAPI } = testJig;
+
+  trace('stablecoin machine', stablecoinMachine);
+  const {
+    issuer: _sconeIssuer,
+    amountMath: sconeMath,
+    brand: _sconeBrand,
+  } = stablecoin;
+  const {
+    issuer: _govIssuer,
+    amountMath: govMath,
+    brand: _govBrand,
+  } = governance;
+  trace('got math', govMath, sconeMath);
+  // Our wrapper gives us a Vault which holds 5 Collateral, has lent out 10
+  // Scones, which uses an autoswap that presents a fixed price of 4 Scones
+  // per Collateral.
+
+  // Add a pool with 99 aeth collateral at a 201 aeth/scones rate
+  const capitalAmount = aethMath.make(99);
+  const aethVaultSeat = await E(zoe).offer(
+    E(stablecoinMachine).makeAddTypeInvitation(aethIssuer, 'AEth', 201),
+    harden({
+      give: { Collateral: capitalAmount },
+      want: { Governance: govMath.getEmpty() },
+    }),
+    harden({
+      Collateral: aethMint.mintPayment(capitalAmount),
+    }),
+  );
+  trace('added aeth type', aethVaultSeat);
+
+  /** @type {VaultManager} */
+  const aethVaultManager = await E(aethVaultSeat).getOfferResult();
+  trace(aethVaultManager);
+
+  // Create a loan for 47 scones with 11 aeth collateral
+  const collateralAmount = aethMath.make(11);
+  const loanAmount = sconeMath.make(47);
+  const loanSeat = await E(zoe).offer(
+    E(aethVaultManager).makeLoanInvitation(),
+    harden({
+      give: { Collateral: collateralAmount },
+      want: { Scones: loanAmount },
+    }),
+    harden({
+      Collateral: aethMint.mintPayment(collateralAmount),
+    }),
+  );
+
+  const { vault, liquidationPayout } = await E(loanSeat).getOfferResult();
+  const debtAmount = await E(vault).getDebtAmount();
+  t.truthy(sconeMath.isEqual(debtAmount, loanAmount), 'vault lent 47 Scones');
+  trace('correct debt', debtAmount);
+
+  const { Scones: lentAmount } = await E(loanSeat).getCurrentAllocation();
+  t.truthy(sconeMath.isEqual(lentAmount, loanAmount), 'received 47 Scones');
+  t.truthy(
+    aethMath.isEqual(vault.getCollateralAmount(), aethMath.make(11)),
+    'vault holds 11 Collateral',
+  );
+  trace();
+
+  await manualTimer.tick();
+  t.falsy(sconeMath.isEmpty(await E(vault).getDebtAmount()));
+  await manualTimer.tick();
+  t.falsy(sconeMath.isEmpty(await E(vault).getDebtAmount()));
+  await manualTimer.tick();
+  t.falsy(sconeMath.isEmpty(await E(vault).getDebtAmount()));
+  await manualTimer.tick();
+  await liquidationPayout;
+  const debtAmountAfter = await E(vault).getDebtAmount();
+  t.truthy(sconeMath.isEmpty(debtAmountAfter));
 });
