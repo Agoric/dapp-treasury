@@ -14,11 +14,10 @@ import {
 import {
   reducer,
   defaultState,
-  updatePurses,
+  setPurses,
   updateInvitationDepositId,
-  serverConnected,
-  serverDisconnected,
-  deactivateConnection,
+  setConnected,
+  setActive,
   changeAmount,
   resetState,
 } from '../store';
@@ -53,7 +52,7 @@ export default function Provider({ children }) {
       if (!message) return;
       const { type, data } = message;
       if (type === 'walletUpdatePurses') {
-        dispatch(updatePurses(JSON.parse(data)));
+        dispatch(setPurses(JSON.parse(data)));
       } else if (type === 'walletDepositFacetIdResponse') {
         dispatch(updateInvitationDepositId(data));
       }
@@ -90,15 +89,15 @@ export default function Provider({ children }) {
 
     activateWebSocket({
       onConnect() {
-        dispatch(serverConnected());
+        dispatch(setConnected(true));
         walletGetPurses();
         walletGetInvitationDepositId();
         walletSuggestInstallation();
         walletSuggestInstance();
       },
       onDisconnect() {
-        dispatch(serverDisconnected());
-        dispatch(deactivateConnection());
+        dispatch(setConnected(false));
+        dispatch(setActive(false));
         dispatch(resetState());
       },
       onMessage(data) {

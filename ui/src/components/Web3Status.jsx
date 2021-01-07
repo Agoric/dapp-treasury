@@ -5,7 +5,7 @@ import { Button, Chip } from '@material-ui/core';
 import PersonIcon from '@material-ui/icons/Person';
 
 import { useApplicationContext } from '../contexts/Application';
-import { activateConnection, deactivateConnection } from '../store';
+import { setActive } from '../store';
 
 const useStyles = makeStyles(theme => ({
   divider: {
@@ -33,14 +33,14 @@ export default function Web3Status() {
   const { active, connected, account } = state;
 
   // Automatically connect to the wallet.
-  useEffect(() => dispatch(activateConnection()), [dispatch]);
+  useEffect(() => dispatch(setActive(true)), [dispatch]);
 
   function handleConnect() {
-    dispatch(activateConnection());
+    dispatch(setActive(true));
   }
 
   function handleDisconnect() {
-    dispatch(deactivateConnection());
+    dispatch(setActive(false));
   }
 
   return (

@@ -7,11 +7,9 @@ export const {
   reducer,
   initial: defaultState,
   actions: {
-    activateConnection,
-    deactivateConnection,
-    serverConnected,
-    serverDisconnected,
-    updatePurses,
+    setActive,
+    setConnected,
+    setPurses,
     changePurse,
     swapInputs,
     changeAmount,
@@ -34,11 +32,6 @@ export const {
     invitationDepositId: null,
   },
   actions: {
-    activateConnection: state => ({ ...state, active: true }),
-    deactivateConnection: state => ({ ...state, active: false }),
-    serverConnected: state => ({ ...state, connected: true }),
-    serverDisconnected: state => ({ ...state, connected: false }),
-    updatePurses: (state, purses) => ({ ...state, purses }),
     changePurse: {
       // Map positional arguments.
       create: (purse, fieldNumber, freeVariable = null) => ({
