@@ -8,11 +8,21 @@ import bundleSource from '@agoric/bundle-source';
 import { makeHelpers } from '@agoric/deploy-script-support';
 
 import installationConstants from '../ui/public/conf/installationConstants';
+import { makeAddCollateralType } from './addCollateralType';
 
 const API_PORT = process.env.API_PORT || '8000';
 
+const MOOLA_BRAND_PETNAME = 'moola';
+const MOOLA_PURSE_PETNAME = 'Fun budget';
+
+// TODO: actually hook up to an on-chain ETHA brand from pegasus
+const ETHA_BRAND_PETNAME = 'Testnet.$USD';
+const ETHA_PURSE_PETNAME = 'Local currency';
+
 export default async function deployApi(homePromise, endowments) {
-  const { board, priceAuthority, zoe, http, spawner } = E.G(homePromise);
+  const { board, priceAuthority, zoe, wallet, http, spawner } = E.G(
+    homePromise,
+  );
   const helpers = await makeHelpers(homePromise, endowments);
 
   const {
@@ -59,6 +69,64 @@ export default async function deployApi(homePromise, endowments) {
   console.log(`-- Contract Name: ${CONTRACT_NAME}`);
   console.log(`-- INSTANCE_BOARD_ID: ${INSTANCE_BOARD_ID}`);
 
+  const {
+    issuers: { Governance: governanceIssuer, Scones: moeIssuer },
+  } = await E(zoe).getTerms(instance);
+
+  const walletAdmin = E(wallet).getAdminFacet();
+  const issuerManager = E(walletAdmin).getIssuerManager();
+
+  const GOVERNANCE_BRAND_PETNAME = 'governance';
+  const MOE_BRAND_PETNAME = 'moe';
+
+  const GOVERNANCE_PURSE_PETNAME = 'Default governance token';
+
+  await Promise.all([
+    E(issuerManager).add(GOVERNANCE_BRAND_PETNAME, governanceIssuer),
+    E(issuerManager).add(MOE_BRAND_PETNAME, moeIssuer),
+  ]);
+
+  await helpers.saveLocalAmountMaths([
+    GOVERNANCE_BRAND_PETNAME,
+    ETHA_BRAND_PETNAME,
+    MOOLA_BRAND_PETNAME,
+  ]);
+
+  await E(walletAdmin).makeEmptyPurse(
+    GOVERNANCE_BRAND_PETNAME,
+    GOVERNANCE_PURSE_PETNAME,
+  );
+
+  const addCollateralType = makeAddCollateralType({
+    stablecoinMachine: creatorFacet,
+    issuerManager,
+    helpers,
+    GOVERNANCE_BRAND_PETNAME,
+    GOVERNANCE_PURSE_PETNAME,
+  });
+
+  // Start the pools
+  // EthA
+  // TODO: decide on keyword and rate
+
+  const ethAVaultManager = await addCollateralType({
+    collateralKeyword: 'ETHA',
+    rate: 201,
+    collateralBrandPetname: ETHA_BRAND_PETNAME,
+    collateralValueToGive: 99,
+    collateralPursePetname: ETHA_PURSE_PETNAME,
+  });
+
+  // moola
+
+  const moolaVaultManager = await addCollateralType({
+    collateralKeyword: 'Moola',
+    rate: 201,
+    collateralBrandPetname: MOOLA_BRAND_PETNAME,
+    collateralValueToGive: 99,
+    collateralPursePetname: MOOLA_PURSE_PETNAME,
+  });
+
   const installURLHandler = async () => {
     const bundle = await bundleSource(
       helpers.resolvePathForLocalContract('./src/handler.js'),
@@ -73,6 +141,8 @@ export default async function deployApi(homePromise, endowments) {
       board,
       http,
       invitationIssuer,
+      ethAVaultManager,
+      moolaVaultManager,
     });
 
     // Have our ag-solo wait on ws://localhost:8000/api/card-store for
