@@ -32,6 +32,9 @@
   "dependencies": {
     "@agoric/ertp": "*",
     "@agoric/eventual-send": "*",
+    "@agoric/zoe": "*",
+    "@agoric/deploy-script-support": "*",
+    "@agoric/bundle-source": "*",
     "esm": "^3.2.5"
   },
   "keywords": [],

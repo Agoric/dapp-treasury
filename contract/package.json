@@ -36,7 +36,8 @@
     "@agoric/store": "*",
     "@agoric/zoe": "*",
     "@agoric/bundle-source": "*",
-    "@agoric/eventual-send": "*"
+    "@agoric/eventual-send": "*",
+    "@agoric/deploy-script-support": "*"
   },
   "ava": {
     "files": [
