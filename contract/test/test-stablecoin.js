@@ -17,6 +17,7 @@ import { makeFakePriceAuthority } from '@agoric/zoe/tools/fakePriceAuthority';
 import buildManualTimer from '@agoric/zoe/tools/manualTimer';
 import { makeTracer } from '../src/makeTracer';
 import { MathKind } from '../../_agstate/yarn-links/@agoric/ertp';
+import { makePromiseKit } from '../../_agstate/yarn-links/@agoric/promise-kit';
 
 const stablecoinRoot = '../src/stablecoinMachine.js';
 const autoswapRoot =
@@ -73,29 +74,26 @@ function setupAssets() {
   });
 }
 
-const makePriceAuthoritySource = (
+const makePriceAuthority = (
+  mathIn,
+  mathOut,
   priceList,
   tradeList,
   timer,
   quoteMint,
   unitAmountIn,
-) =>
-  harden({
-    getPriceAuthority: async (mathIn, mathOut) => {
-      const nameIn = await E(mathIn.getBrand()).getAllegedName();
-      const nameOut = await E(mathOut.getBrand()).getAllegedName();
-      const options = {
-        mathIn,
-        mathOut,
-        priceList: priceList ? priceList[nameIn][nameOut] : null,
-        tradeList: tradeList ? tradeList[nameIn][nameOut] : null,
-        timer,
-        quoteMint,
-        unitAmountIn,
-      };
-      return Promise.resolve(makeFakePriceAuthority(options));
-    },
-  });
+) => {
+  const options = {
+    mathIn,
+    mathOut,
+    priceList,
+    tradeList,
+    timer,
+    quoteMint,
+    unitAmountIn,
+  };
+  return makeFakePriceAuthority(options);
+};
 
 test('first', async t => {
   const autoswapInstall = await makeInstall(autoswapRoot);
@@ -106,24 +104,11 @@ test('first', async t => {
     aethKit: { mint: aethMint, issuer: aethIssuer, amountMath: aethMath },
   } = setupAssets();
 
-  const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
-  const manualTimer = buildManualTimer(console.log);
-
-  const priceAuthoritySource = makePriceAuthoritySource(
-    harden({
-      aEth: {
-        Scones: [5, 15],
-      },
-    }),
-    null,
-    manualTimer,
-    quoteMint,
-    aethMath.make(10),
-  );
+  const priceAuthorityPromiseKit = makePromiseKit();
   const { creatorFacet: stablecoinMachine } = await E(zoe).startInstance(
     stablecoinInstall,
     {},
-    { autoswapInstall, priceAuthoritySource },
+    { autoswapInstall, priceAuthority: priceAuthorityPromiseKit.promise },
   );
   trace('start stablecoin', stablecoinMachine);
 
@@ -146,6 +131,22 @@ test('first', async t => {
   // Our wrapper gives us a Vault which holds 5 Collateral, has lent out 10
   // Scones, which uses an autoswap that presents a fixed price of 4 Scones
   // per Collateral.
+
+  const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
+  const manualTimer = buildManualTimer(console.log);
+
+  // priceAuthority needs sconeMath, which isn't available till the
+  // stablecoinMachine has been built, so resolve priceAuthorityPromiseKit here
+  const priceAuthority = makePriceAuthority(
+    aethMath,
+    sconeMath,
+    [5, 15],
+    null,
+    manualTimer,
+    quoteMint,
+    aethMath.make(10),
+  );
+  priceAuthorityPromiseKit.resolve(priceAuthority);
 
   // Add a pool with 99 aeth collateral at a 201 aeth/scones rate
   const capitalAmount = aethMath.make(99);
@@ -279,25 +280,11 @@ test('price drop', async t => {
     aethKit: { mint: aethMint, issuer: aethIssuer, amountMath: aethMath },
   } = setupAssets();
 
-  const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
-  const manualTimer = buildManualTimer(console.log);
-
-  // When the price falls to 5, the loan gets liquidated.
-  const priceAuthoritySource = makePriceAuthoritySource(
-    harden({
-      aEth: {
-        Scones: [60, 32, 6, 5],
-      },
-    }),
-    null,
-    manualTimer,
-    quoteMint,
-    aethMath.make(11),
-  );
+  const priceAuthorityPromiseKit = makePromiseKit();
   const { creatorFacet: stablecoinMachine } = await E(zoe).startInstance(
     stablecoinInstall,
     {},
-    { autoswapInstall, priceAuthoritySource },
+    { autoswapInstall, priceAuthority: priceAuthorityPromiseKit.promise },
   );
   trace('start stablecoin', stablecoinMachine);
 
@@ -319,6 +306,21 @@ test('price drop', async t => {
   // Our wrapper gives us a Vault which holds 5 Collateral, has lent out 10
   // Scones, which uses an autoswap that presents a fixed price of 4 Scones
   // per Collateral.
+  const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
+  const manualTimer = buildManualTimer(console.log);
+
+  // priceAuthority needs sconeMath, which isn't available till the
+  // stablecoinMachine has been built, so resolve priceAuthorityPromiseKit here
+  const priceAuthority = makePriceAuthority(
+    aethMath,
+    sconeMath,
+    [5, 15],
+    null,
+    manualTimer,
+    quoteMint,
+    aethMath.make(10),
+  );
+  priceAuthorityPromiseKit.resolve(priceAuthority);
 
   // Add a pool with 99 aeth collateral at a 201 aeth/scones rate
   const capitalAmount = aethMath.make(99);

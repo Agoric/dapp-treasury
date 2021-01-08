@@ -27,14 +27,14 @@ import { makeVault } from './vault';
  * @param {MultipoolAutoswap} autoswap
  * @param {ZCFMint} sconeMint
  * @param {Brand} collateralBrand
- * @param {PriceAuthoritySource} priceAuthoritySource
+ * @param {PriceAuthority} priceAuthority
  */
 export function makeVaultManager(
   zcf,
   autoswap,
   sconeMint,
   collateralBrand,
-  priceAuthoritySource,
+  priceAuthority,
 ) {
   const {
     issuer: _sconeIssuer,
@@ -150,10 +150,6 @@ export function makeVaultManager(
 
       const sconeDebt = sconesWanted; // todo +fee
 
-      const priceAuthority = priceAuthoritySource.getPriceAuthority(
-        collateralMath,
-        sconeMath,
-      );
       const vaultKit = makeVault(
         zcf,
         innerFacet,

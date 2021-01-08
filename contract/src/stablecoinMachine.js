@@ -25,7 +25,7 @@ const trace = makeTracer('ST');
  * @type {ContractStartFn}
  */
 export async function start(zcf) {
-  const { autoswapInstall, priceAuthoritySource } = zcf.getTerms();
+  const { autoswapInstall, priceAuthority } = zcf.getTerms();
 
   trace('terms', autoswapInstall);
 
@@ -162,7 +162,7 @@ export async function start(zcf) {
         autoswapAPI,
         sconeMint,
         collateralBrand,
-        priceAuthoritySource,
+        priceAuthority,
       );
       // TODO add vm to table of vault manager
       return vm;
