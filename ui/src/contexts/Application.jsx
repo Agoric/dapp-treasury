@@ -6,9 +6,13 @@ import React, {
   useEffect,
 } from 'react';
 
+import { makeCapTP, E } from '@agoric/captp';
+import { makeAsyncIterableFromNotifier } from '@agoric/notifier';
+
 import {
   activateWebSocket,
   deactivateWebSocket,
+  getActiveSocket,
   doFetch,
 } from '../utils/fetch-websocket';
 import {
@@ -87,9 +91,41 @@ export default function Provider({ children }) {
       });
     }
 
+    // Receive callbacks from the wallet connection.
+    const otherSide = harden({
+      needDappApproval(_dappOrigin, _suggestedDappPetname) {},
+      dappApproved(_dappOrigin) {},
+    });
+
+    let walletAbort;
+    let walletDispatch;
     activateWebSocket({
       onConnect() {
         dispatch(setConnected(true));
+        const socket = getActiveSocket();
+        const {
+          abort: ctpAbort,
+          dispatch: ctpDispatch,
+          getBootstrap,
+        } = makeCapTP(
+          'autoswap',
+          obj => socket.send(JSON.stringify(obj)),
+          otherSide,
+        );
+        walletAbort = ctpAbort;
+        walletDispatch = ctpDispatch;
+
+        // TODO: The moral equivalent of walletGetPurses()
+        async function watchPurses() {
+          const pn = E(getBootstrap()).getPursesNotifier();
+          for await (const purses of makeAsyncIterableFromNotifier(pn)) {
+            console.log('FIGME: purse ai', purses);
+          }
+        }
+        watchPurses().catch(err =>
+          console.error('FIGME: got watchPurses err', err),
+        );
+
         walletGetPurses();
         walletGetInvitationDepositId();
         walletSuggestInstallation();
@@ -98,10 +134,12 @@ export default function Provider({ children }) {
       onDisconnect() {
         dispatch(setConnected(false));
         dispatch(setActive(false));
+        walletAbort && walletAbort();
         dispatch(resetState());
       },
       onMessage(data) {
-        messageHandler(JSON.parse(data));
+        const obj = JSON.parse(data);
+        (walletDispatch && walletDispatch(obj)) || messageHandler(obj);
       },
     });
     return deactivateWebSocket;

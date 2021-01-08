@@ -142,7 +142,7 @@ function closeSocket(endpoint) {
   endpointToSocket.delete(endpoint);
 }
 
-function getActiveSocket(endpoint) {
+export function getActiveSocket(endpoint = '/private/wallet-bridge') {
   return endpointToSocket.get(endpoint);
 }
 
