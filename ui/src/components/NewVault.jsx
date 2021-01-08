@@ -11,6 +11,7 @@ import {
   MenuItem,
   Paper,
   Radio,
+  Table,
   TableBody,
   TableCell,
   TableContainer,
@@ -125,30 +126,32 @@ function VaultCollateral({ dispatch }) {
       <FormControl component="fieldset">
         <FormLabel component="legend">Choose collateral</FormLabel>{' '}
         <TableContainer>
-          <TableHead>
-            <TableRow>
-              <TableCell padding="checkbox" />
-              {headCells.map(headCell => (
-                <TableCell key={headCell.id}>{headCell.label}</TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map(row => (
-              <TableRow key={row.name}>
-                <TableCell padding="checkbox">
-                  <Radio
-                    onClick={() => dispatch(setCollateralBrand(row.name))}
-                  />
-                </TableCell>
-                <TableCell>{row.name}</TableCell>
-                <TableCell align="right">{row.price}</TableCell>
-                <TableCell align="right">{row.lratio}</TableCell>
-                <TableCell align="right">{row.lpenalty}</TableCell>
-                <TableCell align="right">{row.interest}</TableCell>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell padding="checkbox" />
+                {headCells.map(headCell => (
+                  <TableCell key={headCell.id}>{headCell.label}</TableCell>
+                ))}
               </TableRow>
-            ))}
-          </TableBody>
+            </TableHead>
+            <TableBody>
+              {rows.map(row => (
+                <TableRow key={row.name}>
+                  <TableCell padding="checkbox">
+                    <Radio
+                      onClick={() => dispatch(setCollateralBrand(row.name))}
+                    />
+                  </TableCell>
+                  <TableCell>{row.name}</TableCell>
+                  <TableCell align="right">{row.price}</TableCell>
+                  <TableCell align="right">{row.lratio}</TableCell>
+                  <TableCell align="right">{row.lpenalty}</TableCell>
+                  <TableCell align="right">{row.interest}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </TableContainer>
       </FormControl>
     </div>
