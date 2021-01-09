@@ -6,7 +6,7 @@ import '@agoric/zoe/src/contracts/exported';
 // "Scone" stablecoin.
 
 import { E } from '@agoric/eventual-send';
-import { assert } from '@agoric/assert';
+import { assert, details } from '@agoric/assert';
 import makeStore from '@agoric/store';
 import { trade, assertProposalShape } from '@agoric/zoe/src/contractSupport';
 import { makeTracer } from './makeTracer';
@@ -45,7 +45,7 @@ export async function start(zcf) {
   } = govMint.getIssuerRecord();
 
   // TODO sinclair+us: is there a scm/gov token per collateralType (joe says yes), or just one?
-  const collateralTypes = makeStore(); // Issuer -> xxx
+  const collateralTypes = makeStore(); // Brand -> vaultManager
 
   const zoe = zcf.getZoeService();
 
@@ -66,11 +66,10 @@ export async function start(zcf) {
     collateralKeyword,
     rate,
   ) {
-    // TODO add to the issuer in the same turn
-    assert(!collateralTypes.has(collateralIssuer));
     await zcf.saveIssuer(collateralIssuer, collateralKeyword);
     const collateralBrand = zcf.getBrandForIssuer(collateralIssuer);
     trace('collateralBrand', collateralBrand);
+    assert(!collateralTypes.has(collateralBrand));
 
     async function addTypeHook(seat) {
       assertProposalShape(seat, {
@@ -81,7 +80,9 @@ export async function start(zcf) {
         give: { Collateral: collateralIn },
         want: { Governance: _govOut }, // ownership of the whole stablecoin machine
       } = seat.getProposal();
-      assert(!collateralTypes.has(collateralIssuer));
+      assert(!collateralTypes.has(collateralBrand));
+      // TODO check that hte collateral is of the expected type
+      // of restructure so that's not an issue
       // TODO assert that the collateralIn is of the right brand
       trace('add collateral', collateralIn);
       const sconesAmount = sconeMath.make(rate * collateralIn.value);
@@ -164,7 +165,7 @@ export async function start(zcf) {
         collateralBrand,
         priceAuthority,
       );
-      // TODO add vm to table of vault manager
+      collateralTypes.init(collateralBrand, vm);
       return vm;
     }
 
@@ -172,6 +173,33 @@ export async function start(zcf) {
       addTypeHook,
       'add a new kind of collateral to the machine',
     );
+  }
+
+  /**
+   * Make a loan in the vaultManager based on the collateral type.
+   */
+  function makeLoanInvitation() {
+    /**
+     * @param {ZCFSeat} seat
+     */
+    async function makeLoanHook(seat) {
+      assertProposalShape(seat, {
+        give: { Collateral: null },
+        want: { Scones: null },
+      });
+      const {
+        give: { Collateral: collateralAmount },
+      } = seat.getProposal();
+      const { brand: brandIn } = collateralAmount;
+      assert(
+        collateralTypes.has(brandIn),
+        details`Not a supported collateral type ${brandIn}`,
+      );
+      const mgr = collateralTypes.get(brandIn);
+      return mgr.makeLoan(seat);
+    }
+
+    return zcf.makeInvitation(makeLoanHook, 'make a loan');
   }
 
   // function recapitalizeHook(seat) {
@@ -210,6 +238,7 @@ export async function start(zcf) {
     getAMM() {
       return autoswapInstance;
     },
+    makeLoanInvitation,
   });
 
   /** @type {StablecoinMachine} */

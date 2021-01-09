@@ -101,82 +101,79 @@ export function makeVaultManager(
     collateralMath,
   });
 
-  function makeLoanInvitation() {
-    /**
-     * @param {ZCFSeat} seat
-     */
-    async function makeLoanHook(seat) {
-      assertProposalShape(seat, {
-        give: { Collateral: null },
-        want: { Scones: null },
-      });
-      const {
-        give: { Collateral: collateralAmount },
-        want: { Scones: sconesWanted },
-      } = seat.getProposal();
+  /**
+   * @param {ZCFSeat} seat
+   */
+  async function makeLoan(seat) {
+    assertProposalShape(seat, {
+      give: { Collateral: null },
+      want: { Scones: null },
+    });
+    const {
+      give: { Collateral: collateralAmount },
+      want: { Scones: sconesWanted },
+    } = seat.getProposal();
 
-      // this offer will hold the collateral until the loan is retired. The
-      // payout from it will be handed to the user: if the vault dies early
-      // (because the StableCoinMachine vat died), they'll get all their
-      // collateral back.
-      const { zcfSeat: collateralSeat, userSeat } = zcf.makeEmptySeatKit();
-      // get the payout to provide access to the collateral if the
-      // contract abandons
-      const collateralPayoutP = E(userSeat).getPayouts();
-      const salePrice = await E(autoswap).getInputPrice(
-        collateralAmount,
-        sconeBrand,
-      );
-      // console.log("SALE PRICE  ", salePrice, salePrice.value / initialMargin);
-      const maxScones = sconeMath.make(
-        Math.ceil(salePrice.value / initialMargin),
-      ); // todo fee
-      assert(sconeMath.isGTE(maxScones, sconesWanted), 'you ask for too much');
-      // todo fee: maybe mint new Scones, send to reward pool, increment how
-      // much must be paid back
+    // TODO check that it's for the right type of collateral
+    // this offer will hold the collateral until the loan is retired. The
+    // payout from it will be handed to the user: if the vault dies early
+    // (because the StableCoinMachine vat died), they'll get all their
+    // collateral back.
+    const { zcfSeat: collateralSeat, userSeat } = zcf.makeEmptySeatKit();
+    // get the payout to provide access to the collateral if the
+    // contract abandons
+    const collateralPayoutP = E(userSeat).getPayouts();
+    const salePrice = await E(autoswap).getInputPrice(
+      collateralAmount,
+      sconeBrand,
+    );
+    // console.log("SALE PRICE  ", salePrice, salePrice.value / initialMargin);
+    const maxScones = sconeMath.make(
+      Math.ceil(salePrice.value / initialMargin),
+    ); // todo fee
+    assert(sconeMath.isGTE(maxScones, sconesWanted), 'you ask for too much');
+    // todo fee: maybe mint new Scones, send to reward pool, increment how
+    // much must be paid back
 
-      // todo trigger process() check right away, in case the price dropped while we ran
+    // todo trigger process() check right away, in case the price dropped while we ran
 
-      // todo (from dean) use a different offer for newly minted stablecoins,
-      // to prevent something something that lets them get back both their
-      // collateral and the new coins
+    // todo (from dean) use a different offer for newly minted stablecoins,
+    // to prevent something something that lets them get back both their
+    // collateral and the new coins
 
-      sconeMint.mintGains({ Scones: sconesWanted }, collateralSeat);
+    sconeMint.mintGains({ Scones: sconesWanted }, collateralSeat);
 
-      trade(
-        zcf,
-        { seat: collateralSeat, gains: { Collateral: collateralAmount } },
-        { seat, gains: { Scones: sconesWanted } },
-      );
+    trade(
+      zcf,
+      { seat: collateralSeat, gains: { Collateral: collateralAmount } },
+      { seat, gains: { Scones: sconesWanted } },
+    );
 
-      const sconeDebt = sconesWanted; // todo +fee
+    const sconeDebt = sconesWanted; // todo +fee
 
-      const { updater, notifier } = makeNotifierKit();
-      const vaultKit = makeVault(
-        zcf,
-        innerFacet,
-        collateralSeat,
-        sconeDebt,
-        sconeMint,
-        autoswap,
-        priceAuthority,
-        updater,
-      );
-      const { vault } = vaultKit;
-      allVaults.push(vaultKit);
+    const { updater, notifier } = makeNotifierKit();
+    const vaultKit = makeVault(
+      zcf,
+      innerFacet,
+      collateralSeat,
+      sconeDebt,
+      sconeMint,
+      autoswap,
+      priceAuthority,
+      updater,
+    );
+    const { vault } = vaultKit;
+    allVaults.push(vaultKit);
 
-      seat.exit();
+    seat.exit();
 
-      // todo: nicer to return single objects, find a better way to give them
-      // the payout object
-      return harden({
-        uiNotifier: notifier,
-        vault,
-        liquidationPayout: collateralPayoutP,
-      });
-    }
-
-    return zcf.makeInvitation(makeLoanHook, 'make a loan');
+    // TODO: nicer to return single objects, find a better way to give them
+    // the payout object
+    return harden({
+      uiNotifier: notifier,
+      vault,
+      liquidationPayout: collateralPayoutP,
+    });
   }
 
   // Called by the vault when liquidation is insufficient. We're expected to
@@ -187,7 +184,7 @@ export function makeVaultManager(
   // function helpLiquidateFallback(underwaterBy) {}
 
   return harden({
-    makeLoanInvitation,
+    makeLoan,
     getLiquidationMargin() {
       return liquidationMargin;
     },

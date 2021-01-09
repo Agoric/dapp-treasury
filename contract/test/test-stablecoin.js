@@ -105,7 +105,7 @@ test('first', async t => {
   } = setupAssets();
 
   const priceAuthorityPromiseKit = makePromiseKit();
-  const { creatorFacet: stablecoinMachine } = await E(zoe).startInstance(
+  const { creatorFacet: stablecoinMachine, publicFacet: lender } = await E(zoe).startInstance(
     stablecoinInstall,
     {},
     { autoswapInstall, priceAuthority: priceAuthorityPromiseKit.promise },
@@ -170,7 +170,7 @@ test('first', async t => {
   const collateralAmount = aethMath.make(11);
   const loanAmount = sconeMath.make(47);
   const loanSeat = await E(zoe).offer(
-    E(aethVaultManager).makeLoanInvitation(),
+    E(lender).makeLoanInvitation(),
     harden({
       give: { Collateral: collateralAmount },
       want: { Scones: loanAmount },
@@ -281,7 +281,7 @@ test('price drop', async t => {
   } = setupAssets();
 
   const priceAuthorityPromiseKit = makePromiseKit();
-  const { creatorFacet: stablecoinMachine } = await E(zoe).startInstance(
+  const { creatorFacet: stablecoinMachine, publicFacet: lender } = await E(zoe).startInstance(
     stablecoinInstall,
     {},
     { autoswapInstall, priceAuthority: priceAuthorityPromiseKit.promise },
@@ -344,7 +344,7 @@ test('price drop', async t => {
   const collateralAmount = aethMath.make(11);
   const loanAmount = sconeMath.make(47);
   const loanSeat = await E(zoe).offer(
-    E(aethVaultManager).makeLoanInvitation(),
+    E(lender).makeLoanInvitation(),
     harden({
       give: { Collateral: collateralAmount },
       want: { Scones: loanAmount },
