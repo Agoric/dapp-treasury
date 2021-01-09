@@ -17,3 +17,14 @@
 /**
  * @typedef { ReturnType<typeof import('../src/vault').makeVault>['vault']} Vault
  */
+
+/**
+ * @typedef {Object} UIState
+ * @property {number} interestRate
+ * @property {number} liquidationRatio
+ * @property {Amount} locked Amount of Collateral locked
+ * @property {Amount} debt Amount of Loan (including accrued interest)
+ * @property {number} collateralizationRatio a whole number percent; expected to
+ * be greater than 100
+ * @property {boolean} liquidated boolean showing whether liquidation occurred
+ */

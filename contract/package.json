@@ -33,6 +33,7 @@
     "@agoric/captp": "*",
     "@agoric/ertp": "*",
     "@agoric/nat": "^2.0.1",
+    "@agoric/notifier": "*",
     "@agoric/store": "*",
     "@agoric/zoe": "*",
     "@agoric/bundle-source": "*",

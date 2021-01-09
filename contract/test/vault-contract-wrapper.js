@@ -7,6 +7,7 @@ import { assert } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
 import buildManualTimer from '@agoric/zoe/tools/manualTimer';
 import { makeFakePriceAuthority } from '@agoric/zoe/tools/fakePriceAuthority';
+import { makeNotifierKit } from '@agoric/notifier';
 import { makeVault } from '../src/vault';
 import { escrowAllTo, paymentFromZCFMint } from '../src/burn';
 import { MathKind } from '../../_agstate/yarn-links/@agoric/ertp';
@@ -63,6 +64,7 @@ export async function start(zcf) {
   };
   const priceAuthority = makeFakePriceAuthority(options);
 
+  const { updater, notifier: uiNotifier } = makeNotifierKit();
   const { vault, liquidate, checkMargin } = makeVault(
     zcf,
     managerMock,
@@ -71,9 +73,10 @@ export async function start(zcf) {
     sconeKit,
     autoswapMock,
     priceAuthority,
+    updater,
   );
 
-  zcf.setTestJig(() => ({ collateralKit, sconeKit, vault }));
+  zcf.setTestJig(() => ({ collateralKit, sconeKit, vault, uiNotifier }));
 
   async function makeHook(seat) {
     console.log(`makeHook invoked`, seat);

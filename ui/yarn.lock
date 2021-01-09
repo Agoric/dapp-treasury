@@ -50,7 +50,7 @@
   resolved "https://registry.yarnpkg.com/@agoric/nat/-/nat-2.0.1.tgz#28aba18367deba354bdd424bdf6daa48f5e7d37f"
   integrity sha512-puvWkoaJovQib/YaSRSGJ8Kn9rogi/yyaVa3d5znSZb5WiYfUiEKW35BfexHhAdi0VfPz2anFHoRBoBSUIijNA==
 
-"@agoric/notifier@^0.3.0":
+"@agoric/notifier@*":
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@agoric/notifier/-/notifier-0.3.0.tgz#493008dc4ed302d314be573a4f6e80a97b289d47"
   integrity sha512-gIBB4PFFotwpmZnEbckXeWUF32gy6k2FXuX1Nu+UsmbFnDqBwx99DWLrYDJk0fhuL2lLn8KqU7c7AxjS7jAa6w==

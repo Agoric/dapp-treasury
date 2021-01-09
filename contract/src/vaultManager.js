@@ -4,6 +4,7 @@ import '@agoric/zoe/exported';
 import { assert } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
 import { trade, assertProposalShape } from '@agoric/zoe/src/contractSupport';
+import { makeNotifierKit } from '@agoric/notifier';
 import { makeVault } from './vault';
 
 // Each VaultManager manages a single collateralType. It owns an autoswap
@@ -27,7 +28,7 @@ import { makeVault } from './vault';
  * @param {MultipoolAutoswap} autoswap
  * @param {ZCFMint} sconeMint
  * @param {Brand} collateralBrand
- * @param {PriceAuthority} priceAuthority
+ * @param {Promise<PriceAuthority>} priceAuthority
  */
 export function makeVaultManager(
   zcf,
@@ -150,6 +151,7 @@ export function makeVaultManager(
 
       const sconeDebt = sconesWanted; // todo +fee
 
+      const { updater, notifier } = makeNotifierKit();
       const vaultKit = makeVault(
         zcf,
         innerFacet,
@@ -158,6 +160,7 @@ export function makeVaultManager(
         sconeMint,
         autoswap,
         priceAuthority,
+        updater,
       );
       const { vault } = vaultKit;
       allVaults.push(vaultKit);
@@ -167,6 +170,7 @@ export function makeVaultManager(
       // todo: nicer to return single objects, find a better way to give them
       // the payout object
       return harden({
+        uiNotifier: notifier,
         vault,
         liquidationPayout: collateralPayoutP,
       });

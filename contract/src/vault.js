@@ -31,6 +31,7 @@ const { floorDivide } = natSafeMath;
  * @param {ZCFMint} sconeMint
  * @param {MultipoolAutoswap} autoswap
  * @param {Promise<PriceAuthority>} priceAuthority
+ * @param {IterationObserver<UIState>} uiUpdater
  */
 export function makeVault(
   zcf,
@@ -40,6 +41,7 @@ export function makeVault(
   sconeMint,
   autoswap,
   priceAuthority,
+  uiUpdater,
 ) {
   const trace = makeTracer('VV');
 
@@ -62,6 +64,45 @@ export function makeVault(
 
   // const FixMeEmptyGO = {};
 
+  function getCollateralAmount() {
+    // todo?: assert(active, 'vault has been liquidated');
+    return collateralSeat.hasExited()
+      ? collateralMath.getEmpty()
+      : collateralSeat.getAmountAllocated('Collateral', collateralBrand);
+  }
+
+  function getCollateralizationRatio() {
+    if (collateralMath.isEmpty(getCollateralAmount())) {
+      return Promise.resolve(0);
+    }
+    return E(priceAuthority)
+      .quoteGiven(getCollateralAmount(), sconeBrand)
+      .then(({ quoteAmount }) => {
+        const collateralValue = quoteAmount.value[0].amountOut.value;
+        const numerator = natSafeMath.multiply(collateralValue, 100);
+        const denominator = sconeDebt.value;
+        return natSafeMath.floorDivide(numerator, denominator);
+      });
+  }
+
+  // call this whenever anything changes!
+  function updateUiState() {
+    const uiState = harden({
+      interestRate: 0,
+      // TODO(hibbert): change liquidationMargin to be an int.
+      liquidationRatio: manager.getLiquidationMargin() * 100,
+      locked: getCollateralAmount(),
+      debt: sconeDebt,
+      collateralizationRatio: getCollateralizationRatio(),
+      liquidated: !active,
+    });
+    if (active) {
+      uiUpdater.updateState(uiState);
+    } else {
+      uiUpdater.finish(uiState);
+    }
+  }
+
   /**
    * @param {ZCFSeat} seat
    */
@@ -78,6 +119,7 @@ export function makeVault(
       { seat: collateralSeat, gains: { Collateral: collateralAmount } },
       { seat, gains: {} },
     );
+    updateUiState();
     seat.exit();
     return 'a warm fuzzy feeling that you are further away from default than ever before';
   }
@@ -115,21 +157,13 @@ export function makeVault(
     // AWAIT
 
     offerHandle.exit();
+    updateUiState();
 
     return 'thank you for your business';
   }
   */
 
-  function getCollateralAmount() {
-    // todo?: assert(active, 'vault has been liquidated');
-    return collateralSeat.hasExited()
-      ? collateralMath.getEmpty()
-      : collateralSeat.getAmountAllocated('Collateral', collateralBrand);
-  }
-
-  /**
-   * @param {ZCFSeat} seat
-   */
+  /** @param {ZCFSeat} seat */
   async function paybackHook(seat) {
     assert(active, 'vault has been liquidated');
     assertProposalShape(seat, {
@@ -143,7 +177,6 @@ export function makeVault(
 
     // precheckCollateral MUST NOT be relied on after a turn boundary
     const precheckCollateral = getCollateralAmount();
-    // const precheckCollateral = collateralSeat.getCurrentAllocation().Collateral;
     assert(
       collateralMath.isGTE(precheckCollateral, collateralWanted),
       'want is more collateral than is available',
@@ -204,6 +237,7 @@ export function makeVault(
     // burn the scones. first we need zoe to make us a payment
     sconeMint.burnLosses({ Scones: acceptedScones }, collateralSeat);
 
+    updateUiState();
     // note: the only way to delete the Vault completely is close()
     return 'thank you for your payment';
   }
@@ -256,6 +290,7 @@ export function makeVault(
 
     // todo: close the vault
     active = false;
+    updateUiState();
     // collateralHolderOffer.exit()
 
     return 'your loan is closed, thank you for your business';
@@ -348,6 +383,8 @@ export function makeVault(
 
     collateralSeat.exit();
     trace('refunded');
+    active = false;
+    updateUiState();
 
     if (isUnderwater) {
       trace(`underwater by`, sconeDebt);
@@ -393,6 +430,7 @@ export function makeVault(
       });
   }
   scheduleLiquidation();
+  updateUiState();
 
   // todo: add liquidateSome(collateralAmount): sells some collateral, reduces some debt
 

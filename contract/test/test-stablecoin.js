@@ -314,7 +314,7 @@ test('price drop', async t => {
   const priceAuthority = makePriceAuthority(
     aethMath,
     sconeMath,
-    [5, 15],
+    [60, 32, 6, 5],
     null,
     manualTimer,
     quoteMint,
@@ -354,11 +354,16 @@ test('price drop', async t => {
     }),
   );
 
-  const { vault, liquidationPayout } = await E(loanSeat).getOfferResult();
+  const { vault, liquidationPayout, uiNotifier } = await E(
+    loanSeat,
+  ).getOfferResult();
   const debtAmount = await E(vault).getDebtAmount();
   t.truthy(sconeMath.isEqual(debtAmount, loanAmount), 'vault lent 47 Scones');
   trace('correct debt', debtAmount);
 
+  const initialNotification = await uiNotifier.getUpdateSince();
+  t.falsy(initialNotification.value.liquidated);
+  t.truthy((await initialNotification.value.collateralizationRatio) > 120);
   const { Scones: lentAmount } = await E(loanSeat).getCurrentAllocation();
   t.truthy(sconeMath.isEqual(lentAmount, loanAmount), 'received 47 Scones');
   t.truthy(
@@ -376,5 +381,10 @@ test('price drop', async t => {
   await manualTimer.tick();
   await liquidationPayout;
   const debtAmountAfter = await E(vault).getDebtAmount();
+  const finalNotification = await uiNotifier.getUpdateSince(
+    initialNotification.updateCount,
+  );
+  t.truthy(finalNotification.value.liquidated);
+  t.is(await finalNotification.value.collateralizationRatio, 0);
   t.truthy(sconeMath.isEmpty(debtAmountAfter));
 });
