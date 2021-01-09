@@ -7,7 +7,7 @@ const fs = require('fs');
 
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
-const defaults = fs.readFileSync(`${__dirname}/utils/defaults.js`, 'utf-8');
+const defaults = fs.readFileSync(`${__dirname}/generated/defaults.js`, 'utf-8');
 const dappConstants = process.env.REACT_APP_DAPP_CONSTANTS_JSON
   ? JSON.parse(process.env.REACT_APP_DAPP_CONSTANTS_JSON)
   : JSON.parse(defaults.replace(/.*export default/s, ''));

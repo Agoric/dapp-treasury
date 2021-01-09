@@ -52,8 +52,8 @@ export async function start(zcf) {
   // we assume the multipool-autoswap is public, so folks can buy/sell
   // through it without our involvement
   // Should it use creatorFacet, creatorInvitation, instance?
-  /** @type {{ publicFacet: MultipoolAutoswap}} */
-  const { publicFacet: autoswapAPI } = await E(
+  /** @type {{ publicFacet: MultipoolAutoswap, instance: Instance}} */
+  const { publicFacet: autoswapAPI, instance: autoswapInstance } = await E(
     zoe,
   ).startInstance(autoswapInstall, { Central: sconeIssuer });
   trace('autoswap', autoswapAPI);
@@ -206,10 +206,19 @@ export async function start(zcf) {
     autoswap: autoswapAPI,
   }));
 
+  const publicFacet = harden({
+    getAMM() {
+      return autoswapInstance;
+    },
+  });
+
   /** @type {StablecoinMachine} */
   const stablecoinMachine = harden({
     makeAddTypeInvitation,
+    getAMM() {
+      return autoswapInstance;
+    },
   });
 
-  return harden({ creatorFacet: stablecoinMachine });
+  return harden({ creatorFacet: stablecoinMachine, publicFacet });
 }

@@ -58,6 +58,7 @@ export default harden(({ registry, publicAPI }, _invitationMaker) => {
             }
 
             default: {
+              console.log('UNEXPECTED ACTION: ', type, obj);
               return false;
             }
           }

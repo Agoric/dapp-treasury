@@ -11,7 +11,7 @@ export default async function deployContract(homePromise, endowments) {
   const resolvedPath = helpers.resolvePathForLocalContract(
     './src/stablecoinMachine',
   );
-  const CONTRACT_NAME = 'stablecoinMachine';
+  const CONTRACT_NAME = 'Treasury';
   const { id: INSTALLATION_BOARD_ID } = await helpers.install(
     resolvedPath,
     CONTRACT_NAME,
@@ -19,22 +19,24 @@ export default async function deployContract(homePromise, endowments) {
 
   // Install Autoswap
   // TODO: install autoswap already in bootstrap.js in cosmic-swingset
-  const { id: AUTOSWAP_INSTALLATION_BOARD_ID } = await helpers.install(
+  const { id: AMM_INSTALLATION_BOARD_ID } = await helpers.install(
     helpers.resolvePathForPackagedContract(
       '@agoric/zoe/src/contracts/multipoolAutoswap/multipoolAutoswap',
     ),
     'multipoolAutoswap',
   );
+  const AMM_NAME = 'autoswap';
 
   // Save the constants somewhere where the UI and api can find it.
   const dappConstants = {
     CONTRACT_NAME,
+    AMM_NAME,
     INSTALLATION_BOARD_ID,
-    AUTOSWAP_INSTALLATION_BOARD_ID,
+    AMM_INSTALLATION_BOARD_ID,
   };
-  const defaultsFolder = endowments.pathResolve(`../ui/public/conf`);
+  const defaultsFolder = endowments.pathResolve(`../ui/src/generated`);
   const defaultsFile = endowments.pathResolve(
-    `../ui/public/conf/installationConstants.js`,
+    `../ui/src/generated/installationConstants.js`,
   );
   console.log('writing', defaultsFile);
   const defaultsContents = `\

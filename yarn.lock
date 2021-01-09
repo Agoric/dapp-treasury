@@ -389,6 +389,15 @@
     "@agoric/eventual-send" "^0.10.0"
     "@agoric/promise-kit" "^0.1.4"
 
+"@agoric/notifier@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@agoric/notifier/-/notifier-0.3.0.tgz#493008dc4ed302d314be573a4f6e80a97b289d47"
+  integrity sha512-gIBB4PFFotwpmZnEbckXeWUF32gy6k2FXuX1Nu+UsmbFnDqBwx99DWLrYDJk0fhuL2lLn8KqU7c7AxjS7jAa6w==
+  dependencies:
+    "@agoric/assert" "^0.2.0"
+    "@agoric/eventual-send" "^0.13.0"
+    "@agoric/promise-kit" "^0.2.0"
+
 "@agoric/promise-kit@^0.1.4":
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/@agoric/promise-kit/-/promise-kit-0.1.4.tgz#8925005bc4100f3b2463e6c1d1fc30fabb52359c"

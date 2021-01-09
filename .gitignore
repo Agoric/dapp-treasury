@@ -1,3 +1,5 @@
-dappConstants.js
 node_modules
 _agstate
+# exclude everything in the generated directory except the README.md
+ui/src/generated/**
+!ui/src/generated/README.md

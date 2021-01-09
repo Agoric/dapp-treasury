@@ -25,12 +25,15 @@ import {
   changeAmount,
   resetState,
 } from '../store';
-import dappConstants from '../utils/constants';
+import dappConstants from '../generated/defaults.js';
 
 const {
   INVITATION_BRAND_BOARD_ID,
   INSTALLATION_BOARD_ID,
   INSTANCE_BOARD_ID,
+  AMM_NAME,
+  AMM_INSTALLATION_BOARD_ID,
+  AMM_INSTANCE_BOARD_ID,
 } = dappConstants;
 
 export const ApplicationContext = createContext();
@@ -62,35 +65,6 @@ export default function Provider({ children }) {
       }
     }
 
-    function walletGetPurses() {
-      return doFetch({ type: 'walletGetPurses' }).then(messageHandler);
-    }
-
-    function walletGetInvitationDepositId() {
-      return doFetch({
-        type: 'walletGetDepositFacetId',
-        brandBoardId: INVITATION_BRAND_BOARD_ID,
-      });
-    }
-
-    function walletSuggestInstallation() {
-      console.log('Installation', INSTALLATION_BOARD_ID);
-      return doFetch({
-        type: 'walletSuggestInstallation',
-        petname: 'Installation',
-        boardId: INSTALLATION_BOARD_ID,
-      });
-    }
-
-    function walletSuggestInstance() {
-      console.log('Instance', INSTANCE_BOARD_ID);
-      return doFetch({
-        type: 'walletSuggestInstance',
-        petname: 'Instance',
-        boardId: INSTANCE_BOARD_ID,
-      });
-    }
-
     // Receive callbacks from the wallet connection.
     const otherSide = harden({
       needDappApproval(_dappOrigin, _suggestedDappPetname) {},
@@ -100,7 +74,7 @@ export default function Provider({ children }) {
     let walletAbort;
     let walletDispatch;
     activateWebSocket({
-      onConnect() {
+      async onConnect() {
         dispatch(setConnected(true));
         const socket = getActiveSocket();
         const {
@@ -108,28 +82,37 @@ export default function Provider({ children }) {
           dispatch: ctpDispatch,
           getBootstrap,
         } = makeCapTP(
-          'autoswap',
+          'Treasury',
           obj => socket.send(JSON.stringify(obj)),
           otherSide,
         );
         walletAbort = ctpAbort;
         walletDispatch = ctpDispatch;
+        const walletP = getBootstrap();
 
         // TODO: The moral equivalent of walletGetPurses()
         async function watchPurses() {
-          const pn = E(getBootstrap()).getPursesNotifier();
+          const pn = E(walletP).getPursesNotifier();
           for await (const purses of makeAsyncIterableFromNotifier(pn)) {
-            console.log('FIGME: purse ai', purses);
+            dispatch(setPurses(purses));
           }
         }
         watchPurses().catch(err =>
           console.error('FIGME: got watchPurses err', err),
         );
-
-        walletGetPurses();
-        walletGetInvitationDepositId();
-        walletSuggestInstallation();
-        walletSuggestInstance();
+        await Promise.all([
+          E(walletP).getDepositFacetId(INVITATION_BRAND_BOARD_ID),
+          E(walletP).suggestInstallation('Installation', INSTALLATION_BOARD_ID),
+          E(walletP).suggestInstance('Instance', INSTANCE_BOARD_ID),
+          E(walletP).suggestInstallation(
+            `${AMM_NAME}Installation`,
+            AMM_INSTALLATION_BOARD_ID,
+          ),
+          E(walletP).suggestInstance(
+            `${AMM_NAME}Instance`,
+            AMM_INSTANCE_BOARD_ID,
+          ),
+        ]);
       },
       onDisconnect() {
         dispatch(setConnected(false));
@@ -147,20 +130,30 @@ export default function Provider({ children }) {
 
   const apiMessageHandler = useCallback(
     message => {
-      if (!message) return;
+      if (!message) {
+        return;
+      }
       const { type, data } = message;
-      if (type === 'autoswap/getInputPriceResponse') {
-        dispatch(changeAmount(data, 1 - freeVariable));
-      } else if (type === 'autoswap/sendSwapInvitationResponse') {
-        // Once the invitation has been sent to the user, we update the
-        // offer to include the invitationHandleBoardId. Then we make a
-        // request to the user's wallet to send the proposed offer for
-        // acceptance/rejection.
-        const { offer } = data;
-        doFetch({
-          type: 'walletAddOffer',
-          data: offer,
-        });
+      switch (type) {
+        case 'autoswap/getInputPriceResponse': {
+          dispatch(changeAmount(data, 1 - freeVariable));
+          return;
+        }
+        case 'autoswap/sendSwapInvitationResponse': {
+          // Once the invitation has been sent to the user, we update the
+          // offer to include the invitationHandleBoardId. Then we make a
+          // request to the user's wallet to send the proposed offer for
+          // acceptance/rejection.
+          const { offer } = data;
+          doFetch({
+            type: 'walletAddOffer',
+            data: offer,
+          });
+          return;
+        }
+        default: {
+          console.log('Unexpected response', message);
+        }
       }
     },
     [freeVariable],

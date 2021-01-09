@@ -6,6 +6,23 @@ const { API_URL, BRIDGE_URL, CONTRACT_NAME } = dappConstants;
 
 const endpointToSocket = new Map();
 
+function logMsg(obj, direction = 'send:') {
+  const type = obj.type;
+  switch (type) {
+    case undefined:
+      console.log(direction, obj);
+      return;
+    case 'CTP_CALL':
+      console.log(direction, type, obj.method.body, obj);
+      return;
+    case 'CTP_RETURN':
+      console.log(direction, type, obj.result.body, obj);
+      return;
+    default:
+      console.log(direction, type, obj);
+  }
+}
+
 function getWebSocketEndpoint(endpoint) {
   // TODO proxy socket.
   let url;
@@ -57,7 +74,7 @@ function createSocket({ onConnect, onDisconnect, onMessage }, endpoint) {
     ifr.addEventListener('load', () => {
       while (ifrQ.length) {
         const obj = ifrQ.shift();
-        console.log('sending', obj);
+        logMsg(obj);
         ifr.contentWindow.postMessage(obj, window.origin);
       }
       ifrQ = undefined;
@@ -72,7 +89,7 @@ function createSocket({ onConnect, onDisconnect, onMessage }, endpoint) {
         if (ifrQ) {
           ifrQ.push(obj);
         } else {
-          console.log('sending', obj);
+          logMsg(obj);
           ifr.contentWindow.postMessage(obj, window.origin);
         }
       },
@@ -177,6 +194,7 @@ export async function doFetch(req, endpoint = '/private/wallet-bridge') {
   function getResponse({ data: msg }) {
     // console.log('got', msg);
     const obj = JSON.parse(msg);
+    logMsg(obj, 'recv');
     if (obj.type === expectedResponse) {
       resolve(obj);
       socket.removeEventListener('message', getResponse);

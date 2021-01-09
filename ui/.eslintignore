@@ -2,5 +2,4 @@ build
 node_modules
 .git
 .cache
-src/utils/defaults.js
-dappConstants.js
+src/generated/**

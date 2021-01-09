@@ -18,7 +18,7 @@ export const {
     updateInvitationDepositId,
   },
 } = autodux({
-  slice: 'autoswap',
+  slice: 'treasury',
   initial: {
     active: false,
     connected: false,

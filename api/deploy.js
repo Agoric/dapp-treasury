@@ -7,7 +7,7 @@ import '@agoric/zoe/exported';
 import bundleSource from '@agoric/bundle-source';
 import { makeHelpers } from '@agoric/deploy-script-support';
 
-import installationConstants from '../ui/public/conf/installationConstants';
+import installationConstants from '../ui/src/generated/installationConstants';
 import { makeAddCollateralType } from './addCollateralType';
 
 const API_PORT = process.env.API_PORT || '8000';
@@ -27,15 +27,14 @@ export default async function deployApi(homePromise, endowments) {
 
   const {
     INSTALLATION_BOARD_ID,
-    AUTOSWAP_INSTALLATION_BOARD_ID,
+    AMM_INSTALLATION_BOARD_ID,
     CONTRACT_NAME,
+    AMM_NAME,
   } = installationConstants;
 
   // use the board id to get the values, and save them to the
   // wallet.
-  const autoswapInstall = await E(board).getValue(
-    AUTOSWAP_INSTALLATION_BOARD_ID,
-  );
+  const autoswapInstall = await E(board).getValue(AMM_INSTALLATION_BOARD_ID);
   const stablecoinMachineInstallation = await E(board).getValue(
     INSTALLATION_BOARD_ID,
   );
@@ -65,9 +64,13 @@ export default async function deployApi(homePromise, endowments) {
   const invitationIssuer = await invitationIssuerP;
 
   const INSTANCE_BOARD_ID = await E(board).getId(instance);
+  const ammInstance = await E(creatorFacet).getAMM();
+  const AMM_INSTANCE_BOARD_ID = await E(board).getId(ammInstance);
 
   console.log(`-- Contract Name: ${CONTRACT_NAME}`);
   console.log(`-- INSTANCE_BOARD_ID: ${INSTANCE_BOARD_ID}`);
+  console.log(`-- AMM Name: ${AMM_NAME}`);
+  console.log(`-- AMM_INSTANCE_BOARD_ID: ${AMM_INSTANCE_BOARD_ID}`);
 
   const {
     issuers: { Governance: governanceIssuer, Scones: moeIssuer },
@@ -145,9 +148,9 @@ export default async function deployApi(homePromise, endowments) {
       moolaVaultManager,
     });
 
-    // Have our ag-solo wait on ws://localhost:8000/api/card-store for
+    // Have our ag-solo wait on ws://localhost:8000/api/treasury for
     // websocket connections.
-    await E(http).registerURLHandler(handler, '/api/card-store');
+    await E(http).registerURLHandler(handler, '/api/treasury');
   };
 
   await installURLHandler();
@@ -159,14 +162,20 @@ export default async function deployApi(homePromise, endowments) {
 
   // Re-save the constants somewhere where the UI and api can find it.
   const dappConstants = {
+    CONTRACT_NAME,
     INSTANCE_BOARD_ID,
     INSTALLATION_BOARD_ID,
+    AMM_NAME,
+    AMM_INSTALLATION_BOARD_ID,
+    AMM_INSTANCE_BOARD_ID,
     INVITE_BRAND_BOARD_ID,
     // BRIDGE_URL: 'agoric-lookup:https://local.agoric.com?append=/bridge',
     BRIDGE_URL: 'http://127.0.0.1:8000',
     API_URL,
   };
-  const defaultsFile = endowments.pathResolve(`../ui/public/conf/defaults.js`);
+  const defaultsFile = endowments.pathResolve(
+    `../ui/src/generated/defaults.js`,
+  );
   console.log('writing', defaultsFile);
   const defaultsContents = `\
 // GENERATED FROM ${endowments.pathResolve('./deploy.js')}
