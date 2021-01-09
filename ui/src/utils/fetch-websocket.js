@@ -51,6 +51,7 @@ function createSocket({ onConnect, onDisconnect, onMessage }, endpoint) {
       document.body.appendChild(ifr);
       window.addEventListener('message', ev => {
         // console.log('dapp ui got', ev);
+        logMsg(ev.data, 'recv:');
         if (ev.data && ev.data.type === 'walletBridgeLoaded') {
           walletLoaded = true;
           for (const sub of connectSubscriptions.keys()) {
@@ -194,7 +195,7 @@ export async function doFetch(req, endpoint = '/private/wallet-bridge') {
   function getResponse({ data: msg }) {
     // console.log('got', msg);
     const obj = JSON.parse(msg);
-    logMsg(obj, 'recv');
+    logMsg(obj, 'recv:');
     if (obj.type === expectedResponse) {
       resolve(obj);
       socket.removeEventListener('message', getResponse);
