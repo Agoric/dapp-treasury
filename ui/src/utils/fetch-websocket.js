@@ -73,7 +73,7 @@ function createSocket({ onConnect, onDisconnect, onMessage }, endpoint) {
       CONTRACT_NAME,
     )}`;
     ifr.addEventListener('load', () => {
-      while (ifrQ.length) {
+      while (ifrQ && ifrQ.length) {
         const obj = ifrQ.shift();
         logMsg(obj);
         ifr.contentWindow.postMessage(obj, window.origin);
