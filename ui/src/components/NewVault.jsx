@@ -250,7 +250,7 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
         value={fundPurseBalance}
       />
       <TransferDialog
-        required={Number(toLock) - fundPurseBalance}
+        required={Number(toLock)}
         requiredSymbol={collateralBrand}
         toTransfer={toTransfer}
         setToTransfer={setToTransfer}
@@ -293,7 +293,7 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
             <InputAdornment position="start">
               <IconButton
                 onClick={() => {
-                  setToTransfer(Number(toLock) - fundPurseBalance);
+                  setToTransfer(Number(toLock));
                 }}
                 edge="end"
               >
@@ -350,7 +350,7 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
       <Button
         onClick={() => {
           if (balanceExceeded) {
-            setToTransfer(Number(toLock) - fundPurseBalance);
+            setToTransfer(Number(toLock));
           } else {
             dispatch(setVaultConfigured(true));
           }
