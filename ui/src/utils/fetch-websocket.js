@@ -13,10 +13,10 @@ function logMsg(obj, direction = 'send:') {
       console.log(direction, obj);
       return;
     case 'CTP_CALL':
-      console.log(direction, type, obj.method.body, obj);
+      console.log(direction, type, obj.method && obj.method.body, obj);
       return;
     case 'CTP_RETURN':
-      console.log(direction, type, obj.result.body, obj);
+      console.log(direction, type, obj.result && obj.result.body, obj);
       return;
     default:
       console.log(direction, type, obj);
@@ -51,7 +51,7 @@ function createSocket({ onConnect, onDisconnect, onMessage }, endpoint) {
       document.body.appendChild(ifr);
       window.addEventListener('message', ev => {
         // console.log('dapp ui got', ev);
-        logMsg(ev.data, 'recv:');
+        logMsg(ev.data, 'recv');
         if (ev.data && ev.data.type === 'walletBridgeLoaded') {
           walletLoaded = true;
           for (const sub of connectSubscriptions.keys()) {

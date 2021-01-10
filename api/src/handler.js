@@ -1,69 +1,91 @@
 import { E } from '@agoric/eventual-send';
+import { makeWebSocketHandler } from './lib-http';
 
-export default harden(({ registry, publicAPI }, _invitationMaker) => {
-  const cacheOfPromiseForValue = new Map();
-  const getFromRegistry = registryKey => {
-    let valueP = cacheOfPromiseForValue.get(registryKey);
-    if (!valueP) {
-      // Cache miss, so try the registry.
-      valueP = E(registry).get(registryKey);
-      cacheOfPromiseForValue.set(registryKey, valueP);
-    }
-    return valueP;
-  };
+export default harden(
+  ({ board, http, treasuryFacet, ammFacet, invitationIssuer }, _invitationMaker) => {
+    const cacheOfPromiseForValue = new Map();
+    const getFromBoard = boardId => {
+      let valueP = cacheOfPromiseForValue.get(boardId);
+      if (!valueP) {
+        // Cache miss, so try the board.
+        valueP = E(board).getValue(boardId);
+        cacheOfPromiseForValue.set(boardId, valueP);
+      }
+      return valueP;
+    };
 
-  // returns a promise
-  const hydrateBrand = dehydratedBrand => getFromRegistry(dehydratedBrand);
+    // returns a promise
+    const hydrateBrand = dehydratedBrand => getFromBoard(dehydratedBrand);
 
-  // returns a promise
-  const hydrateAmount = dehydratedAmount => {
-    return hydrateBrand(dehydratedAmount.brand).then(brand => {
-      return {
-        brand,
-        extent: dehydratedAmount.extent,
-      };
-    });
-  };
+    // returns a promise
+    const hydrateAmount = dehydratedAmount => {
+      return hydrateBrand(dehydratedAmount.brand).then(brand => {
+        return {
+          brand,
+          value: dehydratedAmount.value,
+        };
+      });
+    };
 
-  return harden({
-    getCommandHandler() {
-      return harden({
-        onError(obj, _meta) {
-          console.error('Have error', obj);
-        },
-        onOpen: (_obj, _meta) => {},
-        onClose: (_obj, _meta) => {},
+    return makeWebSocketHandler(http, (send, _meta) =>
+      harden({
         async onMessage(obj, _meta) {
           const { type, data } = obj;
           switch (type) {
-            case 'autoswapGetCurrentPrice': {
+            case 'autoswap/getInputPrice': {
               const {
                 amountIn: dehydratedAmountIn,
                 brandOut: dehydratedBrandOut,
               } = data;
 
               // A dehydrated amount has the form: { brand:
-              // brandRegKey, extent }
+              // brandBoardId, value }
 
-              // dehydratedBrandOut is a brandRegKey
+              // dehydratedBrandOut is a brandBoardId
               const [amountIn, brandOut] = await Promise.all([
                 hydrateAmount(dehydratedAmountIn),
                 hydrateBrand(dehydratedBrandOut),
               ]);
-              const { extent } = await E(publicAPI).getCurrentPrice(
+              const { value } = await E(ammFacet).getInputPrice(
                 amountIn,
                 brandOut,
               );
-              return { type: 'autoswapGetCurrentPriceResponse', data: extent };
+              send({ type: 'autoswap/getInputPriceResponse', data: value });
+              return true;
+            }
+
+            case 'treasury/makeLoanInvitation': {
+              console.error('RECV', obj);
+              const { invitationDepositId, offer } = obj.data;
+              const depositFacet = E(board).getValue(invitationDepositId);
+              const invitation = await E(treasuryFacet).makeLoanInvitation();
+              const invitationAmount = await E(invitationIssuer).getAmountOf(
+                invitation,
+              );
+              const {
+                value: [{ handle }],
+              } = invitationAmount;
+              const invitationHandleBoardId = await E(board).getId(handle);
+              const updatedOffer = { ...offer, invitationHandleBoardId };
+              // We need to wait for the invitation to be
+              // received, or we will possibly win the race of
+              // proposing the offer before the invitation is ready.
+              // TODO: We should make this process more robust.
+              await E(depositFacet).receive(invitation);
+
+              send({
+                type: 'treasury/makeLoanInvitationResponse',
+                data: { offer: updatedOffer },
+              });
+              return true;
             }
 
             default: {
-              console.log('UNEXPECTED ACTION: ', type, obj);
-              return false;
+              return undefined;
             }
           }
         },
-      });
-    },
-  });
-});
+      }),
+    );
+  },
+);

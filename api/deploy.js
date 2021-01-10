@@ -51,7 +51,7 @@ export default async function deployApi(homePromise, endowments) {
     issuerKeywordRecord: {},
   };
 
-  const { instance, creatorFacet } = await helpers.startInstance(
+  const { instance, creatorFacet, publicFacet: treasuryFacet } = await helpers.startInstance(
     startInstanceConfig,
   );
 
@@ -65,6 +65,7 @@ export default async function deployApi(homePromise, endowments) {
 
   const INSTANCE_BOARD_ID = await E(board).getId(instance);
   const ammInstance = await E(creatorFacet).getAMM();
+  const ammFacet = await E(zoe).getPublicFacet(ammInstance);
   const AMM_INSTANCE_BOARD_ID = await E(board).getId(ammInstance);
 
   console.log(`-- Contract Name: ${CONTRACT_NAME}`);
@@ -140,7 +141,8 @@ export default async function deployApi(homePromise, endowments) {
 
     // Spawn the installed code to create an URL handler.
     const handler = E(handlerInstall).spawn({
-      creatorFacet,
+      treasuryFacet,
+      ammFacet,
       board,
       http,
       invitationIssuer,
@@ -148,9 +150,9 @@ export default async function deployApi(homePromise, endowments) {
       moolaVaultManager,
     });
 
-    // Have our ag-solo wait on ws://localhost:8000/api/treasury for
+    // Have our ag-solo wait on ws://localhost:8000/api for
     // websocket connections.
-    await E(http).registerURLHandler(handler, '/api/treasury');
+    await E(http).registerURLHandler(handler, '/api');
   };
 
   await installURLHandler();

@@ -2,6 +2,7 @@
 // See: https://github.com/ericelliott/autodux
 import autodux from 'autodux';
 import { doFetch } from './utils/fetch-websocket';
+import { createVault as createVaultImpl } from './contexts/Vault';
 
 export const {
   reducer,
@@ -9,29 +10,42 @@ export const {
   actions: {
     setActive,
     setConnected,
+    setWalletP,
     setPurses,
+    setInvitationDepositId,
     changePurse,
     swapInputs,
     changeAmount,
     createOffer,
     resetState,
-    updateInvitationDepositId,
+    setCollateralBrand,
+    setVaultParams,
+    setWorkingVaultParams,
+    createVault,
+    resetVault,
   },
 } = autodux({
   slice: 'treasury',
   initial: {
     active: false,
     connected: false,
+    walletP: null,
     account: null,
     purses: null,
+    invitationDepositId: null,
+    // Autoswap state
     inputPurse: null,
     outputPurse: null,
     inputAmount: null,
     outputAmount: null,
     freeVariable: null,
-    invitationDepositId: null,
+    // Vault state
+    collateralBrand: null,
+    vaultParams: null,
+    workingVaultParams: {},
   },
   actions: {
+    createVault: createVaultImpl,
     changePurse: {
       // Map positional arguments.
       create: (purse, fieldNumber, freeVariable = null) => ({
@@ -56,6 +70,12 @@ export const {
         return { ...state, inputPurse, outputPurse, freeVariable };
       },
     },
+    resetVault: state => ({
+      ...state,
+      collateralBrand: null,
+      vaultParams: null,
+      workingVaultParams: {},
+    }),
     swapInputs(state) {
       const { inputPurse, outputPurse, inputAmount, outputAmount } = state;
       return {
@@ -166,10 +186,6 @@ export const {
         };
       },
     },
-    updateInvitationDepositId: (state, invitationDepositId) => ({
-      ...state,
-      invitationDepositId,
-    }),
     resetState: state => ({
       ...state,
       purses: null,

@@ -27,14 +27,14 @@ import TransferDialog from './TransferDialog';
 import VaultSteps from './VaultSteps';
 
 import { useApplicationContext } from '../contexts/Application';
-import { useVaultContext, actions } from '../contexts/Vault';
 
-const {
-  resetState,
+import {
   setCollateralBrand,
   setVaultParams,
   setWorkingVaultParams,
-} = actions;
+  createVault,
+  resetVault,
+} from '../store';
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -357,7 +357,7 @@ function VaultConfigure({ dispatch, collateralBrand, workingVaultParams }) {
       >
         Configure
       </Button>
-      <Button onClick={() => dispatch(resetState())}>Cancel</Button>
+      <Button onClick={() => dispatch(resetVault())}>Cancel</Button>
     </div>
   );
 }
@@ -369,37 +369,39 @@ function VaultCreate({ dispatch }) {
         Confirm details and create your vault
       </Typography>
       <TableContainer>
-        <TableBody>
-          <TableRow>
-            <TableCell>Depositing</TableCell>
-            <TableCell align="right">7.5</TableCell>{' '}
-            <TableCell>$ETHa</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Borrowing</TableCell>
-            <TableCell align="right">5,000</TableCell>{' '}
-            <TableCell>$MOE</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Interest Rate</TableCell>
-            <TableCell align="right">1%</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Liquidation Ratio</TableCell>
-            <TableCell align="right">125%</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Liquidation Price</TableCell>
-            <TableCell align="right">$833.33</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Liquidation Penalty</TableCell>
-            <TableCell align="right">3%</TableCell>
-          </TableRow>
-        </TableBody>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell>Depositing</TableCell>
+              <TableCell align="right">7.5</TableCell>{' '}
+              <TableCell>$ETHa</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Borrowing</TableCell>
+              <TableCell align="right">5,000</TableCell>{' '}
+              <TableCell>$MOE</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Interest Rate</TableCell>
+              <TableCell align="right">1%</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Liquidation Ratio</TableCell>
+              <TableCell align="right">125%</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Liquidation Price</TableCell>
+              <TableCell align="right">$833.33</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Liquidation Penalty</TableCell>
+              <TableCell align="right">3%</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </TableContainer>
-      <Button onClick={() => dispatch(setVaultParams({}))}>Create</Button>
-      <Button onClick={() => dispatch(resetState())}>Cancel</Button>
+      <Button onClick={() => dispatch(createVault())}>Create</Button>
+      <Button onClick={() => dispatch(resetVault())}>Cancel</Button>
     </div>
   );
 }
@@ -409,12 +411,9 @@ export default function NewVault() {
   const classes = useStyles();
 
   const {
-    state: { connected },
-  } = useApplicationContext();
-  const {
-    state: { collateralBrand, vaultParams, workingVaultParams },
+    state: { connected, collateralBrand, vaultParams, workingVaultParams },
     dispatch,
-  } = useVaultContext();
+  } = useApplicationContext();
 
   return (
     <Paper className={classes.paper}>

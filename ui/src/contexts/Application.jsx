@@ -19,7 +19,7 @@ import {
   reducer,
   defaultState,
   setPurses,
-  updateInvitationDepositId,
+  setInvitationDepositId,
   setConnected,
   setActive,
   changeAmount,
@@ -35,6 +35,10 @@ const {
   AMM_INSTALLATION_BOARD_ID,
   AMM_INSTANCE_BOARD_ID,
 } = dappConstants;
+
+// eslint-disable-next-line import/no-mutable-exports
+let walletP;
+export { walletP };
 
 export const ApplicationContext = createContext();
 
@@ -57,12 +61,13 @@ export default function Provider({ children }) {
   useEffect(() => {
     function messageHandler(message) {
       if (!message) return;
-      const { type, data } = message;
-      if (type === 'walletUpdatePurses') {
-        dispatch(setPurses(JSON.parse(data)));
-      } else if (type === 'walletDepositFacetIdResponse') {
-        dispatch(updateInvitationDepositId(data));
-      }
+      console.log('UNEXPECTED MESSAGE', message);
+      // const { type, data } = message;
+      // if (type === 'walletUpdatePurses') {
+      //   dispatch(setPurses(JSON.parse(data)));
+      // } else if (type === 'walletDepositFacetIdResponse') {
+      //   dispatch(setInvitationDepositId(data));
+      // }
     }
 
     // Receive callbacks from the wallet connection.
@@ -88,7 +93,7 @@ export default function Provider({ children }) {
         );
         walletAbort = ctpAbort;
         walletDispatch = ctpDispatch;
-        const walletP = getBootstrap();
+        walletP = getBootstrap();
 
         // TODO: The moral equivalent of walletGetPurses()
         async function watchPurses() {
@@ -100,7 +105,7 @@ export default function Provider({ children }) {
         watchPurses().catch(err =>
           console.error('FIGME: got watchPurses err', err),
         );
-        await Promise.all([
+        const [invitationDepositId] = await Promise.all([
           E(walletP).getDepositFacetId(INVITATION_BRAND_BOARD_ID),
           E(walletP).suggestInstallation('Installation', INSTALLATION_BOARD_ID),
           E(walletP).suggestInstance('Instance', INSTANCE_BOARD_ID),
@@ -113,6 +118,8 @@ export default function Provider({ children }) {
             AMM_INSTANCE_BOARD_ID,
           ),
         ]);
+        console.error('DEPOSIT ID', invitationDepositId);
+        dispatch(setInvitationDepositId(invitationDepositId));
       },
       onDisconnect() {
         dispatch(setConnected(false));
@@ -129,7 +136,7 @@ export default function Provider({ children }) {
   }, []);
 
   const apiMessageHandler = useCallback(
-    message => {
+    async message => {
       if (!message) {
         return;
       }
@@ -150,6 +157,15 @@ export default function Provider({ children }) {
             data: offer,
           });
           return;
+        }
+        case 'treasury/makeLoanInvitationResponse': {
+          // Once the invitation has been sent to the user, we update the
+          // offer to include the invitationBoardId. Then we make a
+          // request to the user's wallet to send the proposed offer for
+          // acceptance/rejection.
+          const { offer } = data;
+          await E(walletP).addOffer(offer);
+          break;
         }
         default: {
           console.log('Unexpected response', message);
