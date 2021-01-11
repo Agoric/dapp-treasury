@@ -23,6 +23,8 @@ import {
 import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
 import NumberFormat from 'react-number-format';
 
+import { BigNum, BigDec, stringifyDecimal } from '../display';
+
 import TransferDialog from './TransferDialog';
 import VaultSteps from './VaultSteps';
 
@@ -237,8 +239,8 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
     dispatch(setVaultParams({ ...vaultParams, ...changes }));
   };
 
-  const fundPurseBalance = Number((fundPurse && fundPurse.value) || 0);
-  const balanceExceeded = fundPurseBalance < Number(toLock);
+  const fundPurseBalance = BigNum((fundPurse && fundPurse.value) || 0);
+  const balanceExceeded = fundPurseBalance < BigNum(toLock);
 
   return (
     <div className={classes.root}>
@@ -247,10 +249,10 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
         variant="outlined"
         label={`Available ${collateralBrand}`}
         disabled
-        value={fundPurseBalance}
+        value={stringifyDecimal(fundPurseBalance)}
       />
       <TransferDialog
-        required={Number(toLock)}
+        required={toLock}
         requiredSymbol={collateralBrand}
         toTransfer={toTransfer}
         setToTransfer={setToTransfer}
@@ -285,15 +287,15 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
         error={balanceExceeded}
         helperText={balanceExceeded && 'Need to obtain more funds'}
         label={`${collateralBrand} to lock up`}
-        value={toLock}
+        value={stringifyDecimal(toLock)}
         type="number"
-        onChange={ev => adaptBorrowParams({ toLock: ev.target.value })}
+        onChange={ev => adaptBorrowParams({ toLock: BigDec(ev.target.value) })}
         InputProps={{
           startAdornment: balanceExceeded && (
             <InputAdornment position="start">
               <IconButton
                 onClick={() => {
-                  setToTransfer(Number(toLock));
+                  setToTransfer(BigNum(toLock));
                 }}
                 edge="end"
               >
@@ -310,9 +312,11 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
         InputProps={{
           inputComponent: NumberFormatPercent,
         }}
-        value={collateralPercent}
+        value={stringifyDecimal(collateralPercent)}
         onChange={ev =>
-          adaptBorrowParams({ collateralPercent: ev.target.value })
+          adaptBorrowParams({
+            collateralPercent: BigDec(ev.target.value),
+          })
         }
       />
       <TextField
@@ -320,8 +324,10 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
         required
         label="$MOE to receive"
         type="number"
-        value={toBorrow}
-        onChange={ev => adaptBorrowParams({ toBorrow: ev.target.value })}
+        value={stringifyDecimal(toBorrow)}
+        onChange={ev =>
+          adaptBorrowParams({ toBorrow: BigDec(ev.target.value) })
+        }
       />
       <TextField
         variant="outlined"
@@ -350,7 +356,7 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
       <Button
         onClick={() => {
           if (balanceExceeded) {
-            setToTransfer(Number(toLock));
+            setToTransfer(BigNum(toLock));
           } else {
             dispatch(setVaultConfigured(true));
           }

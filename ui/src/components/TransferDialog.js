@@ -8,6 +8,8 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import { Button, Divider, Paper } from '@material-ui/core';
 
+import { BigDec, stringifyDecimal } from '../display';
+
 export default function TransferDialog({
   toTransfer,
   setToTransfer,
@@ -22,12 +24,12 @@ export default function TransferDialog({
   });
 
   const [balances, setBalances] = useState([
-    { value: 101004, decimals: 4 },
-    { value: 20, decimals: 1 },
-    { value: 30, decimals: 1 },
+    { value: BigDec('109.1004'), decimals: 18 },
+    { value: BigDec('20'), decimals: 18 },
+    { value: BigDec(30), decimals: 9 },
   ]);
 
-  const [outgoing, setOutgoing] = useState([0, 0, 0]);
+  const [outgoing, setOutgoing] = useState([BigInt(0), BigInt(0), BigInt(0)]);
 
   const runStateMachine = useCallback(() => {
     let targetIndex = balances.length - 1;
@@ -46,27 +48,13 @@ export default function TransferDialog({
       targetNeeded -= balances[targetIndex].value;
       difference = targetNeeded - outgoing[sourceIndex];
 
-      console.log(
-        'checking',
-        sourceIndex,
-        targetIndex,
-        targetNeeded,
-        difference,
-      );
       if (difference <= 0) {
         // Base case, the transfer is already happening.
-        console.log(
-          'transfer already happening',
-          sourceIndex,
-          targetNeeded,
-          difference,
-        );
         return;
       }
 
       if (difference <= balances[sourceIndex].value) {
         // The current source has enough.
-        console.log('current source has enough');
         break;
       }
 
@@ -74,8 +62,6 @@ export default function TransferDialog({
       sourceIndex -= 1;
       targetIndex -= 1;
     }
-
-    console.log('have', targetIndex, 'difference', difference);
 
     if (targetIndex <= 0 && balances[0].value < difference) {
       // We can't get more!
@@ -137,7 +123,7 @@ export default function TransferDialog({
         <DialogContent>
           {required && (
             <Typography component="h5" gutterBottom>
-              This vault requires {required} {requiredSymbol}
+              This vault requires {stringifyDecimal(required)} {requiredSymbol}
             </Typography>
           )}
           <TextField
@@ -145,18 +131,21 @@ export default function TransferDialog({
             required
             label={`Target ${requiredSymbol}`}
             type="number"
-            value={toTransfer}
-            error={toTransfer < required}
-            helperText={toTransfer < required && `Needs at least ${required}`}
-            onChange={ev => setToTransfer(ev.target.value)}
+            value={stringifyDecimal(toTransfer)}
+            error={BigDec(toTransfer) < BigDec(required)}
+            helperText={
+              BigDec(toTransfer) < BigDec(required) &&
+              `Needs at least ${stringifyDecimal(required)}`
+            }
+            onChange={ev => setToTransfer(BigDec(ev.target.value))}
           />
           <Button onClick={onTransfer}>Transfer</Button>
           <Divider />
-          <Paper>Ethereum {balances[0].value}</Paper>
-          {outgoing[0]}
-          <Paper>Peggy {balances[1].value}</Paper>
-          {outgoing[1]}
-          <Paper>Agoric {balances[2].value}</Paper>
+          <Paper>Ethereum {stringifyDecimal(balances[0].value)}</Paper>
+          {stringifyDecimal(outgoing[0])}
+          <Paper>Peggy {stringifyDecimal(balances[1].value)}</Paper>
+          {stringifyDecimal(outgoing[1])}
+          <Paper>Agoric {stringifyDecimal(balances[2].value)}</Paper>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>
