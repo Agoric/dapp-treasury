@@ -39,10 +39,7 @@ export default async function deployApi(homePromise, endowments) {
     INSTALLATION_BOARD_ID,
   );
 
-  const terms = harden({
-    autoswapInstall,
-    priceAuthoritySource: priceAuthority,
-  });
+  const terms = harden({ autoswapInstall, priceAuthority });
 
   const startInstanceConfig = {
     instancePetname: CONTRACT_NAME,
