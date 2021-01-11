@@ -50,6 +50,9 @@ export async function start(zcf) {
     getInitialMargin() {
       return 1.5;
     },
+    getStabilityFee() {
+      return 0.02;
+    },
     collateralMath,
     collateralBrand,
   };

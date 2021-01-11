@@ -21,6 +21,8 @@ import { makeVault } from './vault';
  * @property {AmountMath} collateralMath
  * @property {Brand} collateralBrand
  * @property {() => number} getLiquidationMargin
+ * @property {() => number} getStabilityFee
+ * @property {() => Amount} getCollateralQuote
  */
 
 /**
@@ -88,15 +90,27 @@ export function makeVaultManager(
   const initialMargin = 1.5;
   // loans below this margin may be liquidated
   const liquidationMargin = 1.2;
+  const stabilityFee = 0.01;
 
-  /** @type {InnerVaultManager} */
-  const innerFacet = harden({
+  const shared = {
     getLiquidationMargin() {
       return liquidationMargin;
     },
     getInitialMargin() {
       return initialMargin;
     },
+    getStabilityFee() {
+      return stabilityFee;
+    },
+    getCollateralQuote() {
+      // get a quote for one unit of the collateral
+      return E(priceAuthority).quoteGiven(collateralMath.make(1), sconeBrand);
+    },
+  };
+
+  /** @type {InnerVaultManager} */
+  const innerFacet = harden({
+    ...shared,
     collateralBrand,
     collateralMath,
   });
@@ -184,13 +198,8 @@ export function makeVaultManager(
   // function helpLiquidateFallback(underwaterBy) {}
 
   return harden({
+    ...shared,
     makeLoan,
-    getLiquidationMargin() {
-      return liquidationMargin;
-    },
-    getInitialMargin() {
-      return initialMargin;
-    },
     liquidateAll,
   });
 }

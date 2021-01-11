@@ -241,12 +241,25 @@ export async function start(zcf) {
     makeLoanInvitation,
   });
 
+  function getCollaterals() {
+    // should be collateralTypes.map((vm, brand) => ({
+    return harden(
+      collateralTypes.entries().map(([brand, vm]) => ({
+        brand,
+        liquidationMargin: vm.getLiquidationMargin(),
+        initialMargin: vm.getInitialMargin(),
+        stabilityFee: vm.getStabilityFee(),
+        marketPrice: vm.getCollateralQuote(),
+      })),
+    );
+  }
   /** @type {StablecoinMachine} */
   const stablecoinMachine = harden({
     makeAddTypeInvitation,
     getAMM() {
       return autoswapInstance;
     },
+    getCollaterals,
   });
 
   return harden({ creatorFacet: stablecoinMachine, publicFacet });

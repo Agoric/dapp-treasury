@@ -91,6 +91,7 @@ export function makeVault(
       interestRate: 0,
       // TODO(hibbert): change liquidationMargin to be an int.
       liquidationRatio: manager.getLiquidationMargin() * 100,
+      stabilityFee: manager.getStabilityFee() * 100,
       locked: getCollateralAmount(),
       debt: sconeDebt,
       collateralizationRatio: getCollateralizationRatio(),
@@ -142,7 +143,7 @@ export function makeVault(
 
     assert(sconeMath.isGTE(sconesReturned, sconeDebt));
 
-    trade(zcf, 
+    trade(zcf,
       {
         offerHandle: collateralHolderOffer,
         gains: { Scones: sconeDebt }, // return any overpayment
