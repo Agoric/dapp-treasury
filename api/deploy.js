@@ -15,9 +15,17 @@ import { makeLocalAmountMath } from '../../agoric-sdk/node_modules/@agoric/ertp/
 const API_PORT = process.env.API_PORT || '8000';
 
 export default async function deployApi(homePromise, endowments) {
-  const { board, priceAuthority, zoe, wallet, http, spawner, scratch } = E.G(
-    homePromise,
-  );
+  const {
+    board,
+    priceAuthority,
+    zoe,
+    wallet,
+    http,
+    spawner,
+    scratch,
+    priceAuthorityAdmin,
+    localTimerService,
+  } = E.G(homePromise);
   const helpers = await makeHelpers(homePromise, endowments);
 
   const {
@@ -71,7 +79,6 @@ export default async function deployApi(homePromise, endowments) {
     issuers: { Governance: governanceIssuer, Scones: moeIssuer },
     brands: { Scones: moeBrand },
   } = await E(zoe).getTerms(instance);
-
   const walletAdmin = E(wallet).getAdminFacet();
   const issuerManager = E(walletAdmin).getIssuerManager();
 
@@ -187,7 +194,54 @@ export default async function deployApi(homePromise, endowments) {
     await E(http).registerURLHandler(handler, '/api');
   };
 
+  const trades = [
+    {
+      fakeTradesGivenCentral: [[11, 12]],
+      fakeTradesGivenOther: [[12, 11]],
+    },
+    {
+      fakeTradesGivenCentral: [[1, 1025]],
+      fakeTradesGivenOther: [[1025, 1]],
+    },
+    {
+      fakeTradesGivenCentral: [[1, 35000]],
+      fakeTradesGivenOther: [[35000, 1]],
+    },
+  ];
+
+  const issuerToTrades = trades.map((tradeSpecs, i) => {
+    return {
+      issuer: collateralIssuers[i].issuer,
+      ...tradeSpecs,
+    };
+  });
+
+  const registerPriceAuthority = ({ pa, brandIn, brandOut }) =>
+    E(priceAuthorityAdmin).registerPriceAuthority(pa, brandIn, brandOut);
+
+  const priceAuthoritiesHandler = async () => {
+    const priceAuthoritiesBundle = await bundleSource(
+      helpers.resolvePathForLocalContract('./src/priceAuthorities.js'),
+    );
+
+    // Install it on the spawner
+    const priceAuthoritiesInstall = E(spawner).install(priceAuthoritiesBundle);
+
+    // Spawn the installed code to create priceAuthorities on the ag-solo
+    const priceAuthorities = await E(priceAuthoritiesInstall).spawn(
+      harden({
+        sconesIssuer: moeIssuer,
+        issuerToTrades,
+        timer: localTimerService,
+        nonce: true,
+      }),
+    );
+
+    priceAuthorities.forEach(registerPriceAuthority);
+  };
+
   await installURLHandler();
+  await priceAuthoritiesHandler();
 
   const invitationBrand = await invitationBrandP;
   const INVITE_BRAND_BOARD_ID = await E(board).getId(invitationBrand);

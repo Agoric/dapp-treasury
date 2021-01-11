@@ -36,6 +36,7 @@
     "@agoric/zoe": "*",
     "@agoric/deploy-script-support": "*",
     "@agoric/bundle-source": "*",
+    "@agoric/same-structure": "*",
     "esm": "^3.2.5"
   },
   "keywords": [],
