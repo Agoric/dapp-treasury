@@ -51,9 +51,11 @@ export default async function deployApi(homePromise, endowments) {
     issuerKeywordRecord: {},
   };
 
-  const { instance, creatorFacet, publicFacet: treasuryFacet } = await helpers.startInstance(
-    startInstanceConfig,
-  );
+  const {
+    instance,
+    creatorFacet,
+    publicFacet: treasuryFacet,
+  } = await helpers.startInstance(startInstanceConfig);
 
   console.log('- SUCCESS! contract instance is running on Zoe');
 
@@ -85,9 +87,10 @@ export default async function deployApi(homePromise, endowments) {
 
   const GOVERNANCE_PURSE_PETNAME = 'Default governance token';
 
-  await Promise.all([
+  const [SCONE_ISSUER_BOARD_ID] = await Promise.all([
+    E(board).getId(moeIssuer),
     E(issuerManager).add(GOVERNANCE_BRAND_PETNAME, governanceIssuer),
-    E(issuerManager).add(MOE_BRAND_PETNAME, moeIssuer),
+    // E(issuerManager).add(MOE_BRAND_PETNAME, moeIssuer),
   ]);
 
   await helpers.saveLocalAmountMaths([
@@ -167,6 +170,7 @@ export default async function deployApi(homePromise, endowments) {
     CONTRACT_NAME,
     INSTANCE_BOARD_ID,
     INSTALLATION_BOARD_ID,
+    SCONE_ISSUER_BOARD_ID,
     AMM_NAME,
     AMM_INSTALLATION_BOARD_ID,
     AMM_INSTANCE_BOARD_ID,

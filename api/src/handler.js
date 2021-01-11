@@ -2,7 +2,10 @@ import { E } from '@agoric/eventual-send';
 import { makeWebSocketHandler } from './lib-http';
 
 export default harden(
-  ({ board, http, treasuryFacet, ammFacet, invitationIssuer }, _invitationMaker) => {
+  (
+    { board, http, treasuryFacet, ammFacet, invitationIssuer },
+    _invitationMaker,
+  ) => {
     const cacheOfPromiseForValue = new Map();
     const getFromBoard = boardId => {
       let valueP = cacheOfPromiseForValue.get(boardId);

@@ -2,7 +2,10 @@
 // See: https://github.com/ericelliott/autodux
 import autodux from 'autodux';
 import { doFetch } from './utils/fetch-websocket';
-import { createVault as createVaultImpl } from './contexts/Vault';
+import {
+  createVault as createVaultImpl,
+  updateVault as updateVaultImpl,
+} from './contexts/Vault';
 
 export const {
   reducer,
@@ -10,7 +13,6 @@ export const {
   actions: {
     setActive,
     setConnected,
-    setWalletP,
     setPurses,
     setInvitationDepositId,
     changePurse,
@@ -22,6 +24,7 @@ export const {
     setVaultParams,
     setWorkingVaultParams,
     createVault,
+    updateVault,
     resetVault,
   },
 } = autodux({
@@ -29,7 +32,6 @@ export const {
   initial: {
     active: false,
     connected: false,
-    walletP: null,
     account: null,
     purses: null,
     invitationDepositId: null,
@@ -43,9 +45,11 @@ export const {
     collateralBrand: null,
     vaultParams: null,
     workingVaultParams: {},
+    vaults: {},
   },
   actions: {
     createVault: createVaultImpl,
+    updateVault: updateVaultImpl,
     changePurse: {
       // Map positional arguments.
       create: (purse, fieldNumber, freeVariable = null) => ({

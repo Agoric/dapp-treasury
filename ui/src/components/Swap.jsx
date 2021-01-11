@@ -19,7 +19,7 @@ import { useApplicationContext } from '../contexts/Application';
 import { changePurse, changeAmount, swapInputs, createOffer } from '../store';
 import dappConstants from '../utils/constants';
 
-const { INSTANCE_BOARD_ID, INSTALLATION_BOARD_ID } = dappConstants;
+const { AMM_INSTANCE_BOARD_ID, AMM_INSTALLATION_BOARD_ID } = dappConstants;
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -126,8 +126,8 @@ export default function Swap() {
   function handleSwap() {
     dispatch(
       createOffer(
-        INSTANCE_BOARD_ID,
-        INSTALLATION_BOARD_ID,
+        AMM_INSTANCE_BOARD_ID,
+        AMM_INSTALLATION_BOARD_ID,
         invitationDepositId,
         inputAmount,
         outputAmount,

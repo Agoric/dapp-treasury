@@ -33,14 +33,14 @@ export const createVault = state => {
       give: {
         Collateral: {
           // The pursePetname identifies which purse we want to use
-          pursePetname: 'moola', // TODO inputPurse.pursePetname,
+          pursePetname: 'Fun budget', // TODO inputPurse.pursePetname,
           value: 100,
         },
       },
       want: {
         Scones: {
-          pursePetname: 'MOE', // TODO outputPurse.pursePetname,
-          value: 200,
+          pursePetname: ['Treasury', 'MoE'], // TODO outputPurse.pursePetname,
+          value: 20,
         },
       },
       exit: { onDemand: null },
@@ -68,4 +68,9 @@ export const createVault = state => {
     vaultParams: null,
     workingVaultParams: {},
   };
+};
+
+export const updateVault = ({ vaults, ...state }, { id, vault }) => {
+  console.log('-------VAULT', id, vault);
+  return { ...state, vaults: { ...vaults, [id]: vault } };
 };

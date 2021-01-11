@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 
 import { makeCapTP, E } from '@agoric/captp';
-import { makeAsyncIterableFromNotifier } from '@agoric/notifier';
+import { makeAsyncIterableFromNotifier as iterateNotifier } from '@agoric/notifier';
 
 import {
   activateWebSocket,
@@ -24,6 +24,7 @@ import {
   setActive,
   changeAmount,
   resetState,
+  updateVault,
 } from '../store';
 import dappConstants from '../generated/defaults.js';
 
@@ -31,6 +32,7 @@ const {
   INVITATION_BRAND_BOARD_ID,
   INSTALLATION_BOARD_ID,
   INSTANCE_BOARD_ID,
+  SCONE_ISSUER_BOARD_ID,
   AMM_NAME,
   AMM_INSTALLATION_BOARD_ID,
   AMM_INSTANCE_BOARD_ID,
@@ -95,10 +97,10 @@ export default function Provider({ children }) {
         walletDispatch = ctpDispatch;
         walletP = getBootstrap();
 
-        // TODO: The moral equivalent of walletGetPurses()
+        // The moral equivalent of walletGetPurses()
         async function watchPurses() {
           const pn = E(walletP).getPursesNotifier();
-          for await (const purses of makeAsyncIterableFromNotifier(pn)) {
+          for await (const purses of iterateNotifier(pn)) {
             dispatch(setPurses(purses));
           }
         }
@@ -117,7 +119,9 @@ export default function Provider({ children }) {
             `${AMM_NAME}Instance`,
             AMM_INSTANCE_BOARD_ID,
           ),
+          E(walletP).suggestIssuer('MoE', SCONE_ISSUER_BOARD_ID),
         ]);
+
         console.error('DEPOSIT ID', invitationDepositId);
         dispatch(setInvitationDepositId(invitationDepositId));
       },
@@ -165,6 +169,17 @@ export default function Provider({ children }) {
           // acceptance/rejection.
           const { offer } = data;
           await E(walletP).addOffer(offer);
+          const id = offer.id;
+
+          async function vaultUpdater() {
+            const uiNotifier = E(walletP).getUINotifier(id);
+            for await (const vault of iterateNotifier(uiNotifier)) {
+              dispatch(updateVault({ id, vault }));
+            }
+          }
+          vaultUpdater().catch(err =>
+            console.error('Vault watcher exception', id, err),
+          );
           break;
         }
         default: {
