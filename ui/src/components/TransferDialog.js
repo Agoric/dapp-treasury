@@ -10,12 +10,7 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import { Button, Divider, Paper } from '@material-ui/core';
 
-import {
-  BIG_DECIMAL_PLACES,
-  BigDec,
-  convertBigint,
-  stringifyDecimal,
-} from '../display';
+import { parseValue, stringifyValue } from './display';
 import PeggyContract from '../Peggy.json';
 
 import {
@@ -26,21 +21,33 @@ import {
   PEGGY_TRANSFER_AGENT_URL,
 } from '../peggyConfig.js';
 
-import { stringifyValue, parseValue } from './display';
-
 const REALLY_PEGGY = !!process.env.REACT_APP_REALLY_PEGGY;
 
+const TRANSFER_PATH = ['eth', 'peggy', 'agoric'];
+
+const NORMALIZE_PLACES = 9;
+const bi = (n, places) => {
+  if (places < 0) {
+    return BigInt(n) / BigInt(10) ** BigInt(places);
+  }
+  return BigInt(n) * BigInt(10) ** BigInt(places);
+};
+
+const norm = (n, extant = 0) => bi(n, NORMALIZE_PLACES - extant);
+const denorm = n => stringifyValue(n, { decimalPlaces: NORMALIZE_PLACES });
+// const denorm = (n, wanted = 0) => bi(n, wanted - NORMALIZE_TRANSFER_PLACES);
+
 const INITIAL_BALANCES = REALLY_PEGGY
-  ? [
-      { value: BigDec(0), decimals: 0 },
-      { value: BigDec(0), decimals: 0 },
-      { value: BigDec(0), decimals: 0 },
-    ]
-  : [
-      { value: BigDec(110.0402), decimals: 18 },
-      { value: BigDec(20), decimals: 18 },
-      { value: BigDec(30), decimals: 6 },
-    ];
+  ? {
+      eth: { value: norm(0), decimals: 0 },
+      peggy: { value: norm(0), decimals: 0 },
+      agoric: { value: norm(0), decimals: 0 },
+    }
+  : {
+      eth: { value: norm(110), decimals: 18 },
+      peggy: { value: norm(20), decimals: 18 },
+      agoric: { value: norm(30), decimals: 6 },
+    };
 
 const METAMASK_ACCOUNT_NUMBER = undefined;
 
@@ -57,16 +64,14 @@ const erc20Abi = [
   'event Transfer(address indexed from, address indexed to, uint amount)',
 ];
 
-const ETHEREUM_I = 0;
-const PEGGY_I = 1;
-const AGORIC_I = 2;
-
 export default function TransferDialog({
   toTransfer,
   setToTransfer,
+  fundPurse,
+  depositFacetId,
   required,
-  requiredSymbol,
   requiredDisplayInfo,
+  requiredSymbol,
 }) {
   const requiredDisplay = stringifyValue(required, requiredDisplayInfo);
   const [transferring, setTransferring] = useState(false);
@@ -78,6 +83,21 @@ export default function TransferDialog({
   });
 
   const [balances, setBalances] = useState(INITIAL_BALANCES);
+  const [decimalPlaces, setDecimalPlaces] = useState(0);
+
+  useEffect(() => {
+    if (!fundPurse) {
+      return;
+    }
+    setBalances(bals => ({
+      ...bals,
+      agoric: {
+        value: norm(fundPurse.value || 0, fundPurse.displayInfo.decimalPlaces),
+        decimals: fundPurse.displayInfo.decimalPlaces,
+      },
+    }));
+    setDecimalPlaces(fundPurse.displayInfo.decimalPlaces);
+  }, [fundPurse]);
 
   useEffect(() => {
     if (!REALLY_PEGGY || !globalThis.ethereum) {
@@ -91,6 +111,9 @@ export default function TransferDialog({
   }, []);
 
   useEffect(() => {
+    if (!REALLY_PEGGY) {
+      return undefined;
+    }
     const ws = new WebSocket(PEGGY_TRANSFER_AGENT_URL);
     const send = obj => {
       if (ws.readyState !== ws.OPEN) {
@@ -110,16 +133,13 @@ export default function TransferDialog({
             }
             for (const { denom, amount } of peggyBalances) {
               if (denom === ERC20_ADDRESS) {
-                setBalances(oldBalances => {
-                  const newBalances = [...oldBalances];
-                  const value = convertBigint(
-                    BigInt(amount),
-                    newBalances[PEGGY_I].decimals,
-                    BIG_DECIMAL_PLACES,
-                  );
-                  newBalances[PEGGY_I] = { ...newBalances[PEGGY_I], value };
-                  return newBalances;
-                });
+                setBalances(({ peggy: bal, ...bals }) => ({
+                  ...bals,
+                  peggy: {
+                    ...bal,
+                    value: norm(amount),
+                  },
+                }));
               }
             }
             break;
@@ -161,27 +181,17 @@ export default function TransferDialog({
         console.log('got erc20 transfer', args);
         const balance = await contract.balanceOf(myAddress);
         console.log('balance of my address is', balance);
-        const value = convertBigint(
-          BigInt(balance.toHexString()),
-          decimals,
-          BIG_DECIMAL_PLACES,
+        const value = Number(
+          stringifyValue(BigInt(balance.toHexString()), {
+            decimalPlaces: decimals,
+          }),
         );
         console.log('have value', value);
-        setBalances(oldBalances => {
-          if (
-            oldBalances[ETHEREUM_I].decimals === decimals &&
-            oldBalances[ETHEREUM_I].value === value &&
-            oldBalances[PEGGY_I].decimals === decimals
-          ) {
-            console.log('skipping value', decimals, value);
-            return oldBalances;
-          }
-          const newBalances = [...oldBalances];
-          newBalances[ETHEREUM_I] = { value, decimals };
-          newBalances[PEGGY_I] = { ...newBalances[PEGGY_I], decimals };
-          console.log('have newBalances', newBalances);
-          return newBalances;
-        });
+        setBalances(({ peggy: peggyBal, ...bals }) => ({
+          ...bals,
+          eth: { value, decimals },
+          peggy: { ...peggyBal, decimals },
+        }));
       };
 
       contract.on('Transfer', transferListener);
@@ -198,50 +208,57 @@ export default function TransferDialog({
     };
   }, [provider]);
 
-  const [outgoing, setOutgoing] = useState([BigInt(0), BigInt(0), BigInt(0)]);
+  const [outgoing, setOutgoing] = useState({
+    eth: norm(0),
+    peggy: norm(0),
+    agoric: norm(0),
+  });
 
-  const sendTokensStub = async (sourceIndex, amount, _srcDecimals) => {
+  const sendTokensStub = async (
+    sourcePath,
+    targetPath,
+    amount,
+    _srcDecimals,
+  ) => {
     // TODO: Actually initiate a transfer.
-    const targetIndex = sourceIndex + 1;
-    setBalances(bals =>
-      bals.map((bal, idx) =>
-        idx === sourceIndex ? { ...bal, value: bal.value - amount } : bal,
-      ),
-    );
+    setBalances(({ [sourcePath]: bal, ...bals }) => ({
+      ...bals,
+      [sourcePath]: { ...bal, value: bal.value - amount },
+    }));
 
     // Update the outgoing state to drive the animations.
-    setOutgoing(outs =>
-      outs.map((out, idx) => (idx === sourceIndex ? out + amount : out)),
-    );
+    setOutgoing(({ [sourcePath]: out, ...outs }) => ({
+      ...outs,
+      [sourcePath]: out + amount,
+    }));
 
     // TODO: Actually react to balance change.
     setTimeout(() => {
-      setBalances(bals =>
-        bals.map((bal, idx) =>
-          idx === targetIndex ? { ...bal, value: bal.value + amount } : bal,
-        ),
-      );
+      setBalances(({ [targetPath]: bal, ...bals }) => ({
+        ...bals,
+        [targetPath]: { ...bal, value: bal.value + amount },
+      }));
       // Update the outgoing state to cancel the animations.
-      setOutgoing(outs =>
-        outs.map((out, idx) => (idx === sourceIndex ? out - amount : out)),
-      );
+      setOutgoing(({ [sourcePath]: out, ...outs }) => ({
+        ...outs,
+        [sourcePath]: out - amount,
+      }));
 
       setStateChange(n => n + 1);
     }, 3000);
   };
 
   const sendTokensEth = useCallback(
-    async (sourceIndex, amount, srcDecimals) => {
+    async (sourcePath, _targetPath, amount, srcDecimals) => {
       // Transferring from ETH.
       if (!provider) {
         return;
       }
 
-      const amountToSend = convertBigint(
-        amount,
-        BIG_DECIMAL_PLACES,
-        srcDecimals,
-      );
+      const amountToSend = parseValue(amount, {
+        decimalPlaces: srcDecimals,
+        amountMathKind: 'big',
+      });
 
       console.log('start peggy contract instance');
       const peggy = new ethers.Contract(
@@ -262,9 +279,10 @@ export default function TransferDialog({
       );
 
       // Update the outgoing state to drive the animations.
-      setOutgoing(outs =>
-        outs.map((out, idx) => (idx === sourceIndex ? out + amount : out)),
-      );
+      setOutgoing(({ [sourcePath]: out, ...outs }) => ({
+        ...outs,
+        [sourcePath]: out + amount,
+      }));
 
       // https://docs.ethers.io/v5/api/providers/types/#providers-TransactionResponse
       console.log('wait for confirmation');
@@ -272,22 +290,79 @@ export default function TransferDialog({
       console.log('Confirmed in block number', blockNumber);
 
       // Update the outgoing state to cancel the animations.
-      setOutgoing(outs =>
-        outs.map((out, idx) => (idx === sourceIndex ? out - amount : out)),
-      );
+      setOutgoing(({ [sourcePath]: out, ...outs }) => ({
+        ...outs,
+        [sourcePath]: out + amount,
+      }));
     },
     [provider],
   );
 
+  const sendTokensPeggy = useCallback(
+    async (sourcePath, _targetPath, amount, srcDecimals) => {
+      // Transferring from ETH.
+      if (!provider) {
+        return;
+      }
+
+      const amountToSend = parseValue(amount, {
+        decimalPlaces: srcDecimals,
+        amountMathKind: 'big',
+      });
+
+      setOutgoing(({ [sourcePath]: out, ...outs }) => ({
+        ...outs,
+        [sourcePath]: out + amount,
+      }));
+
+      const ws = new WebSocket(PEGGY_TRANSFER_AGENT_URL);
+      const send = obj => {
+        console.log('sending peggy', obj);
+        if (ws.readyState !== ws.OPEN) {
+          return;
+        }
+        ws.send(JSON.stringify(obj));
+      };
+      ws.addEventListener('open', () => {
+        ws.addEventListener('message', ev => {
+          const obj = JSON.parse(ev.data);
+          console.log('receive peggy', obj);
+          switch (obj.type) {
+            case 'PEGGY_TRANSFER_COMPLETE': {
+              // Update the outgoing state to cancel the animations.
+              setOutgoing(({ [sourcePath]: out, ...outs }) => ({
+                ...outs,
+                [sourcePath]: out - amount,
+              }));
+              break;
+            }
+            default:
+          }
+          ws.close();
+        });
+
+        // Update the outgoing state to drive the animations.
+        send({
+          type: 'PEGGY_AGORIC_TRANSFER',
+          payload: {
+            recipient: `board:${depositFacetId}`,
+            amount: `${amountToSend}`,
+            denom: `peggy${ERC20_ADDRESS}`,
+          },
+        });
+      });
+    },
+  );
+
   const sendTokenses = REALLY_PEGGY
-    ? [sendTokensEth, sendTokensStub]
-    : [sendTokensStub, sendTokensStub];
+    ? { eth: sendTokensEth, peggy: sendTokensPeggy }
+    : { eth: sendTokensStub, peggy: sendTokensStub };
 
   const runStateMachine = useCallback(() => {
-    let targetIndex = balances.length - 1;
+    let targetIndex = TRANSFER_PATH.length - 1;
     let targetNeeded = transferring;
 
-    if (targetNeeded < balances[targetIndex].value) {
+    if (targetNeeded < balances[TRANSFER_PATH[targetIndex]].value) {
       // Done!
       setTransferring(undefined);
       alert('done transfer');
@@ -297,15 +372,17 @@ export default function TransferDialog({
     let sourceIndex = targetIndex - 1;
     let difference = targetNeeded;
     while (sourceIndex >= 0) {
-      targetNeeded -= balances[targetIndex].value;
-      difference = targetNeeded - outgoing[sourceIndex];
+      const targetPath = TRANSFER_PATH[targetIndex];
+      const sourcePath = TRANSFER_PATH[sourceIndex];
+      targetNeeded -= balances[targetPath].value;
+      difference = targetNeeded - outgoing[sourcePath];
 
       if (difference <= 0) {
         // Base case, the transfer is already happening.
         return;
       }
 
-      if (difference <= balances[sourceIndex].value) {
+      if (difference <= balances[sourcePath].value) {
         // The current source has enough.
         break;
       }
@@ -315,31 +392,44 @@ export default function TransferDialog({
       targetIndex -= 1;
     }
 
-    if (targetIndex <= 0 && balances[0].value < difference) {
-      // We can't get more!
-      alert(`transfer source needs ${difference - balances[0].value} more!`);
+    console.log('sourceIndex', sourceIndex, difference, balances);
+    const sourcePath = TRANSFER_PATH[sourceIndex];
+    const targetPath = TRANSFER_PATH[targetIndex];
+    if (!sourcePath) {
+      if (balances[targetPath].value < difference) {
+        // We can't get more!
+        alert(
+          `Transfer source ${targetPath} needs ${difference -
+            balances[targetPath].value} more!`,
+        );
+      }
+      setTransferring(undefined);
       return;
     }
 
     // Actually start a transfer now that we've pooled enough.
     console.log(
       'starting transfer from',
-      sourceIndex,
+      sourcePath,
       'to',
-      targetIndex,
+      targetPath,
       'of',
       difference,
     );
 
-    sendTokenses[sourceIndex](
-      sourceIndex,
+    console.log('sendTokenses', sourcePath, targetPath, balances);
+    sendTokenses[sourcePath](
+      sourcePath,
+      targetPath,
       difference,
-      balances[sourceIndex].decimals,
-    ).catch(e => console.error(`Error sending from ${sourceIndex}`, e.stack));
+      balances[sourcePath].decimals,
+    ).catch(e => console.error(`Error sending from ${sourcePath}`, e.stack));
   }, [transferring, balances, outgoing]);
 
   const onTransfer = useCallback(() => {
-    setTransferring(toTransfer);
+    setTransferring(
+      norm(parseInt(toTransfer, 10), requiredDisplayInfo.decimalPlaces),
+    );
   }, [toTransfer]);
 
   useEffect(() => {
@@ -353,7 +443,7 @@ export default function TransferDialog({
       <Dialog onClose={onClose} open={toTransfer !== undefined}>
         <DialogTitle onClose={onClose}>Transfer funds</DialogTitle>
         <DialogContent>
-          {required && (
+          {required && fundPurse && (
             <Typography component="h5" gutterBottom>
               This vault requires {requiredDisplay} {requiredSymbol}
             </Typography>
@@ -361,13 +451,12 @@ export default function TransferDialog({
           <TextField
             variant="outlined"
             required
-            label={`Target ${requiredSymbol}`}
+            label={`Target funds`}
             type="number"
             value={stringifyValue(toTransfer, requiredDisplayInfo)}
-            error={BigDec(toTransfer) < BigDec(required)}
+            error={toTransfer < required}
             helperText={
-              BigDec(toTransfer) < BigDec(required) &&
-              `Needs at least ${requiredDisplay}`
+              toTransfer < required && `Needs at least ${requiredDisplay}`
             }
             onChange={ev =>
               setToTransfer(parseValue(ev.target.value, requiredDisplayInfo))
@@ -375,11 +464,16 @@ export default function TransferDialog({
           />
           <Button onClick={onTransfer}>Transfer</Button>
           <Divider />
-          <Paper>Ethereum {stringifyDecimal(balances[ETHEREUM_I].value)}</Paper>
-          {stringifyDecimal(outgoing[ETHEREUM_I])}
-          <Paper>Peggy {stringifyDecimal(balances[PEGGY_I].value)}</Paper>
-          {stringifyDecimal(outgoing[PEGGY_I])}
-          <Paper>Agoric {stringifyDecimal(balances[AGORIC_I].value)}</Paper>
+          <Paper>Ethereum {denorm(balances.eth.value)}</Paper>
+          {denorm(outgoing.eth)}
+          <Paper>Peggy {denorm(balances.peggy.value)}</Paper>
+          {denorm(outgoing.peggy)}
+          <Paper>
+            Agoric{' '}
+            {REALLY_PEGGY &&
+              stringifyValue(fundPurse && fundPurse.value, { decimalPlaces })}
+            {!REALLY_PEGGY && denorm(balances.agoric.value)}
+          </Paper>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>
