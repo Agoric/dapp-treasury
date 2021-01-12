@@ -10,13 +10,14 @@ function logMsg(obj, direction = 'send:') {
   const type = obj.type;
   switch (type) {
     case undefined:
-      console.log(direction, obj);
+      // Skip untyped objects.
+      // console.log(direction, obj);
       return;
     case 'CTP_CALL':
       console.log(direction, type, obj.method && obj.method.body, obj);
       return;
     case 'CTP_RETURN':
-      console.log(direction, type, obj.result && obj.result.body, obj);
+      console.log(direction, type, (obj.exception || obj.result).body, obj);
       return;
     default:
       console.log(direction, type, obj);
@@ -73,7 +74,7 @@ function createSocket({ onConnect, onDisconnect, onMessage }, endpoint) {
       CONTRACT_NAME,
     )}`;
     ifr.addEventListener('load', () => {
-      while (ifrQ.length) {
+      while (ifrQ && ifrQ.length) {
         const obj = ifrQ.shift();
         logMsg(obj);
         ifr.contentWindow.postMessage(obj, window.origin);

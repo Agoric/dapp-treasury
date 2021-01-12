@@ -24,6 +24,8 @@ import {
 import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
 import NumberFormat from 'react-number-format';
 
+import { BigNum } from '../display';
+
 import TransferDialog from './TransferDialog';
 import VaultSteps from './VaultSteps';
 
@@ -239,8 +241,8 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
     dispatch(setVaultParams({ ...vaultParams, ...changes }));
   };
 
-  const fundPurseBalance = Number((fundPurse && fundPurse.value) || 0);
-  const balanceExceeded = fundPurseBalance < Number(toLock);
+  const fundPurseBalance = (fundPurse && fundPurse.value) || 0;
+  const balanceExceeded = fundPurseBalance < toLock;
 
   return (
     <div className={classes.root}>
@@ -252,7 +254,7 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
         value={fundPurseBalance}
       />
       <TransferDialog
-        required={Number(toLock) - fundPurseBalance}
+        required={toLock}
         requiredSymbol={collateralBrand}
         toTransfer={toTransfer}
         setToTransfer={setToTransfer}
@@ -295,7 +297,7 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
             <InputAdornment position="start">
               <IconButton
                 onClick={() => {
-                  setToTransfer(Number(toLock) - fundPurseBalance);
+                  setToTransfer(BigNum(toLock));
                 }}
                 edge="end"
               >
@@ -314,7 +316,9 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
         }}
         value={collateralPercent}
         onChange={ev =>
-          adaptBorrowParams({ collateralPercent: ev.target.value })
+          adaptBorrowParams({
+            collateralPercent: ev.target.value,
+          })
         }
       />
       <TextField
@@ -352,7 +356,7 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
       <Button
         onClick={() => {
           if (balanceExceeded) {
-            setToTransfer(Number(toLock) - fundPurseBalance);
+            setToTransfer(BigNum(toLock));
           } else {
             dispatch(setVaultConfigured(true));
           }

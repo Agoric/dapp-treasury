@@ -122,7 +122,7 @@ export default function Provider({ children }) {
 
   useEffect(() => {
     function messageHandler(message) {
-      if (!message) return;
+      if (!message || !message.type) return;
       console.log('UNEXPECTED MESSAGE', message);
       // const { type, data } = message;
       // if (type === 'walletUpdatePurses') {
