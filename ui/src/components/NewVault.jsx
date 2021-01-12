@@ -338,44 +338,50 @@ function VaultConfigure({ dispatch, collateralBrand, workingVaultParams }) {
   );
 }
 
+export function VaultSummary(_vault, _classes) {
+  return (
+    <TableContainer>
+      <Table>
+        <TableBody>
+          <TableRow>
+            <TableCell>Depositing</TableCell>
+            <TableCell align="right">7.5</TableCell>
+            <TableCell>$ETHa</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Borrowing</TableCell>
+            <TableCell align="right">5,000</TableCell>
+            <TableCell>$MOE</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Interest Rate</TableCell>
+            <TableCell align="right">1%</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Liquidation Ratio</TableCell>
+            <TableCell align="right">125%</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Liquidation Price</TableCell>
+            <TableCell align="right">$833.33</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Liquidation Penalty</TableCell>
+            <TableCell align="right">3%</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+}
+
 function VaultCreate({ dispatch }) {
   return (
     <div>
       <Typography variant="h6">
         Confirm details and create your vault
       </Typography>
-      <TableContainer>
-        <Table>
-          <TableBody>
-            <TableRow>
-              <TableCell>Depositing</TableCell>
-              <TableCell align="right">7.5</TableCell>{' '}
-              <TableCell>$ETHa</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Borrowing</TableCell>
-              <TableCell align="right">5,000</TableCell>{' '}
-              <TableCell>$MOE</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Interest Rate</TableCell>
-              <TableCell align="right">1%</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Liquidation Ratio</TableCell>
-              <TableCell align="right">125%</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Liquidation Price</TableCell>
-              <TableCell align="right">$833.33</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Liquidation Penalty</TableCell>
-              <TableCell align="right">3%</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <VaultSummary></VaultSummary>
       <Button onClick={() => dispatch(createVault())}>Create</Button>
       <Button onClick={() => dispatch(resetVault())}>Cancel</Button>
     </div>

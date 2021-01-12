@@ -50,6 +50,39 @@ export function useApplicationContext() {
   return useContext(ApplicationContext);
 }
 
+function watchVault(id, dispatch) {
+  async function vaultUpdater() {
+    const uiNotifier = E(walletP).getUINotifier(id);
+    for await (const vault of iterateNotifier(uiNotifier)) {
+      console.log('======== VAULT', id, vault);
+      dispatch(updateVault({ id, vault }));
+    }
+  }
+  vaultUpdater().catch(err =>
+    console.error('Vault watcher exception', id, err),
+  );
+}
+
+function watchOffers(dispatch) {
+  const watchedVaults = new Set();
+  async function offersUpdater() {
+    const offerNotifier = E(walletP).getOffersNotifier();
+    for await (const offers of iterateNotifier(offerNotifier)) {
+      for (const { id, instanceHandleBoardId } of offers) {
+        if (
+          instanceHandleBoardId === INSTANCE_BOARD_ID &&
+          !watchedVaults.has(id)
+        ) {
+          watchedVaults.add(id);
+          watchVault(id, dispatch);
+        }
+      }
+      console.log('======== OFFERS', offers);
+    }
+  }
+  offersUpdater().catch(err => console.error('Offers watcher exception', err));
+}
+
 /* eslint-disable complexity, react/prop-types */
 export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, defaultState);
@@ -127,6 +160,8 @@ export default function Provider({ children }) {
           E(walletP).suggestIssuer('MoE', SCONE_ISSUER_BOARD_ID),
         ]);
 
+        watchOffers(dispatch);
+
         console.error('DEPOSIT ID', invitationDepositId);
         dispatch(setInvitationDepositId(invitationDepositId));
       },
@@ -174,17 +209,6 @@ export default function Provider({ children }) {
           // acceptance/rejection.
           const { offer } = data;
           await E(walletP).addOffer(offer);
-          const id = offer.id;
-
-          async function vaultUpdater() {
-            const uiNotifier = E(walletP).getUINotifier(id);
-            for await (const vault of iterateNotifier(uiNotifier)) {
-              dispatch(updateVault({ id, vault }));
-            }
-          }
-          vaultUpdater().catch(err =>
-            console.error('Vault watcher exception', id, err),
-          );
           break;
         }
         default: {
@@ -257,4 +281,3 @@ export default function Provider({ children }) {
     </ApplicationContext.Provider>
   );
 }
-/* eslint-enable complexity, react/prop-types */

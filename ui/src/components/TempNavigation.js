@@ -4,7 +4,7 @@ import { makeStyles, useTheme } from '@material-ui/core/styles';
 
 import Drawer from '@material-ui/core/Drawer';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(_theme => ({
   drawerPaper: ({ drawerWidth }) => ({
     width: drawerWidth,
   }),
