@@ -6,21 +6,16 @@ import { E } from '@agoric/eventual-send';
 import '@agoric/zoe/exported';
 import bundleSource from '@agoric/bundle-source';
 import { makeHelpers } from '@agoric/deploy-script-support';
+import { assert } from '@agoric/assert';
 
 import installationConstants from '../ui/src/generated/installationConstants';
 import { makeAddCollateralType } from './addCollateralType';
+import { makeLocalAmountMath } from '../../agoric-sdk/node_modules/@agoric/ertp/src';
 
 const API_PORT = process.env.API_PORT || '8000';
 
-const MOOLA_BRAND_PETNAME = 'moola';
-const MOOLA_PURSE_PETNAME = 'Fun budget';
-
-// TODO: actually hook up to an on-chain ETHA brand from pegasus
-const ETHA_BRAND_PETNAME = 'Testnet.$USD';
-const ETHA_PURSE_PETNAME = 'Local currency';
-
 export default async function deployApi(homePromise, endowments) {
-  const { board, priceAuthority, zoe, wallet, http, spawner } = E.G(
+  const { board, priceAuthority, zoe, wallet, http, spawner, scratch } = E.G(
     homePromise,
   );
   const helpers = await makeHelpers(homePromise, endowments);
@@ -82,65 +77,101 @@ export default async function deployApi(homePromise, endowments) {
 
   const GOVERNANCE_BRAND_PETNAME = 'governance';
 
-  const GOVERNANCE_PURSE_PETNAME = 'Default governance token';
-
   const [SCONE_ISSUER_BOARD_ID, SCONE_BRAND_BOARD_ID] = await Promise.all([
     E(board).getId(moeIssuer),
     E(board).getId(moeBrand),
     E(issuerManager).add(GOVERNANCE_BRAND_PETNAME, governanceIssuer),
-    // E(issuerManager).add(MOE_BRAND_PETNAME, moeIssuer),
   ]);
   console.log('-- SCONE_ISSUER_BOARD_ID', SCONE_ISSUER_BOARD_ID);
   console.log('-- SCONE_BRAND_BOARD_ID', SCONE_BRAND_BOARD_ID);
 
-  await helpers.saveLocalAmountMaths([
-    GOVERNANCE_BRAND_PETNAME,
-    ETHA_BRAND_PETNAME,
-    MOOLA_BRAND_PETNAME,
-  ]);
+  // Try getting the vault manager params from what Pegasus dropped in our
+  // scratch.
+  let collateralIssuers = await E(scratch).get('treasuryCollateralIssuers');
+  // Format is [{ issuer, amount, payment, symbol }]
 
-  await E(walletAdmin).makeEmptyPurse(
-    GOVERNANCE_BRAND_PETNAME,
-    GOVERNANCE_PURSE_PETNAME,
-  );
+  const backupCollateralIssuersConfig = [
+    {
+      issuerPetname: 'moola',
+      amountValue: 1025,
+      pursePetname: 'Fun budget',
+      symbol: 'Moola',
+    },
+    {
+      issuerPetname: 'simolean',
+      amountValue: 1,
+      pursePetname: 'Nest egg',
+      symbol: 'Simolean',
+    },
+    {
+      issuerPetname: 'Testnet.$USD',
+      amountValue: 19000,
+      pursePetname: 'Local currency',
+      symbol: 'TestnetUSD',
+    },
+  ];
+
+  const makeBackupCollateralIssuers = async config => {
+    const resultPs = config.map(
+      async ({ issuerPetname, amountValue, pursePetname, symbol }) => {
+        const issuer = await E(issuerManager).get(issuerPetname);
+        const purseP = E(walletAdmin).getPurse(pursePetname);
+        const amountMath = await makeLocalAmountMath(issuer);
+        const amount = amountMath.make(amountValue);
+        const payment = await E(purseP).withdraw(amount);
+        return {
+          issuer,
+          amount,
+          payment,
+          symbol,
+        };
+      },
+    );
+    const results = await Promise.all(resultPs);
+    return results;
+  };
+
+  if (collateralIssuers === undefined) {
+    collateralIssuers = await makeBackupCollateralIssuers(
+      backupCollateralIssuersConfig,
+    );
+  }
+
+  const additionalConfig = [{ rate: 125 }, { rate: 102 }, { rate: 125 }];
+
+  const treasuryVaultManagerParams = additionalConfig.map(({ rate }, i) => {
+    return {
+      keyword: collateralIssuers[i].symbol,
+      rate,
+      issuer: collateralIssuers[i].issuer,
+      amount: collateralIssuers[i].amount,
+      payment: collateralIssuers[i].payment,
+    };
+  });
+
+  const governanceAmountMath = await makeLocalAmountMath(governanceIssuer);
+  const emptyGovernanceAmount = governanceAmountMath.getEmpty();
 
   const addCollateralType = makeAddCollateralType({
     stablecoinMachine: creatorFacet,
-    issuerManager,
-    helpers,
-    GOVERNANCE_BRAND_PETNAME,
-    GOVERNANCE_PURSE_PETNAME,
+    zoe,
+    emptyGovernanceAmount,
   });
 
   // Start the pools
-  // EthA
-  // TODO: decide on keyword and rate
-
-  const ethAVaultManager = await addCollateralType({
-    collateralKeyword: 'ETHA',
-    rate: 201,
-    collateralBrandPetname: ETHA_BRAND_PETNAME,
-    collateralValueToGive: 99,
-    collateralPursePetname: ETHA_PURSE_PETNAME,
-  });
-
-  // moola
-
-  const moolaVaultManager = await addCollateralType({
-    collateralKeyword: 'Moola',
-    rate: 201,
-    collateralBrandPetname: MOOLA_BRAND_PETNAME,
-    collateralValueToGive: 99,
-    collateralPursePetname: MOOLA_PURSE_PETNAME,
-  });
+  const vaultManagers = await Promise.all(
+    treasuryVaultManagerParams.map(vmp => addCollateralType(vmp)),
+  );
+  // TODO: do something with the vaultManagers
+  assert(vaultManagers);
 
   const installURLHandler = async () => {
-    const bundle = await bundleSource(
+    const handlerBundle = await bundleSource(
       helpers.resolvePathForLocalContract('./src/handler.js'),
     );
 
     // Install it on the spawner
-    const handlerInstall = E(spawner).install(bundle);
+    const handlerInstall = E(spawner).install(handlerBundle);
 
     // Spawn the installed code to create an URL handler.
     const handler = E(handlerInstall).spawn({
@@ -149,8 +180,6 @@ export default async function deployApi(homePromise, endowments) {
       board,
       http,
       invitationIssuer,
-      ethAVaultManager,
-      moolaVaultManager,
     });
 
     // Have our ag-solo wait on ws://localhost:8000/api for

@@ -30,6 +30,7 @@
     "tape-promise": "^4.0.0"
   },
   "dependencies": {
+    "@agoric/assert": "*",
     "@agoric/ertp": "*",
     "@agoric/eventual-send": "*",
     "@agoric/zoe": "*",

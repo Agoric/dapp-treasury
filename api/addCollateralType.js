@@ -2,49 +2,36 @@ import { E } from '@agoric/eventual-send';
 
 export const makeAddCollateralType = ({
   stablecoinMachine,
-  issuerManager,
-  helpers,
-  GOVERNANCE_BRAND_PETNAME,
-  GOVERNANCE_PURSE_PETNAME,
+  zoe,
+  emptyGovernanceAmount,
 }) => {
   const addCollateralType = async ({
-    collateralKeyword,
+    keyword,
     rate,
-    collateralBrandPetname,
-    collateralValueToGive,
-    collateralPursePetname,
+    issuer,
+    amount,
+    payment,
   }) => {
-    const collateralIssuer = await E(issuerManager).get(collateralBrandPetname);
-
     const addTypeInvitation = E(stablecoinMachine).makeAddTypeInvitation(
-      collateralIssuer,
-      collateralKeyword,
+      issuer,
+      keyword,
       rate,
     );
 
-    const offerConfig = harden({
-      invitation: addTypeInvitation,
-      proposalWithBrandPetnames: {
-        give: {
-          Collateral: {
-            brand: collateralBrandPetname,
-            value: collateralValueToGive,
-          },
-        },
-        want: {
-          Governance: { brand: GOVERNANCE_BRAND_PETNAME, value: 0 },
-        },
+    const proposal = harden({
+      give: {
+        Collateral: amount,
       },
-      paymentsWithPursePetnames: {
-        Collateral: collateralPursePetname,
-      },
-      payoutPursePetnames: {
-        Collateral: collateralPursePetname,
-        Governance: GOVERNANCE_PURSE_PETNAME,
+      want: {
+        Governance: emptyGovernanceAmount,
       },
     });
 
-    const { seat } = await helpers.offer(offerConfig);
+    const payments = harden({
+      Collateral: payment,
+    });
+
+    const seat = await E(zoe).offer(addTypeInvitation, proposal, payments);
 
     const vaultManager = E(seat).getOfferResult();
 
