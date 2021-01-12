@@ -19,6 +19,8 @@ import { useApplicationContext } from '../contexts/Application';
 import { changePurse, changeAmount, swapInputs, createOffer } from '../store';
 import dappConstants from '../utils/constants';
 
+import { parseValue } from './display';
+
 const { AMM_INSTANCE_BOARD_ID, AMM_INSTALLATION_BOARD_ID } = dappConstants;
 
 const useStyles = makeStyles(theme => ({
@@ -105,8 +107,8 @@ export default function Swap() {
     dispatch(changePurse(purse, fieldNumber, freeVariable));
   }
 
-  function handleChangeAmount(event, fieldNumber) {
-    const amount = parseInt(event.target.value, 10);
+  function handleChangeAmount(event, fieldNumber, purse) {
+    const amount = parseValue(event.target.value, purse.displayInfo);
     const freeVariable = fieldNumber;
     dispatch(changeAmount(amount, fieldNumber, freeVariable));
   }
@@ -117,7 +119,12 @@ export default function Swap() {
 
   function getExchangeRate(decimal) {
     if (isValid) {
-      const exchangeRate = (outputAmount / inputAmount).toFixed(decimal);
+      const inputDecimalPlaces = inputPurse.displayInfo.decimalPlaces || 0;
+      const outputDecimalPlaces = outputPurse.displayInfo.decimalPlaces || 0;
+      const scale = 10 ** (inputDecimalPlaces - outputDecimalPlaces);
+      const exchangeRate = ((outputAmount * scale) / inputAmount).toFixed(
+        decimal,
+      );
       return `Exchange rate: 1 ${inputPurse.brandPetname} = ${exchangeRate} ${outputPurse.brandPetname}`;
     }
     return '';
@@ -162,7 +169,7 @@ export default function Swap() {
           title="Input"
           purses={purses}
           onPurseChange={event => handleChangePurse(event, 0)}
-          onAmountChange={event => handleChangeAmount(event, 0)}
+          onAmountChange={event => handleChangeAmount(event, 0, inputPurse)}
           purse={inputPurse}
           amount={inputAmount}
           disabled={!connected}
@@ -182,7 +189,7 @@ export default function Swap() {
           title="Output"
           purses={purses}
           onPurseChange={event => handleChangePurse(event, 1)}
-          onAmountChange={event => handleChangeAmount(event, 1)}
+          onAmountChange={event => handleChangeAmount(event, 1, outputPurse)}
           purse={outputPurse}
           amount={outputAmount}
           disabled={!connected}

@@ -11,6 +11,8 @@ import {
 } from '@material-ui/core';
 import PurseIcon from '@material-ui/icons/BusinessCenter';
 
+import { stringifyValue } from './display';
+
 const useStyles = makeStyles(theme => ({
   select: {
     display: 'flex',
@@ -26,7 +28,6 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-/* eslint-disable react/prop-types */
 export default function AssetInput({
   title,
   purses,
@@ -72,7 +73,9 @@ export default function AssetInput({
               e.stopPropagation();
             }
           }}
-          value={amount === null ? '' : amount}
+          value={
+            amount === null ? '' : stringifyValue(amount, purse.displayInfo)
+          }
           disabled={disabled}
           error={amountError}
         />
@@ -92,14 +95,17 @@ export default function AssetInput({
           error={purseError}
         >
           {Array.isArray(purses) && purses.length > 0 ? (
-            purses.map(({ pursePetname, brandPetname, value }) => (
+            purses.map(({ pursePetname, brandPetname, value, displayInfo }) => (
               <MenuItem key={pursePetname} value={pursePetname} divider>
                 <ListItemIcon className={classes.icon}>
                   <PurseIcon />
                 </ListItemIcon>
                 <ListItemText
                   primary={pursePetname}
-                  secondary={`${value} ${brandPetname}`}
+                  secondary={`${stringifyValue(
+                    value,
+                    displayInfo,
+                  )} ${brandPetname}`}
                 />
               </MenuItem>
             ))
