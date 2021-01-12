@@ -1,37 +1,56 @@
 // @ts-check
-
-// Mostly copied from dapp-svelte-wallet/ui/src/display.js
+import JSON5 from 'json5';
 import { assert, details } from '@agoric/assert';
 import { MathKind } from '@agoric/ertp';
 
 const CONVENTIONAL_DECIMAL_PLACES = 2;
 
 /**
- * @typedef {{ amountMathKind?: AmountMathKind } & DisplayInfo} AmountDisplayInfo
+ * @typedef {{ amountMathKind?: AmountMathKind  | 'big' } & DisplayInfo} AmountDisplayInfo
  */
+
+export const BigNum = v => (v === undefined ? undefined : BigInt(v));
+
+/**
+ *
+ * @param {number | string | bigint} from
+ * @param {number} fromDecimals
+ * @param {number} toDecimals
+ */
+export const convertBigint = (from, fromDecimals, toDecimals) => {
+  if (fromDecimals < toDecimals) {
+    const scale = BigInt(10) ** BigInt(toDecimals - fromDecimals);
+    return BigNum(from) * scale;
+  }
+  const scale = BigInt(10) ** BigInt(fromDecimals - toDecimals);
+  return BigNum(from) / scale;
+};
 
 /**
  *
  * @param {string} str
  * @param {AmountDisplayInfo} displayInfo
+ * @param {boolean} strict
  */
-export function parseValue(str, displayInfo) {
-  console.log('PARSE_VALUE_STR', str);
+export function parseValue(str, displayInfo, strict = true) {
   const { amountMathKind = MathKind.NAT, decimalPlaces = 0 } =
     displayInfo || {};
 
   assert.typeof(str, 'string', details`valueString ${str} is not a string`);
 
-  if (amountMathKind !== MathKind.NAT) {
+  if (amountMathKind !== MathKind.NAT && amountMathKind !== 'big') {
     // Punt to JSON5 parsing.
-    return JSON.parse(str);
+    return JSON5.parse(str);
   }
 
   // Parse the string as a number.
-  const match = str.match(/^0*(\d+)(\.(\d*[1-9])?0*)?$/);
-  assert(match, details`${str} must be a non-negative decimal number`);
+  const match = str.match(/^0*(\d*)(\.(\d*[1-9])?0*)?$/);
+  assert(
+    !strict || match,
+    details`${str} must be a non-negative decimal number`,
+  );
 
-  const unitstr = match[1];
+  const unitstr = match[1] || '0';
   const dec0str = match[3] || '';
   const dec0str0 = dec0str.padEnd(decimalPlaces, '0');
   assert(
@@ -39,7 +58,13 @@ export function parseValue(str, displayInfo) {
     details`${str} exceeds ${decimalPlaces} decimal places`,
   );
 
-  return parseInt(`${unitstr}${dec0str0}`, 10);
+  if (amountMathKind === 'big') {
+    return BigInt(`${unitstr}${dec0str0}`);
+  }
+  // FIXME: Nat!
+  const n = parseInt(`${unitstr}${dec0str0}`, 10);
+  assert(!strict || Number.isSafeInteger(n), `Not a safe integer ${n}`);
+  return n;
 }
 
 /**
@@ -49,6 +74,7 @@ export function parseValue(str, displayInfo) {
  * @returns {string}
  */
 export function stringifyValue(value, displayInfo = undefined) {
+  value = value || 0;
   const { amountMathKind = MathKind.NAT, decimalPlaces = 0 } =
     displayInfo || {};
 
@@ -57,7 +83,7 @@ export function stringifyValue(value, displayInfo = undefined) {
     return `${value.length}`;
   }
 
-  const bValue = BigInt(value);
+  const bValue = BigNum(value);
   if (!decimalPlaces) {
     // Nothing else to do.
     return `${bValue}`;
