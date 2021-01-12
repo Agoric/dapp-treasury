@@ -10,13 +10,14 @@ function logMsg(obj, direction = 'send:') {
   const type = obj.type;
   switch (type) {
     case undefined:
-      console.log(direction, obj);
+      // Skip untyped objects.
+      // console.log(direction, obj);
       return;
     case 'CTP_CALL':
       console.log(direction, type, obj.method && obj.method.body, obj);
       return;
     case 'CTP_RETURN':
-      console.log(direction, type, obj.result && obj.result.body, obj);
+      console.log(direction, type, (obj.exception || obj.result).body, obj);
       return;
     default:
       console.log(direction, type, obj);
