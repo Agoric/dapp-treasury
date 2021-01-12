@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -24,14 +24,14 @@ import {
 import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
 import NumberFormat from 'react-number-format';
 
-import { BigNum } from '../display';
-
 import TransferDialog from './TransferDialog';
 import VaultSteps from './VaultSteps';
 
 import { useApplicationContext } from '../contexts/Application';
 
 import dappConstants from '../generated/defaults.js';
+
+import { stringifyPurseValue, stringifyValue, parseValue } from './display';
 
 import {
   setCollateralBrand,
@@ -43,6 +43,8 @@ import {
 import { makeLoanOffer } from '../contexts/makeLoanOffer';
 
 const { SCONE_BRAND_BOARD_ID } = dappConstants;
+
+const displayPetname = pn => (Array.isArray(pn) ? pn.join('.') : pn);
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -175,7 +177,13 @@ const useConfigStyles = makeStyles(theme => ({
   },
 }));
 
-function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
+function VaultConfigure({
+  dispatch,
+  collateralBrand,
+  depositFacetId,
+  purses,
+  vaultParams,
+}) {
   const classes = useConfigStyles();
 
   const {
@@ -198,6 +206,18 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
   const dstPurses = purses.filter(
     ({ brandBoardId }) => brandBoardId === SCONE_BRAND_BOARD_ID,
   );
+
+  useEffect(() => {
+    if (!fundPurse && fundPurses) {
+      dispatch(setVaultParams({ ...vaultParams, fundPurse: fundPurses[0] }));
+    }
+  }, [fundPurses]);
+
+  useEffect(() => {
+    if (!dstPurse && dstPurses) {
+      dispatch(setVaultParams({ ...vaultParams, dstPurse: dstPurses[0] }));
+    }
+  }, [dstPurses]);
 
   const doSort = (a, b) => (a.pursePetname > b.pursePetname ? 1 : -1);
   fundPurses.sort(doSort);
@@ -240,9 +260,14 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
     }
     dispatch(setVaultParams({ ...vaultParams, ...changes }));
   };
+  console.log('FUND PURSE', fundPurse);
 
   const fundPurseBalance = (fundPurse && fundPurse.value) || 0;
   const balanceExceeded = fundPurseBalance < toLock;
+  const fundPurseBalanceDisplay = Number(stringifyPurseValue(fundPurse));
+
+  const toLockDI = fundPurse && fundPurse.displayInfo;
+  const toBorrowDI = dstPurse && dstPurse.displayInfo;
 
   return (
     <div className={classes.root}>
@@ -251,25 +276,28 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
         variant="outlined"
         label={`Available ${collateralBrand}`}
         disabled
-        value={fundPurseBalance}
+        value={fundPurseBalanceDisplay}
       />
       <TransferDialog
         required={toLock}
+        requiredDisplayInfo={toLockDI}
         requiredSymbol={collateralBrand}
+        fundPurse={fundPurse}
         toTransfer={toTransfer}
         setToTransfer={setToTransfer}
+        depositFacetId={depositFacetId}
       />
       <TextField
         variant="outlined"
         required
         label="Funding purse"
         select
-        value={fundPurse ? fundPurse.pursePetname : ''}
+        value={fundPurse ? JSON.stringify(fundPurse.pursePetname) : ''}
       >
         {fundPurses.map(purse => (
           <MenuItem
-            key={purse.pursePetname}
-            value={purse.pursePetname}
+            key={JSON.stringify(purse.pursePetname)}
+            value={JSON.stringify(purse.pursePetname)}
             onClick={() =>
               dispatch(
                 setVaultParams({
@@ -279,7 +307,7 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
               )
             }
           >
-            {purse.pursePetname}
+            {displayPetname(purse.pursePetname)}
           </MenuItem>
         ))}
       </TextField>
@@ -289,19 +317,23 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
         error={balanceExceeded}
         helperText={balanceExceeded && 'Need to obtain more funds'}
         label={`${collateralBrand} to lock up`}
-        value={toLock}
+        value={stringifyValue(toLock, toLockDI)}
         type="number"
-        onChange={ev => adaptBorrowParams({ toLock: ev.target.value })}
+        onChange={ev =>
+          adaptBorrowParams({ toLock: parseValue(ev.target.value, toLockDI) })
+        }
         InputProps={{
-          startAdornment: balanceExceeded && (
+          startAdornment: (
             <InputAdornment position="start">
               <IconButton
                 onClick={() => {
-                  setToTransfer(BigNum(toLock));
+                  setToTransfer(toLock);
                 }}
-                edge="end"
+                edge="start"
               >
-                <FlightTakeoffIcon className={classes.pulse} />
+                <FlightTakeoffIcon
+                  className={balanceExceeded && classes.pulse}
+                />
               </IconButton>
             </InputAdornment>
           ),
@@ -327,19 +359,23 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
         label="$MOE to receive"
         type="number"
         value={toBorrow}
-        onChange={ev => adaptBorrowParams({ toBorrow: ev.target.value })}
+        onChange={ev =>
+          adaptBorrowParams({
+            toBorrow: parseValue(ev.target.value, toBorrowDI),
+          })
+        }
       />
       <TextField
         variant="outlined"
         required
         label="Destination purse"
         select
-        value={dstPurse ? dstPurse.pursePetname : ''}
+        value={dstPurse ? JSON.stringify(dstPurse.pursePetname) : ''}
       >
         {dstPurses.map(purse => (
           <MenuItem
-            key={purse.pursePetname}
-            value={purse.pursePetname}
+            key={JSON.stringify(purse.pursePetname)}
+            value={JSON.stringify(purse.pursePetname)}
             onClick={() =>
               dispatch(
                 setVaultParams({
@@ -349,14 +385,14 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
               )
             }
           >
-            {purse.pursePetname}
+            {displayPetname(purse.pursePetname)}
           </MenuItem>
         ))}
       </TextField>
       <Button
         onClick={() => {
           if (balanceExceeded) {
-            setToTransfer(BigNum(toLock));
+            setToTransfer(parseFloat(toLock));
           } else {
             dispatch(setVaultConfigured(true));
           }
@@ -388,16 +424,16 @@ export function VaultConfirmation({ vaultParams }) {
           <TableRow>
             <TableCell>Depositing</TableCell>
             <TableCell align="right">
-              {toLock} {fundPurse.brandPetname} from Purse:{' '}
-              {fundPurse.pursePetname}
+              {stringifyValue(toLock, fundPurse.displayInfo)}{' '}
+              {fundPurse.brandPetname} from Purse: {fundPurse.pursePetname}
             </TableCell>
             <TableCell></TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Borrowing</TableCell>
             <TableCell align="right">
-              {toBorrow} {dstPurse.brandPetname} to Purse:{' '}
-              {dstPurse.pursePetname}
+              {stringifyValue(toBorrow, dstPurse.displayInfo)}{' '}
+              {dstPurse.brandPetname} to Purse: {dstPurse.pursePetname}
             </TableCell>
           </TableRow>
           <TableRow>
@@ -481,6 +517,7 @@ export default function NewVault() {
           dispatch={dispatch}
           collateralBrand={collateralBrand}
           vaultParams={vaultParams}
+          depositFacetId={invitationDepositId}
           purses={purses}
         />
       )}

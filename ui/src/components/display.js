@@ -6,8 +6,10 @@ import { MathKind } from '@agoric/ertp';
 const CONVENTIONAL_DECIMAL_PLACES = 2;
 
 /**
- * @typedef {{ amountMathKind?: AmountMathKind } & DisplayInfo} AmountDisplayInfo
+ * @typedef {{ amountMathKind?: AmountMathKind  | 'big' } & DisplayInfo} AmountDisplayInfo
  */
+
+export const BigNum = v => (v === undefined ? undefined : BigInt(v));
 
 /**
  *
@@ -18,31 +20,35 @@ const CONVENTIONAL_DECIMAL_PLACES = 2;
 export const convertBigint = (from, fromDecimals, toDecimals) => {
   if (fromDecimals < toDecimals) {
     const scale = BigInt(10) ** BigInt(toDecimals - fromDecimals);
-    return BigInt(from) * scale;
+    return BigNum(from) * scale;
   }
   const scale = BigInt(10) ** BigInt(fromDecimals - toDecimals);
-  return BigInt(from) / scale;
+  return BigNum(from) / scale;
 };
 
 /**
  *
  * @param {string} str
  * @param {AmountDisplayInfo} displayInfo
+ * @param {boolean} strict
  */
-export function parseValue(str, displayInfo) {
+export function parseValue(str, displayInfo, strict = true) {
   const { amountMathKind = MathKind.NAT, decimalPlaces = 0 } =
     displayInfo || {};
 
   assert.typeof(str, 'string', details`valueString ${str} is not a string`);
 
-  if (amountMathKind !== MathKind.NAT) {
+  if (amountMathKind !== MathKind.NAT && amountMathKind !== 'big') {
     // Punt to JSON5 parsing.
     return JSON5.parse(str);
   }
 
   // Parse the string as a number.
   const match = str.match(/^0*(\d*)(\.(\d*[1-9])?0*)?$/);
-  assert(match, details`${str} must be a non-negative decimal number`);
+  assert(
+    !strict || match,
+    details`${str} must be a non-negative decimal number`,
+  );
 
   const unitstr = match[1] || '0';
   const dec0str = match[3] || '';
@@ -52,7 +58,13 @@ export function parseValue(str, displayInfo) {
     details`${str} exceeds ${decimalPlaces} decimal places`,
   );
 
-  return BigInt(`${unitstr}${dec0str0}`);
+  if (amountMathKind === 'big') {
+    return BigInt(`${unitstr}${dec0str0}`);
+  }
+  // FIXME: Nat!
+  const n = parseInt(`${unitstr}${dec0str0}`, 10);
+  assert(!strict || Number.isSafeInteger(n), `Not a safe integer ${n}`);
+  return n;
 }
 
 /**
@@ -62,6 +74,7 @@ export function parseValue(str, displayInfo) {
  * @returns {string}
  */
 export function stringifyValue(value, displayInfo = undefined) {
+  value = value || 0;
   const { amountMathKind = MathKind.NAT, decimalPlaces = 0 } =
     displayInfo || {};
 
@@ -70,7 +83,7 @@ export function stringifyValue(value, displayInfo = undefined) {
     return `${value.length}`;
   }
 
-  const bValue = BigInt(value);
+  const bValue = BigNum(value);
   if (!decimalPlaces) {
     // Nothing else to do.
     return `${bValue}`;
@@ -102,18 +115,9 @@ export function stringifyValue(value, displayInfo = undefined) {
   return `${unitstr}.${decstr}`;
 }
 
-// This is a big decimal, though not infinite.
-export const BIG_DECIMAL_PLACES = 6;
-export const BIG_DECIMAL_SCALE = BigInt(10) ** BigInt(BIG_DECIMAL_PLACES);
-export function parseDecimal(str) {
-  return parseValue(str ? `${str}` : '', { decimalPlaces: BIG_DECIMAL_PLACES });
-}
-export function stringifyDecimal(value) {
-  return stringifyValue(value || 0, {
-    decimalPlaces: BIG_DECIMAL_PLACES,
-  });
-}
-
-export const BigNum = v => (v === undefined ? undefined : BigInt(v));
-export const BigDec = (v, decimalPlaces = 0) =>
-  parseDecimal(v) / BigInt(10) ** BigInt(decimalPlaces);
+export const stringifyPurseValue = purse => {
+  if (!purse) {
+    return '0';
+  }
+  return stringifyValue(purse.value, purse.displayInfo);
+};
