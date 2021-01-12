@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Redirect } from 'react-router-dom';
 
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -33,10 +34,11 @@ import dappConstants from '../generated/defaults.js';
 import {
   setCollateralBrand,
   setVaultParams,
-  createVault,
   resetVault,
   setVaultConfigured,
 } from '../store';
+
+import { makeLoanOffer } from '../contexts/makeLoanOffer';
 
 const { SCONE_BRAND_BOARD_ID } = dappConstants;
 
@@ -363,7 +365,7 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
   );
 }
 
-export function VaultSummary({ vaultParams, _classes }) {
+export function VaultConfirmation({ vaultParams }) {
   const {
     fundPurse,
     dstPurse,
@@ -416,14 +418,20 @@ export function VaultSummary({ vaultParams, _classes }) {
   );
 }
 
-function VaultCreate({ dispatch, vaultParams }) {
+function VaultCreate({ dispatch, vaultParams, invitationDepositId }) {
   return (
     <div>
       <Typography variant="h6">
         Confirm details and create your vault
       </Typography>
-      <VaultSummary vaultParams={vaultParams}></VaultSummary>
-      <Button onClick={() => dispatch(createVault())}>Create</Button>
+      <VaultConfirmation vaultParams={vaultParams}></VaultConfirmation>
+      <Button
+        onClick={() =>
+          makeLoanOffer(dispatch, vaultParams, invitationDepositId)
+        }
+      >
+        Create
+      </Button>
       <Button onClick={() => dispatch(resetVault())}>Cancel</Button>
     </div>
   );
@@ -441,6 +449,8 @@ export default function NewVault() {
       collaterals,
       purses,
       vaultConfigured,
+      invitationDepositId,
+      vaultCreated,
     },
     dispatch,
   } = useApplicationContext();
@@ -450,13 +460,11 @@ export default function NewVault() {
       <Typography component="h1" variant="h4" align="center">
         Borrow $MOE
       </Typography>
-
       <VaultSteps
         connected={connected}
         collateralBrand={collateralBrand}
         vaultParams={vaultParams}
       />
-
       {connected && !collateralBrand && (
         <VaultCollateral
           dispatch={dispatch}
@@ -473,7 +481,18 @@ export default function NewVault() {
         />
       )}
       {connected && collateralBrand && vaultConfigured && (
-        <VaultCreate dispatch={dispatch} vaultParams={vaultParams} />
+        <VaultCreate
+          dispatch={dispatch}
+          vaultParams={vaultParams}
+          invitationDepositId={invitationDepositId}
+        />
+      )}
+      {vaultCreated && (
+        <Redirect
+          to={{
+            pathname: '/treasury',
+          }}
+        />
       )}
     </Paper>
   );

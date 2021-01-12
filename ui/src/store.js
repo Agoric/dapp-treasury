@@ -2,10 +2,6 @@
 // See: https://github.com/ericelliott/autodux
 import autodux from 'autodux';
 import { doFetch } from './utils/fetch-websocket';
-import {
-  createVault as createVaultImpl,
-  updateVault as updateVaultImpl,
-} from './contexts/Vault';
 
 export const {
   reducer,
@@ -24,6 +20,7 @@ export const {
     setCollateralBrand,
     setVaultParams,
     setVaultConfigured,
+    setVaultCreated,
     createVault,
     updateVault,
     resetVault,
@@ -52,12 +49,27 @@ export const {
       toLock: 0,
     },
     vaultConfigured: false,
+    vaultCreated: false,
     vaults: {},
     collaterals: null,
   },
   actions: {
-    createVault: createVaultImpl,
-    updateVault: updateVaultImpl,
+    createVault: (state, { id, vault }) => ({
+      ...state,
+      vaults: {
+        ...state.vaults,
+        [id]: vault,
+      },
+    }),
+    updateVault: ({ vaults, ...state }, { id, vault }) => {
+      console.log('-------VAULT', id, vault);
+      const oldVaultData = vaults[id];
+      const status = 'Loan Initiated';
+      return {
+        ...state,
+        vaults: { ...vaults, [id]: { ...oldVaultData, ...vault, status } },
+      };
+    },
     changePurse: {
       // Map positional arguments.
       create: (purse, fieldNumber, freeVariable = null) => ({

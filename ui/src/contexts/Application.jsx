@@ -24,8 +24,10 @@ import {
   setActive,
   changeAmount,
   resetState,
+  createVault,
   updateVault,
   setCollaterals,
+  setVaultCreated,
 } from '../store';
 import dappConstants from '../generated/defaults.js';
 import { getCollaterals } from './getCollaterals';
@@ -50,14 +52,37 @@ export function useApplicationContext() {
   return useContext(ApplicationContext);
 }
 
+async function getVaultPetnames(vault) {
+  const lockedBrand = vault.locked.brand;
+  const debtBrand = vault.debt.brand;
+  const [lockedBrandPetname, debtBrandPetname] = await E(
+    walletP,
+  ).getBrandPetnames(harden([lockedBrand, debtBrand]));
+  return {
+    ...vault,
+    lockedBrandPetname,
+    locked: vault.locked.value,
+    debtBrandPetname,
+    debt: vault.debt.value,
+  };
+}
+
 function watchVault(id, dispatch) {
+  console.log('vaultWatched', id);
   async function vaultUpdater() {
     const uiNotifier = E(walletP).getUINotifier(id);
-    for await (const vault of iterateNotifier(uiNotifier)) {
-      console.log('======== VAULT', id, vault);
+    for await (const value of iterateNotifier(uiNotifier)) {
+      console.log('======== VAULT', id, value);
+      // TODO: replace when collateralizationRatio works
+      const vault = await getVaultPetnames({
+        ...value,
+        collateralizationRatio: 150,
+      });
       dispatch(updateVault({ id, vault }));
     }
   }
+
+  dispatch(createVault({ id, vault: { status: 'Pending Wallet Acceptance' } }));
   vaultUpdater().catch(err =>
     console.error('Vault watcher exception', id, err),
   );
@@ -162,7 +187,6 @@ export default function Provider({ children }) {
 
         watchOffers(dispatch);
 
-        console.error('DEPOSIT ID', invitationDepositId);
         dispatch(setInvitationDepositId(invitationDepositId));
       },
       onDisconnect() {
@@ -209,6 +233,7 @@ export default function Provider({ children }) {
           // acceptance/rejection.
           const { offer } = data;
           await E(walletP).addOffer(offer);
+          dispatch(setVaultCreated(false));
           break;
         }
         default: {
