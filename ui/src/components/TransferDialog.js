@@ -76,7 +76,7 @@ export default function TransferDialog({
   const [balances, setBalances] = useState(INITIAL_BALANCES);
 
   useEffect(() => {
-    if (!globalThis.ethereum) {
+    if (!REALLY_PEGGY || !globalThis.ethereum) {
       return;
     }
     globalThis.ethereum

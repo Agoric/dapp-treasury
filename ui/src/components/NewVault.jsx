@@ -23,7 +23,7 @@ import {
 import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
 import NumberFormat from 'react-number-format';
 
-import { BigNum, BigDec, stringifyDecimal } from '../display';
+import { BigNum } from '../display';
 
 import TransferDialog from './TransferDialog';
 import VaultSteps from './VaultSteps';
@@ -239,8 +239,8 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
     dispatch(setVaultParams({ ...vaultParams, ...changes }));
   };
 
-  const fundPurseBalance = BigNum((fundPurse && fundPurse.value) || 0);
-  const balanceExceeded = fundPurseBalance < BigNum(toLock);
+  const fundPurseBalance = (fundPurse && fundPurse.value) || 0;
+  const balanceExceeded = fundPurseBalance < toLock;
 
   return (
     <div className={classes.root}>
@@ -249,7 +249,7 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
         variant="outlined"
         label={`Available ${collateralBrand}`}
         disabled
-        value={stringifyDecimal(fundPurseBalance)}
+        value={fundPurseBalance}
       />
       <TransferDialog
         required={toLock}
@@ -287,9 +287,9 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
         error={balanceExceeded}
         helperText={balanceExceeded && 'Need to obtain more funds'}
         label={`${collateralBrand} to lock up`}
-        value={stringifyDecimal(toLock)}
+        value={toLock}
         type="number"
-        onChange={ev => adaptBorrowParams({ toLock: BigDec(ev.target.value) })}
+        onChange={ev => adaptBorrowParams({ toLock: ev.target.value })}
         InputProps={{
           startAdornment: balanceExceeded && (
             <InputAdornment position="start">
@@ -312,10 +312,10 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
         InputProps={{
           inputComponent: NumberFormatPercent,
         }}
-        value={stringifyDecimal(collateralPercent)}
+        value={collateralPercent}
         onChange={ev =>
           adaptBorrowParams({
-            collateralPercent: BigDec(ev.target.value),
+            collateralPercent: ev.target.value,
           })
         }
       />
@@ -324,10 +324,8 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
         required
         label="$MOE to receive"
         type="number"
-        value={stringifyDecimal(toBorrow)}
-        onChange={ev =>
-          adaptBorrowParams({ toBorrow: BigDec(ev.target.value) })
-        }
+        value={toBorrow}
+        onChange={ev => adaptBorrowParams({ toBorrow: ev.target.value })}
       />
       <TextField
         variant="outlined"
