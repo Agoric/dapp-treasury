@@ -363,7 +363,7 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
   );
 }
 
-export function VaultSummary({ vaultParams }) {
+export function VaultSummary({ vaultParams, _classes }) {
   const {
     fundPurse,
     dstPurse,

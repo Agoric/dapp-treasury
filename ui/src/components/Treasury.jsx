@@ -58,7 +58,7 @@ function VaultList() {
           <ListItem key={key}>
             <Card key={key}>
               <CardContent>
-                <VaultSummary vault={v} classes={classes}></VaultSummary>
+                <VaultSummary vaultParams={v} classes={classes}></VaultSummary>
               </CardContent>
               <CardActions>
                 <Button size="small">Manage Debt</Button>

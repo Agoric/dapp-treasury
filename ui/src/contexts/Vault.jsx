@@ -1,7 +1,10 @@
 import { doFetch } from '../utils/fetch-websocket';
 
 export const createVault = state => {
-  const { invitationDepositId, vaultParams } = state;
+  const {
+    invitationDepositId,
+    vaultParams: { fundPurse, toLock, toBorrow, dstPurse },
+  } = state;
 
   const offer = {
     id: `${Date.now()}`,
@@ -10,14 +13,14 @@ export const createVault = state => {
       give: {
         Collateral: {
           // The pursePetname identifies which purse we want to use
-          pursePetname: vaultParams.fundPurse.pursePetname,
-          value: vaultParams.toLock,
+          pursePetname: fundPurse.pursePetname,
+          value: parseInt(toLock, 10),
         },
       },
       want: {
         Scones: {
-          pursePetname: vaultParams.dstPurse.pursePetname,
-          value: vaultParams.toBorrow,
+          pursePetname: dstPurse.pursePetname,
+          value: parseInt(toBorrow, 10),
         },
       },
       exit: { onDemand: null },
@@ -43,7 +46,14 @@ export const createVault = state => {
   // TODO: dispatch(resetVault) instead?
   return {
     ...state,
-    vaultParams: null,
+    collateralBrand: null,
+    vaultParams: {
+      fundPurse: null,
+      dstPurse: null,
+      toBorrow: 0,
+      collateralPercent: 150,
+      toLock: 0,
+    },
   };
 };
 

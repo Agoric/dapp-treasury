@@ -21,12 +21,15 @@ export default function VaultSteps({
 
   const [activeStep, setActiveStep] = useState(0);
 
+  const hasVaultParams = ({ fundPurse, dstPurse, toBorrow, toLock }) =>
+    fundPurse && dstPurse && toBorrow && toLock;
+
   useEffect(() => {
     if (!connected) {
       setActiveStep(0);
     } else if (!collateralBrand) {
       setActiveStep(1);
-    } else if (!vaultParams) {
+    } else if (!hasVaultParams(vaultParams)) {
       setActiveStep(2);
     } else {
       setActiveStep(3);
