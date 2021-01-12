@@ -25,8 +25,10 @@ import {
   changeAmount,
   resetState,
   updateVault,
+  setCollaterals,
 } from '../store';
 import dappConstants from '../generated/defaults.js';
+import { getCollaterals } from './getCollaterals';
 
 const {
   INVITATION_BRAND_BOARD_ID,
@@ -96,6 +98,9 @@ export default function Provider({ children }) {
         walletAbort = ctpAbort;
         walletDispatch = ctpDispatch;
         walletP = getBootstrap();
+
+        const collaterals = await getCollaterals(walletP, INSTANCE_BOARD_ID);
+        dispatch(setCollaterals(collaterals));
 
         // The moral equivalent of walletGetPurses()
         async function watchPurses() {

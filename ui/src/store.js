@@ -14,6 +14,7 @@ export const {
     setActive,
     setConnected,
     setPurses,
+    setCollaterals,
     setInvitationDepositId,
     changePurse,
     swapInputs,
@@ -46,6 +47,7 @@ export const {
     vaultParams: null,
     workingVaultParams: {},
     vaults: {},
+    collaterals: null,
   },
   actions: {
     createVault: createVaultImpl,
@@ -193,6 +195,7 @@ export const {
     resetState: state => ({
       ...state,
       purses: null,
+      collaterals: null,
       inputPurse: null,
       outputPurse: null,
       inputAmount: null,

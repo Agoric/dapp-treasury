@@ -83,45 +83,15 @@ export function NumberFormatPercent(props) {
   );
 }
 
-function VaultCollateral({ dispatch }) {
+function VaultCollateral({ collaterals, dispatch }) {
   const headCells = [
-    { id: 'name', label: 'Asset' },
-    { id: 'price', label: 'Market Price' },
-    { id: 'lratio', label: 'Liq. Ratio' },
-    { id: 'lpenalty', label: 'Liq. Penalty' },
-    { id: 'interest', label: 'Interest' },
+    { id: 'petname', label: 'Asset' },
+    { id: 'marketPrice', label: 'Market Price' },
+    { id: 'initialMargin', label: 'Initial Margin' },
+    { id: 'liqMargin', label: 'Liq. Margin' },
+    { id: 'stabilityFee', label: 'Stability Fee' },
   ];
-  const rows = [
-    {
-      name: '$ETHa',
-      price: '$1,000.00',
-      lratio: '125%',
-      lpenalty: '3%',
-      interest: '1%',
-    },
-    {
-      name: '$AST',
-      price: '$50.00',
-      lratio: '125%',
-      lpenalty: '3%',
-      interest: '1%',
-    },
-    {
-      name: '$WBTCa',
-      price: '$30,000.00',
-      lratio: '125%',
-      lpenalty: '3%',
-      interest: '1%',
-    },
-    {
-      name: '$USDCa',
-      price: '$1.00',
-      lratio: '102%',
-      lpenalty: '2%',
-      interest: '1%',
-    },
-  ];
-  return (
+  return Array.isArray(collaterals) && collaterals.length > 0 ? (
     <div>
       <FormControl component="fieldset">
         <FormLabel component="legend">Choose collateral</FormLabel>{' '}
@@ -136,18 +106,22 @@ function VaultCollateral({ dispatch }) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows.map(row => (
+              {collaterals.map(row => (
                 <TableRow key={row.name}>
                   <TableCell padding="checkbox">
                     <Radio
-                      onClick={() => dispatch(setCollateralBrand(row.name))}
+                      onClick={() => dispatch(setCollateralBrand(row.petname))}
                     />
                   </TableCell>
-                  <TableCell>{row.name}</TableCell>
-                  <TableCell align="right">{row.price}</TableCell>
-                  <TableCell align="right">{row.lratio}</TableCell>
-                  <TableCell align="right">{row.lpenalty}</TableCell>
-                  <TableCell align="right">{row.interest}</TableCell>
+                  <TableCell>{row.petname}</TableCell>
+                  <TableCell align="right">${row.marketPrice.value}</TableCell>
+                  <TableCell align="right">
+                    {row.initialMargin * 100}%
+                  </TableCell>
+                  <TableCell align="right">
+                    {row.liquidationMargin * 100}%
+                  </TableCell>
+                  <TableCell align="right">{row.stabilityFee * 100}%</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -155,6 +129,8 @@ function VaultCollateral({ dispatch }) {
         </TableContainer>
       </FormControl>
     </div>
+  ) : (
+    <div>Please enable the Treasury Dapp in your wallet.</div>
   );
 }
 
@@ -411,7 +387,13 @@ export default function NewVault() {
   const classes = useStyles();
 
   const {
-    state: { connected, collateralBrand, vaultParams, workingVaultParams },
+    state: {
+      connected,
+      collateralBrand,
+      vaultParams,
+      workingVaultParams,
+      collaterals,
+    },
     dispatch,
   } = useApplicationContext();
 
@@ -427,7 +409,9 @@ export default function NewVault() {
         vaultParams={vaultParams}
       />
 
-      {connected && !collateralBrand && <VaultCollateral dispatch={dispatch} />}
+      {connected && !collateralBrand && (
+        <VaultCollateral dispatch={dispatch} collaterals={collaterals} />
+      )}
       {connected && collateralBrand && !vaultParams && (
         <VaultConfigure
           dispatch={dispatch}

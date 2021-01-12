@@ -234,13 +234,6 @@ export async function start(zcf) {
     autoswap: autoswapAPI,
   }));
 
-  const publicFacet = harden({
-    getAMM() {
-      return autoswapInstance;
-    },
-    makeLoanInvitation,
-  });
-
   function getCollaterals() {
     // should be collateralTypes.map((vm, brand) => ({
     return harden(
@@ -253,6 +246,15 @@ export async function start(zcf) {
       })),
     );
   }
+
+  const publicFacet = harden({
+    getAMM() {
+      return autoswapInstance;
+    },
+    makeLoanInvitation,
+    getCollaterals,
+  });
+
   /** @type {StablecoinMachine} */
   const stablecoinMachine = harden({
     makeAddTypeInvitation,
