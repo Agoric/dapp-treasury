@@ -26,6 +26,8 @@ import {
   PEGGY_TRANSFER_AGENT_URL,
 } from '../peggyConfig.js';
 
+import { stringifyValue, parseValue } from './display';
+
 const REALLY_PEGGY = !!process.env.REACT_APP_REALLY_PEGGY;
 
 const INITIAL_BALANCES = REALLY_PEGGY
@@ -64,7 +66,9 @@ export default function TransferDialog({
   setToTransfer,
   required,
   requiredSymbol,
+  requiredDisplayInfo,
 }) {
+  const requiredDisplay = stringifyValue(required, requiredDisplayInfo);
   const [transferring, setTransferring] = useState(false);
   const [stateChange, setStateChange] = useState(0);
   const [provider, setEthProvider] = useState();
@@ -351,7 +355,7 @@ export default function TransferDialog({
         <DialogContent>
           {required && (
             <Typography component="h5" gutterBottom>
-              This vault requires {stringifyDecimal(required)} {requiredSymbol}
+              This vault requires {requiredDisplay} {requiredSymbol}
             </Typography>
           )}
           <TextField
@@ -359,13 +363,15 @@ export default function TransferDialog({
             required
             label={`Target ${requiredSymbol}`}
             type="number"
-            value={stringifyDecimal(toTransfer)}
+            value={stringifyValue(toTransfer, requiredDisplayInfo)}
             error={BigDec(toTransfer) < BigDec(required)}
             helperText={
               BigDec(toTransfer) < BigDec(required) &&
-              `Needs at least ${stringifyDecimal(required)}`
+              `Needs at least ${requiredDisplay}`
             }
-            onChange={ev => setToTransfer(BigDec(ev.target.value))}
+            onChange={ev =>
+              setToTransfer(parseValue(ev.target.value, requiredDisplayInfo))
+            }
           />
           <Button onClick={onTransfer}>Transfer</Button>
           <Divider />

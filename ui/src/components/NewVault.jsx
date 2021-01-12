@@ -33,6 +33,8 @@ import { useApplicationContext } from '../contexts/Application';
 
 import dappConstants from '../generated/defaults.js';
 
+import { stringifyPurseValue, stringifyValue, parseValue } from './display';
+
 import {
   setCollateralBrand,
   setVaultParams,
@@ -240,9 +242,14 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
     }
     dispatch(setVaultParams({ ...vaultParams, ...changes }));
   };
+  console.log('FUND PURSE', fundPurse);
 
   const fundPurseBalance = (fundPurse && fundPurse.value) || 0;
   const balanceExceeded = fundPurseBalance < toLock;
+  const fundPurseBalanceDisplay = Number(stringifyPurseValue(fundPurse));
+
+  const toLockDI = fundPurse && fundPurse.displayInfo;
+  const toBorrowDI = dstPurse && dstPurse.displayInfo;
 
   return (
     <div className={classes.root}>
@@ -251,10 +258,11 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
         variant="outlined"
         label={`Available ${collateralBrand}`}
         disabled
-        value={fundPurseBalance}
+        value={fundPurseBalanceDisplay}
       />
       <TransferDialog
         required={toLock}
+        requiredDisplayInfo={toLockDI}
         requiredSymbol={collateralBrand}
         toTransfer={toTransfer}
         setToTransfer={setToTransfer}
@@ -289,9 +297,11 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
         error={balanceExceeded}
         helperText={balanceExceeded && 'Need to obtain more funds'}
         label={`${collateralBrand} to lock up`}
-        value={toLock}
+        value={stringifyValue(toLock, toLockDI)}
         type="number"
-        onChange={ev => adaptBorrowParams({ toLock: ev.target.value })}
+        onChange={ev =>
+          adaptBorrowParams({ toLock: parseValue(ev.target.value, toLockDI) })
+        }
         InputProps={{
           startAdornment: balanceExceeded && (
             <InputAdornment position="start">
@@ -327,7 +337,11 @@ function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
         label="$MOE to receive"
         type="number"
         value={toBorrow}
-        onChange={ev => adaptBorrowParams({ toBorrow: ev.target.value })}
+        onChange={ev =>
+          adaptBorrowParams({
+            toBorrow: parseValue(ev.target.value, toBorrowDI),
+          })
+        }
       />
       <TextField
         variant="outlined"
@@ -388,16 +402,16 @@ export function VaultConfirmation({ vaultParams }) {
           <TableRow>
             <TableCell>Depositing</TableCell>
             <TableCell align="right">
-              {toLock} {fundPurse.brandPetname} from Purse:{' '}
-              {fundPurse.pursePetname}
+              {stringifyValue(toLock, fundPurse.displayInfo)}{' '}
+              {fundPurse.brandPetname} from Purse: {fundPurse.pursePetname}
             </TableCell>
             <TableCell></TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Borrowing</TableCell>
             <TableCell align="right">
-              {toBorrow} {dstPurse.brandPetname} to Purse:{' '}
-              {dstPurse.pursePetname}
+              {stringifyValue(toBorrow, dstPurse.displayInfo)}{' '}
+              {dstPurse.brandPetname} to Purse: {dstPurse.pursePetname}
             </TableCell>
           </TableRow>
           <TableRow>
