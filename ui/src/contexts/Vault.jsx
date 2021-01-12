@@ -1,46 +1,23 @@
 import { doFetch } from '../utils/fetch-websocket';
 
-import dappConstants from '../generated/defaults.js';
-
-const { INSTALLATION_BOARD_ID, INSTANCE_BOARD_ID } = dappConstants;
-
-// createOffer(
-//   INSTANCE_BOARD_ID,
-//   INSTALLATION_BOARD_ID,
-//   invitationDepositId,
-//   inputAmount,
-//   outputAmount,
-//   inputPurse,
-//   outputPurse,
-// ),
 export const createVault = state => {
-  // const { dispatch, invitationDepositId, collateralBrand, workingVaultParams } = state;
-  const { invitationDepositId } = state;
-  // const { dstPurseIndex = 0, fundPurseIndex = 0 } = workingVaultParams;
-  // let { toBorrow, collateralPercent, toLock } = workingVaultParams;
+  const { invitationDepositId, vaultParams } = state;
 
   const offer = {
-    // JSONable ID for this offer.  Eventually this will be scoped to
-    // the current site.
     id: `${Date.now()}`,
-
-    // TODO: get this from the invitation instead in the wallet. We
-    // don't want to trust the dapp on this.
-    installationHandleBoardId: INSTALLATION_BOARD_ID,
-    instanceHandleBoardId: INSTANCE_BOARD_ID,
 
     proposalTemplate: {
       give: {
         Collateral: {
           // The pursePetname identifies which purse we want to use
-          pursePetname: 'Fun budget', // TODO inputPurse.pursePetname,
-          value: 100,
+          pursePetname: vaultParams.fundPurse.pursePetname,
+          value: vaultParams.toLock,
         },
       },
       want: {
         Scones: {
-          pursePetname: ['Treasury', 'MoE'], // TODO outputPurse.pursePetname,
-          value: 20,
+          pursePetname: vaultParams.dstPurse.pursePetname,
+          value: vaultParams.toBorrow,
         },
       },
       exit: { onDemand: null },
@@ -63,10 +40,10 @@ export const createVault = state => {
     '/api',
   );
 
+  // TODO: dispatch(resetVault) instead?
   return {
     ...state,
     vaultParams: null,
-    workingVaultParams: {},
   };
 };
 

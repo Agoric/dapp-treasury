@@ -28,13 +28,17 @@ import VaultSteps from './VaultSteps';
 
 import { useApplicationContext } from '../contexts/Application';
 
+import dappConstants from '../generated/defaults.js';
+
 import {
   setCollateralBrand,
   setVaultParams,
-  setWorkingVaultParams,
   createVault,
   resetVault,
+  setVaultConfigured,
 } from '../store';
+
+const { SCONE_BRAND_BOARD_ID } = dappConstants;
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -83,7 +87,7 @@ export function NumberFormatPercent(props) {
   );
 }
 
-function VaultCollateral({ collaterals, dispatch }) {
+function VaultCollateral({ collaterals, dispatch, vaultParams }) {
   const headCells = [
     { id: 'petname', label: 'Asset' },
     { id: 'marketPrice', label: 'Market Price' },
@@ -107,10 +111,20 @@ function VaultCollateral({ collaterals, dispatch }) {
             </TableHead>
             <TableBody>
               {collaterals.map(row => (
-                <TableRow key={row.name}>
+                <TableRow key={row.petname}>
                   <TableCell padding="checkbox">
                     <Radio
-                      onClick={() => dispatch(setCollateralBrand(row.petname))}
+                      onClick={() => {
+                        dispatch(setCollateralBrand(row.petname));
+                        dispatch(
+                          setVaultParams({
+                            ...vaultParams,
+                            marketPrice: row.marketPrice.value,
+                            liquidationMargin: row.liquidationMargin,
+                            stabilityFee: row.stabilityFee,
+                          }),
+                        );
+                      }}
                     />
                   </TableCell>
                   <TableCell>{row.petname}</TableCell>
@@ -157,60 +171,61 @@ const useConfigStyles = makeStyles(theme => ({
   },
 }));
 
-function VaultConfigure({ dispatch, collateralBrand, workingVaultParams }) {
+function VaultConfigure({ dispatch, collateralBrand, purses, vaultParams }) {
   const classes = useConfigStyles();
 
-  const dstPurseNames = [`Default $MOE purse`];
-
-  const fundPurseNames = [
-    `Default ${collateralBrand} purse`,
-    `Second ${collateralBrand} purse`,
-  ];
-  const fundPurseBalances = ['4522', '92990'];
-
-  const DEFAULT_COLLATERAL_PERCENT = 150;
-  const { dstPurseIndex = 0, fundPurseIndex = 0 } = workingVaultParams;
-  let { toBorrow, collateralPercent, toLock } = workingVaultParams;
+  const {
+    fundPurse,
+    dstPurse,
+    toBorrow,
+    collateralPercent,
+    toLock,
+  } = vaultParams;
 
   const [toTransfer, setToTransfer] = useState(undefined);
 
-  if (!Number(collateralPercent)) {
-    collateralPercent = `${DEFAULT_COLLATERAL_PERCENT}`;
-  }
-  if (!Number(toLock)) {
-    toLock = fundPurseBalances[fundPurseIndex] || '1';
-  }
-  if (!Number(toBorrow)) {
-    toBorrow = Math.floor((Number(toLock) / Number(collateralPercent)) * 100);
-  }
+  // Purses with the same brand as the collateralBrand that was
+  // selected in the previous step.
+  const fundPurses = purses.filter(
+    ({ brandPetname }) => brandPetname === collateralBrand,
+  );
+
+  // Purses with the Scones brand
+  const dstPurses = purses.filter(
+    ({ brandBoardId }) => brandBoardId === SCONE_BRAND_BOARD_ID,
+  );
+
+  const doSort = (a, b) => (a.pursePetname > b.pursePetname ? 1 : -1);
+  fundPurses.sort(doSort);
+  dstPurses.sort(doSort);
 
   const adaptBorrowParams = changes => {
     if ('toBorrow' in changes) {
-      if ('collateralPercent' in workingVaultParams) {
+      if ('collateralPercent' in vaultParams) {
         changes.toLock = Math.floor(
           (Number(changes.toBorrow) * Number(collateralPercent)) / 100,
         );
-      } else if ('toLock' in workingVaultParams) {
+      } else if ('toLock' in vaultParams) {
         changes.collateralPercent = Math.floor(
           (Number(toLock) / Number(changes.toBorrow)) * 100,
         );
       }
     } else if ('toLock' in changes) {
-      if ('collateralPercent' in workingVaultParams) {
+      if ('collateralPercent' in vaultParams) {
         changes.toBorrow = Math.floor(
           (Number(changes.toLock) / Number(collateralPercent)) * 100,
         );
-      } else if ('toBorrow' in workingVaultParams) {
+      } else if ('toBorrow' in vaultParams) {
         changes.collateralPercent = Math.floor(
           (Number(changes.toLock) / Number(toBorrow)) * 100,
         );
       }
     } else if ('collateralPercent' in changes) {
-      if ('toLock' in workingVaultParams) {
+      if ('toLock' in vaultParams) {
         changes.toLock = Math.floor(
           (Number(toBorrow) * Number(changes.collateralPercent)) / 100,
         );
-      } else if ('toBorrow' in workingVaultParams) {
+      } else if ('toBorrow' in vaultParams) {
         changes.toBorrow = Math.floor(
           (Number(toLock) / Number(changes.collateralPercent)) * 100,
         );
@@ -219,10 +234,10 @@ function VaultConfigure({ dispatch, collateralBrand, workingVaultParams }) {
       // No change.
       return;
     }
-    dispatch(setWorkingVaultParams({ ...workingVaultParams, ...changes }));
+    dispatch(setVaultParams({ ...vaultParams, ...changes }));
   };
 
-  const fundPurseBalance = Number(fundPurseBalances[fundPurseIndex]);
+  const fundPurseBalance = Number((fundPurse && fundPurse.value) || 0);
   const balanceExceeded = fundPurseBalance < Number(toLock);
 
   return (
@@ -245,17 +260,22 @@ function VaultConfigure({ dispatch, collateralBrand, workingVaultParams }) {
         required
         label="Funding purse"
         select
-        value={fundPurseIndex}
+        value={fundPurse ? fundPurse.pursePetname : ''}
       >
-        {fundPurseNames.map((name, i) => (
+        {fundPurses.map(purse => (
           <MenuItem
-            key={i}
-            value={i}
+            key={purse.pursePetname}
+            value={purse.pursePetname}
             onClick={() =>
-              dispatch(setWorkingVaultParams({ fundPurseIndex: i }))
+              dispatch(
+                setVaultParams({
+                  ...vaultParams,
+                  fundPurse: purse,
+                }),
+              )
             }
           >
-            {name}
+            {purse.pursePetname}
           </MenuItem>
         ))}
       </TextField>
@@ -308,17 +328,22 @@ function VaultConfigure({ dispatch, collateralBrand, workingVaultParams }) {
         required
         label="Destination purse"
         select
-        value={dstPurseIndex}
+        value={dstPurse ? dstPurse.pursePetname : ''}
       >
-        {dstPurseNames.map((name, i) => (
+        {dstPurses.map(purse => (
           <MenuItem
-            key={i}
-            value={i}
+            key={purse.pursePetname}
+            value={purse.pursePetname}
             onClick={() =>
-              dispatch(setWorkingVaultParams({ dstPurseIndex: i }))
+              dispatch(
+                setVaultParams({
+                  ...vaultParams,
+                  dstPurse: purse,
+                }),
+              )
             }
           >
-            {name}
+            {purse.pursePetname}
           </MenuItem>
         ))}
       </TextField>
@@ -327,7 +352,7 @@ function VaultConfigure({ dispatch, collateralBrand, workingVaultParams }) {
           if (balanceExceeded) {
             setToTransfer(Number(toLock) - fundPurseBalance);
           } else {
-            dispatch(setVaultParams(workingVaultParams));
+            dispatch(setVaultConfigured(true));
           }
         }}
       >
@@ -338,32 +363,48 @@ function VaultConfigure({ dispatch, collateralBrand, workingVaultParams }) {
   );
 }
 
-export function VaultSummary(_vault, _classes) {
+export function VaultSummary({ vaultParams }) {
+  const {
+    fundPurse,
+    dstPurse,
+    toBorrow,
+    collateralPercent,
+    toLock,
+    stabilityFee,
+    liquidationMargin,
+    _marketPrice,
+  } = vaultParams;
+
   return (
     <TableContainer>
       <Table>
         <TableBody>
           <TableRow>
             <TableCell>Depositing</TableCell>
-            <TableCell align="right">7.5</TableCell>
-            <TableCell>$ETHa</TableCell>
+            <TableCell align="right">
+              {toLock} {fundPurse.brandPetname} from Purse:{' '}
+              {fundPurse.pursePetname}
+            </TableCell>
+            <TableCell></TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Borrowing</TableCell>
-            <TableCell align="right">5,000</TableCell>
-            <TableCell>$MOE</TableCell>
+            <TableCell align="right">
+              {toBorrow} {dstPurse.brandPetname} to Purse:{' '}
+              {dstPurse.pursePetname}
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Interest Rate</TableCell>
-            <TableCell align="right">1%</TableCell>
+            <TableCell align="right">{stabilityFee * 100}%</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Liquidation Ratio</TableCell>
-            <TableCell align="right">125%</TableCell>
+            <TableCell align="right">{liquidationMargin * 100}%</TableCell>
           </TableRow>
           <TableRow>
-            <TableCell>Liquidation Price</TableCell>
-            <TableCell align="right">$833.33</TableCell>
+            <TableCell>Collateral Ratio</TableCell>
+            <TableCell align="right">{collateralPercent}%</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Liquidation Penalty</TableCell>
@@ -375,13 +416,13 @@ export function VaultSummary(_vault, _classes) {
   );
 }
 
-function VaultCreate({ dispatch }) {
+function VaultCreate({ dispatch, vaultParams }) {
   return (
     <div>
       <Typography variant="h6">
         Confirm details and create your vault
       </Typography>
-      <VaultSummary></VaultSummary>
+      <VaultSummary vaultParams={vaultParams}></VaultSummary>
       <Button onClick={() => dispatch(createVault())}>Create</Button>
       <Button onClick={() => dispatch(resetVault())}>Cancel</Button>
     </div>
@@ -397,8 +438,9 @@ export default function NewVault() {
       connected,
       collateralBrand,
       vaultParams,
-      workingVaultParams,
       collaterals,
+      purses,
+      vaultConfigured,
     },
     dispatch,
   } = useApplicationContext();
@@ -416,17 +458,22 @@ export default function NewVault() {
       />
 
       {connected && !collateralBrand && (
-        <VaultCollateral dispatch={dispatch} collaterals={collaterals} />
+        <VaultCollateral
+          dispatch={dispatch}
+          collaterals={collaterals}
+          vaultParams={vaultParams}
+        />
       )}
-      {connected && collateralBrand && !vaultParams && (
+      {connected && collateralBrand && !vaultConfigured && (
         <VaultConfigure
           dispatch={dispatch}
           collateralBrand={collateralBrand}
-          workingVaultParams={workingVaultParams}
+          vaultParams={vaultParams}
+          purses={purses}
         />
       )}
-      {connected && collateralBrand && vaultParams && (
-        <VaultCreate dispatch={dispatch} />
+      {connected && collateralBrand && vaultConfigured && (
+        <VaultCreate dispatch={dispatch} vaultParams={vaultParams} />
       )}
     </Paper>
   );

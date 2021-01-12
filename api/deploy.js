@@ -74,21 +74,24 @@ export default async function deployApi(homePromise, endowments) {
 
   const {
     issuers: { Governance: governanceIssuer, Scones: moeIssuer },
+    brands: { Scones: moeBrand },
   } = await E(zoe).getTerms(instance);
 
   const walletAdmin = E(wallet).getAdminFacet();
   const issuerManager = E(walletAdmin).getIssuerManager();
 
   const GOVERNANCE_BRAND_PETNAME = 'governance';
-  const MOE_BRAND_PETNAME = 'moe';
 
   const GOVERNANCE_PURSE_PETNAME = 'Default governance token';
 
-  const [SCONE_ISSUER_BOARD_ID] = await Promise.all([
+  const [SCONE_ISSUER_BOARD_ID, SCONE_BRAND_BOARD_ID] = await Promise.all([
     E(board).getId(moeIssuer),
+    E(board).getId(moeBrand),
     E(issuerManager).add(GOVERNANCE_BRAND_PETNAME, governanceIssuer),
     // E(issuerManager).add(MOE_BRAND_PETNAME, moeIssuer),
   ]);
+  console.log('-- SCONE_ISSUER_BOARD_ID', SCONE_ISSUER_BOARD_ID);
+  console.log('-- SCONE_BRAND_BOARD_ID', SCONE_BRAND_BOARD_ID);
 
   await helpers.saveLocalAmountMaths([
     GOVERNANCE_BRAND_PETNAME,
@@ -168,6 +171,7 @@ export default async function deployApi(homePromise, endowments) {
     INSTANCE_BOARD_ID,
     INSTALLATION_BOARD_ID,
     SCONE_ISSUER_BOARD_ID,
+    SCONE_BRAND_BOARD_ID,
     AMM_NAME,
     AMM_INSTALLATION_BOARD_ID,
     AMM_INSTANCE_BOARD_ID,

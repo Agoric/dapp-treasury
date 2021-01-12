@@ -23,7 +23,7 @@ export const {
     resetState,
     setCollateralBrand,
     setVaultParams,
-    setWorkingVaultParams,
+    setVaultConfigured,
     createVault,
     updateVault,
     resetVault,
@@ -44,8 +44,14 @@ export const {
     freeVariable: null,
     // Vault state
     collateralBrand: null,
-    vaultParams: null,
-    workingVaultParams: {},
+    vaultParams: {
+      fundPurse: null,
+      dstPurse: null,
+      toBorrow: 0,
+      collateralPercent: 150,
+      toLock: 0,
+    },
+    vaultConfigured: false,
     vaults: {},
     collaterals: null,
   },
@@ -79,8 +85,13 @@ export const {
     resetVault: state => ({
       ...state,
       collateralBrand: null,
-      vaultParams: null,
-      workingVaultParams: {},
+      vaultParams: {
+        fundPurse: null,
+        dstPurse: null,
+        toBorrow: 0,
+        collateralPercent: 150,
+        toLock: 0,
+      },
     }),
     swapInputs(state) {
       const { inputPurse, outputPurse, inputAmount, outputAmount } = state;
