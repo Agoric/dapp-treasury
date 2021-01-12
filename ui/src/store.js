@@ -54,17 +54,19 @@ export const {
     collaterals: null,
   },
   actions: {
-    createVault: (state, { id, vault }) => ({
-      ...state,
-      vaults: {
-        ...state.vaults,
-        [id]: vault,
-      },
-    }),
+    createVault: (state, { id, vault }) => {
+      return {
+        ...state,
+        vaults: {
+          ...state.vaults,
+          [id]: vault,
+        },
+      };
+    },
     updateVault: ({ vaults, ...state }, { id, vault }) => {
       console.log('-------VAULT', id, vault);
       const oldVaultData = vaults[id];
-      const status = 'Loan Initiated';
+      const status = vault.liquidated ? 'Liquidated' : 'Loan Initiated';
       return {
         ...state,
         vaults: { ...vaults, [id]: { ...oldVaultData, ...vault, status } },

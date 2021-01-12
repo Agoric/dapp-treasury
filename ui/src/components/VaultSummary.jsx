@@ -8,6 +8,8 @@ import {
   TableRow,
 } from '@material-ui/core';
 
+import { stringifyValue } from './display';
+
 export function VaultSummary({ vault }) {
   const {
     collateralizationRatio,
@@ -15,11 +17,14 @@ export function VaultSummary({ vault }) {
     _interestRate,
     lockedBrandPetname,
     debtBrandPetname,
-    liquidated,
+    _liquidated,
     liquidationRatio,
     locked,
     stabilityFee,
     status,
+    liquidationPenalty,
+    lockedDisplayInfo,
+    debtDisplayInfo,
   } = vault;
 
   return (
@@ -33,22 +38,22 @@ export function VaultSummary({ vault }) {
           <TableRow>
             <TableCell>Deposited</TableCell>
             <TableCell align="right">
-              {locked} {lockedBrandPetname}
+              {stringifyValue(locked, lockedDisplayInfo)} {lockedBrandPetname}
             </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Borrowed</TableCell>
             <TableCell align="right">
-              {debt} {debtBrandPetname}
+              {stringifyValue(debt, debtDisplayInfo)} {debtBrandPetname}
             </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Interest Rate</TableCell>
-            <TableCell align="right">{stabilityFee * 100}%</TableCell>
+            <TableCell align="right">{stabilityFee}%</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Liquidation Ratio</TableCell>
-            <TableCell align="right">{liquidationRatio * 100}%</TableCell>
+            <TableCell align="right">{liquidationRatio}%</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Collateral Ratio</TableCell>
@@ -56,11 +61,7 @@ export function VaultSummary({ vault }) {
           </TableRow>
           <TableRow>
             <TableCell>Liquidation Penalty</TableCell>
-            <TableCell align="right">3%</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Liquidated</TableCell>
-            <TableCell align="right">{liquidated ? 'Yes' : 'No'}</TableCell>
+            <TableCell align="right">{liquidationPenalty}%</TableCell>
           </TableRow>
         </TableBody>
       </Table>

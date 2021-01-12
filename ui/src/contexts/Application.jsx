@@ -24,7 +24,6 @@ import {
   setActive,
   changeAmount,
   resetState,
-  createVault,
   updateVault,
   setCollaterals,
   setVaultCreated,
@@ -82,7 +81,6 @@ function watchVault(id, dispatch) {
     }
   }
 
-  dispatch(createVault({ id, vault: { status: 'Pending Wallet Acceptance' } }));
   vaultUpdater().catch(err =>
     console.error('Vault watcher exception', id, err),
   );

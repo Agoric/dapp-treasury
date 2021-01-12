@@ -66,11 +66,14 @@ export const makeLoanOffer = (
     interestRate: 0,
     lockedBrandPetname: fundPurse.brandPetname,
     debtBrandPetname: dstPurse.brandPetname,
+    lockedDisplayInfo: fundPurse.displayInfo,
+    debtDisplayInfo: dstPurse.displayInfo,
     liquidated: false,
     liquidationRatio: liquidationMargin,
     locked: toLock,
     stabilityFee,
     status: 'Pending Wallet Acceptance',
+    liquidationPenalty: 3,
   };
   dispatch(createVault({ id, vault }));
   dispatch(setVaultCreated(true));
