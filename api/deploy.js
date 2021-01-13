@@ -44,6 +44,12 @@ export default async function deployApi(homePromise, endowments) {
 
   const terms = harden({ autoswapInstall, priceAuthority });
 
+  console.log('Waiting for you to approve', CONTRACT_NAME, 'in your wallet...');
+  await E(
+    E(wallet).getScopedBridge(CONTRACT_NAME, 'http://localhost:3000'),
+  ).getBoard();
+  console.log('ok');
+
   const startInstanceConfig = {
     instancePetname: [CONTRACT_NAME],
     installation: stablecoinMachineInstallation,
