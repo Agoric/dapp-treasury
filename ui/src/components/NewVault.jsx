@@ -135,7 +135,9 @@ function VaultCollateral({ collaterals, dispatch, vaultParams }) {
                       }}
                     />
                   </TableCell>
-                  <TableCell>{row.petname[1]}</TableCell>
+                  <TableCell>
+                    {Array.isArray(row.petname) ? row.petname[1] : row.petname}
+                  </TableCell>
                   <TableCell align="right">
                     $
                     {stringifyValue(row.marketPrice.value, {

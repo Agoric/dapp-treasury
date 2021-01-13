@@ -389,15 +389,6 @@
     "@agoric/eventual-send" "^0.10.0"
     "@agoric/promise-kit" "^0.1.4"
 
-"@agoric/notifier@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@agoric/notifier/-/notifier-0.3.0.tgz#493008dc4ed302d314be573a4f6e80a97b289d47"
-  integrity sha512-gIBB4PFFotwpmZnEbckXeWUF32gy6k2FXuX1Nu+UsmbFnDqBwx99DWLrYDJk0fhuL2lLn8KqU7c7AxjS7jAa6w==
-  dependencies:
-    "@agoric/assert" "^0.2.0"
-    "@agoric/eventual-send" "^0.13.0"
-    "@agoric/promise-kit" "^0.2.0"
-
 "@agoric/promise-kit@^0.1.4":
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/@agoric/promise-kit/-/promise-kit-0.1.4.tgz#8925005bc4100f3b2463e6c1d1fc30fabb52359c"
@@ -428,6 +419,14 @@
     "@agoric/assert" "^0.2.0"
     "@agoric/sparse-ints" "^0.1.0"
 
+"@agoric/same-structure@*", "@agoric/same-structure@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@agoric/same-structure/-/same-structure-0.1.0.tgz#c5c86842d7b6eaa5f3ec05387e5e2aa176f84baa"
+  integrity sha512-WjyAYRUCOQYJgra0C8OnlQt5Q7DQKlRAfMkfPI+rm+2u7jyKHuPdFpwayxn9mOHBdYUf0YUr0q+yrO2amYGnfg==
+  dependencies:
+    "@agoric/assert" "^0.2.0"
+    "@agoric/marshal" "^0.3.0"
+
 "@agoric/same-structure@^0.0.9":
   version "0.0.9"
   resolved "https://registry.yarnpkg.com/@agoric/same-structure/-/same-structure-0.0.9.tgz#2dccb55ab7e0e2ca98cf8d59f63d73f06f39e783"
@@ -435,14 +434,6 @@
   dependencies:
     "@agoric/assert" "^0.0.9"
     "@agoric/marshal" "^0.2.4"
-
-"@agoric/same-structure@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@agoric/same-structure/-/same-structure-0.1.0.tgz#c5c86842d7b6eaa5f3ec05387e5e2aa176f84baa"
-  integrity sha512-WjyAYRUCOQYJgra0C8OnlQt5Q7DQKlRAfMkfPI+rm+2u7jyKHuPdFpwayxn9mOHBdYUf0YUr0q+yrO2amYGnfg==
-  dependencies:
-    "@agoric/assert" "^0.2.0"
-    "@agoric/marshal" "^0.3.0"
 
 "@agoric/sharing-service@^0.0.9":
   version "0.0.9"

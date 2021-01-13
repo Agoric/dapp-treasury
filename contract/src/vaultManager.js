@@ -104,7 +104,8 @@ export function makeVaultManager(
     },
     async getCollateralQuote() {
       // get a quote for one unit of the collateral
-      const { decimalPlaces = 0 } = await E(collateralBrand).getDisplayInfo();
+      const displayInfo = await E(collateralBrand).getDisplayInfo();
+      const decimalPlaces = (displayInfo && displayInfo.decimalPlaces) || 0;
       return E(priceAuthority).quoteGiven(
         collateralMath.make(10 ** decimalPlaces),
         sconeBrand,
