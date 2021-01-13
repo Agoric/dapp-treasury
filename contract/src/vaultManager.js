@@ -102,9 +102,13 @@ export function makeVaultManager(
     getStabilityFee() {
       return stabilityFee;
     },
-    getCollateralQuote() {
+    async getCollateralQuote() {
       // get a quote for one unit of the collateral
-      return E(priceAuthority).quoteGiven(collateralMath.make(1), sconeBrand);
+      const { decimalPlaces = 0 } = await E(collateralBrand).getDisplayInfo();
+      return E(priceAuthority).quoteGiven(
+        collateralMath.make(10 ** decimalPlaces),
+        sconeBrand,
+      );
     },
   };
 

@@ -149,7 +149,22 @@ export default async function deployApi(homePromise, endowments) {
     );
   }
 
-  const additionalConfig = [{ rate: 125 }, { rate: 102 }, { rate: 125 }];
+  const additionalConfig = [{ rate: 125 }, { rate: 125 }, { rate: 102 }];
+
+  const trades = [
+    {
+      fakeTradesGivenCentral: [[1052600, 1000000]],
+      fakeTradesGivenOther: [[1000000, 1052600]],
+    },
+    {
+      fakeTradesGivenCentral: [[33732220, 1000000]],
+      fakeTradesGivenOther: [[1000000, 33732220]],
+    },
+    {
+      fakeTradesGivenCentral: [[1000, 1000]],
+      fakeTradesGivenOther: [[1000, 1000]],
+    },
+  ];
 
   const treasuryVaultManagerParams = additionalConfig.map(({ rate }, i) => {
     return {
@@ -164,7 +179,7 @@ export default async function deployApi(homePromise, endowments) {
   // Add keyword/symbol as the petname in the wallet
   await Promise.all(
     treasuryVaultManagerParams.map(vmp =>
-      E(issuerManager).add(vmp.keyword, vmp.issuer),
+      E(issuerManager).add([DEPLOY_NAME, vmp.keyword], vmp.issuer),
     ),
   );
 
@@ -205,21 +220,6 @@ export default async function deployApi(homePromise, endowments) {
     // websocket connections.
     await E(http).registerURLHandler(handler, '/api');
   };
-
-  const trades = [
-    {
-      fakeTradesGivenCentral: [[11, 12]],
-      fakeTradesGivenOther: [[12, 11]],
-    },
-    {
-      fakeTradesGivenCentral: [[1, 1025]],
-      fakeTradesGivenOther: [[1025, 1]],
-    },
-    {
-      fakeTradesGivenCentral: [[1, 35000]],
-      fakeTradesGivenOther: [[35000, 1]],
-    },
-  ];
 
   const issuerToTrades = trades.map((tradeSpecs, i) => {
     return {

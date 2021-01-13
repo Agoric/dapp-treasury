@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -119,7 +119,7 @@ function VaultCollateral({ collaterals, dispatch, vaultParams }) {
             </TableHead>
             <TableBody>
               {collaterals.map(row => (
-                <TableRow key={row.petname}>
+                <TableRow key={JSON.stringify(row.petname)}>
                   <TableCell padding="checkbox">
                     <Radio
                       onClick={() => {
@@ -127,7 +127,7 @@ function VaultCollateral({ collaterals, dispatch, vaultParams }) {
                         dispatch(
                           setVaultParams({
                             ...vaultParams,
-                            marketPrice: row.marketPrice.value,
+                            marketPrice: row.marketPrice,
                             liquidationMargin: row.liquidationMargin,
                             stabilityFee: row.stabilityFee,
                           }),
@@ -135,8 +135,13 @@ function VaultCollateral({ collaterals, dispatch, vaultParams }) {
                       }}
                     />
                   </TableCell>
-                  <TableCell>{row.petname}</TableCell>
-                  <TableCell align="right">${row.marketPrice.value}</TableCell>
+                  <TableCell>{row.petname[1]}</TableCell>
+                  <TableCell align="right">
+                    $
+                    {stringifyValue(row.marketPrice.value, {
+                      decimalPlaces: 3,
+                    })}
+                  </TableCell>
                   <TableCell align="right">
                     {row.initialMargin * 100}%
                   </TableCell>
@@ -202,7 +207,8 @@ function VaultConfigure({
   // selected in the previous step.
   const fundPurses = purses.filter(
     ({ brandPetname }) =>
-      vaultCollateral && brandPetname === vaultCollateral.petname,
+      vaultCollateral &&
+      JSON.stringify(brandPetname) === JSON.stringify(vaultCollateral.petname),
   );
 
   // Purses with the Scones brand
@@ -235,43 +241,57 @@ function VaultConfigure({
   fundPurses.sort(doSort);
   dstPurses.sort(doSort);
 
-  const adaptBorrowParams = changes => {
-    if ('toBorrow' in changes) {
-      if ('collateralPercent' in vaultParams) {
-        changes.toLock = Math.floor(
-          (Number(changes.toBorrow) * Number(collateralPercent)) / 100,
-        );
-      } else if ('toLock' in vaultParams) {
-        changes.collateralPercent = Math.floor(
-          (Number(toLock) / Number(changes.toBorrow)) * 100,
-        );
+  const adaptBorrowParams = useCallback(
+    changes => {
+      if (!vaultCollateral) {
+        return;
       }
-    } else if ('toLock' in changes) {
-      if ('collateralPercent' in vaultParams) {
-        changes.toBorrow = Math.floor(
-          (Number(changes.toLock) / Number(collateralPercent)) * 100,
-        );
-      } else if ('toBorrow' in vaultParams) {
-        changes.collateralPercent = Math.floor(
-          (Number(changes.toLock) / Number(toBorrow)) * 100,
-        );
+      const price =
+        vaultCollateral.marketPrice.value / 10 ** toLockDI.decimalPlaces;
+      if ('toBorrow' in changes) {
+        if ('collateralPercent' in vaultParams) {
+          changes.toLock = Math.floor(
+            (Number(changes.toBorrow) * Number(collateralPercent)) /
+              price /
+              100,
+          );
+        } else if ('toLock' in vaultParams) {
+          changes.collateralPercent = Math.floor(
+            ((Number(toLock) * price) / Number(changes.toBorrow)) * 100,
+          );
+        }
+      } else if ('toLock' in changes) {
+        if ('collateralPercent' in vaultParams) {
+          changes.toBorrow = Math.floor(
+            ((Number(changes.toLock) * price) / Number(collateralPercent)) *
+              100,
+          );
+        } else if ('toBorrow' in vaultParams) {
+          changes.collateralPercent = Math.floor(
+            ((Number(changes.toLock) * price) / Number(toBorrow)) * 100,
+          );
+        }
+      } else if ('collateralPercent' in changes) {
+        if ('toLock' in vaultParams) {
+          changes.toBorrow = Math.floor(
+            ((Number(toLock) * price) / Number(changes.collateralPercent)) *
+              100,
+          );
+        } else if ('toBorrow' in vaultParams) {
+          changes.toLock = Math.floor(
+            (Number(toBorrow) * Number(changes.collateralPercent)) /
+              price /
+              100,
+          );
+        }
+      } else {
+        // No change.
+        return;
       }
-    } else if ('collateralPercent' in changes) {
-      if ('toLock' in vaultParams) {
-        changes.toLock = Math.floor(
-          (Number(toBorrow) * Number(changes.collateralPercent)) / 100,
-        );
-      } else if ('toBorrow' in vaultParams) {
-        changes.toBorrow = Math.floor(
-          (Number(toLock) / Number(changes.collateralPercent)) * 100,
-        );
-      }
-    } else {
-      // No change.
-      return;
-    }
-    dispatch(setVaultParams({ ...vaultParams, ...changes }));
-  };
+      dispatch(setVaultParams({ ...vaultParams, ...changes }));
+    },
+    [vaultCollateral, toLockDI, toLock, toBorrow, collateralPercent],
+  );
 
   const fundPurseBalance = (fundPurse && fundPurse.value) || 0;
   const balanceExceeded = fundPurseBalance < toLock;
@@ -279,17 +299,17 @@ function VaultConfigure({
 
   return (
     <div className={classes.root}>
-      <h5>Choose your {vaultCollateral.petname} vault parameters</h5>
+      <h5>Choose your {vaultCollateral.petname[1]} vault parameters</h5>
       <TextField
         variant="outlined"
-        label={`Available ${vaultCollateral.petname}`}
+        label={`Available ${vaultCollateral.petname[1]}`}
         disabled
         value={fundPurseBalanceDisplay}
       />
       <TransferDialog
         required={toLock}
         requiredDisplayInfo={toLockDI}
-        requiredSymbol={vaultCollateral.petname}
+        requiredSymbol={vaultCollateral.petname[1]}
         fundPurse={fundPurse}
         toTransfer={toTransfer}
         setToTransfer={setToTransfer}
@@ -324,7 +344,7 @@ function VaultConfigure({
         required
         error={balanceExceeded}
         helperText={balanceExceeded && 'Need to obtain more funds'}
-        label={`${vaultCollateral.petname} to lock up`}
+        label={`${vaultCollateral.petname[1]} to lock up`}
         value={stringifyValue(toLock, toLockDI)}
         type="number"
         onChange={ev =>
