@@ -29,7 +29,7 @@ const TRANSFER_PATH = ['eth', 'peggy', 'agoric'];
 const NORMALIZE_PLACES = 9;
 const bi = (n, places) => {
   if (places < 0) {
-    return BigInt(n) / BigInt(10) ** BigInt(places);
+    return BigInt(n) / BigInt(10) ** BigInt(-places);
   }
   return BigInt(n) * BigInt(10) ** BigInt(places);
 };
@@ -136,12 +136,12 @@ export default function TransferDialog({
               return;
             }
             for (const { denom, amount } of peggyBalances) {
-              if (denom === ERC20_ADDRESS) {
+              if (denom === `peggy${ERC20_ADDRESS}`) {
                 setBalances(({ peggy: bal, ...bals }) => ({
                   ...bals,
                   peggy: {
                     ...bal,
-                    value: norm(amount),
+                    value: norm(amount, bal.decimals),
                   },
                 }));
               }
@@ -170,7 +170,7 @@ export default function TransferDialog({
       if (transferListener === false) {
         return;
       }
-      const decimals = await contract.decimals();
+      const ethDecimals = await contract.decimals();
       if (transferListener === false) {
         return;
       }
@@ -185,16 +185,11 @@ export default function TransferDialog({
         console.log('got erc20 transfer', args);
         const balance = await contract.balanceOf(myAddress);
         console.log('balance of my address is', balance);
-        const value = Number(
-          stringifyValue(BigInt(balance.toHexString()), {
-            decimalPlaces: decimals,
-          }),
-        );
-        console.log('have value', value);
+        const bvalue = BigInt(balance.toHexString());
         setBalances(({ peggy: peggyBal, ...bals }) => ({
           ...bals,
-          eth: { value, decimals },
-          peggy: { ...peggyBal, decimals },
+          eth: { value: norm(bvalue, ethDecimals), decimals: ethDecimals },
+          peggy: { ...peggyBal, decimals: ethDecimals },
         }));
       };
 
@@ -259,7 +254,7 @@ export default function TransferDialog({
         return;
       }
 
-      const amountToSend = parseValue(amount, {
+      const amountToSend = parseValue(denorm(amount), {
         decimalPlaces: srcDecimals,
         amountMathKind: 'big',
       });
@@ -279,7 +274,7 @@ export default function TransferDialog({
           ethers.utils.arrayify(PEGGY_COSMOS_ADDRESS_HEX),
           32,
         ),
-        `${amountToSend}`, // AmountToSend
+        amountToSend, // AmountToSend
       );
 
       // Update the outgoing state to drive the animations.
@@ -309,7 +304,7 @@ export default function TransferDialog({
         return;
       }
 
-      const amountToSend = parseValue(amount, {
+      const amountToSend = parseValue(denorm(amount), {
         decimalPlaces: srcDecimals,
         amountMathKind: 'big',
       });

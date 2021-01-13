@@ -46,7 +46,8 @@ export default async function deployApi(homePromise, endowments) {
   const terms = harden({ autoswapInstall, priceAuthority });
 
   console.log('Waiting for you to approve', DEPLOY_NAME, 'in your wallet...');
-  await E(E(wallet).getScopedBridge(DEPLOY_NAME, 'deploy')).getBoard();
+  const walletBridge = E(wallet).getScopedBridge(DEPLOY_NAME, 'deploy');
+  await E(walletBridge).getBoard();
   console.log('Approved!');
 
   const startInstanceConfig = {
@@ -185,20 +186,35 @@ export default async function deployApi(homePromise, endowments) {
     },
   ];
 
-  const treasuryVaultManagerParams = additionalConfig.map((rates, i) => {
-    return {
-      keyword: collateralIssuers[i].symbol,
-      rates,
-      issuer: collateralIssuers[i].issuer,
-      amount: collateralIssuers[i].amount,
-      payment: collateralIssuers[i].payment,
-    };
-  });
+  const treasuryVaultManagerParams = await Promise.all(
+    additionalConfig.map(async (rates, i) => {
+      const issuerBoardId = await E(board).getId(collateralIssuers[i].issuer);
+      return {
+        keyword: collateralIssuers[i].symbol,
+        rates,
+        issuer: collateralIssuers[i].issuer,
+        issuerBoardId,
+        amount: collateralIssuers[i].amount,
+        payment: collateralIssuers[i].payment,
+      };
+    }),
+  );
 
-  // Add keyword/symbol as the petname in the wallet
+  // Formerly, "add keyword/symbol as the petname in the wallet".
+  // Now, suggest the issuer, just to get the petname[1]
+  // to match the symbols, and to have a purse.
+  //
+  // We can certainly add the issuers to the deployer.
+  //
+  // Relying on this for users of the Treasury UI is a hack.
+  // We should not in any way depend on the petnames being semantic.
+  // We should drive the user experience by suggesting issuerBoardId's
+  // during the UI flow that the wallet bridge can look up in the board
+  // and add to the user.
   await Promise.all(
-    treasuryVaultManagerParams.map(vmp =>
-      E(issuerManager).add([DEPLOY_NAME, vmp.keyword], vmp.issuer),
+    treasuryVaultManagerParams.map(({ keyword, issuerBoardId }) =>
+      // E(issuerManager).add([DEPLOY_NAME, vmp.keyword], vmp.issuer),
+      E(walletBridge).suggestIssuer(keyword, issuerBoardId),
     ),
   );
 

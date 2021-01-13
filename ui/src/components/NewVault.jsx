@@ -327,7 +327,7 @@ function VaultConfigure({
                   )
                 }
               >
-                {displayPetname(purse.pursePetname)}
+                {purse.pursePetname[1]}
               </MenuItem>
             ))}
           </TextField>
@@ -467,16 +467,17 @@ export function VaultConfirmation({ vaultParams }) {
             <TableCell>Depositing</TableCell>
             <TableCell align="right">
               {stringifyValue(toLock, fundPurse && fundPurse.displayInfo)}{' '}
-              {fundPurse && fundPurse.brandPetname} from Purse:{' '}
-              {fundPurse.pursePetname}
+              {fundPurse && fundPurse.brandPetname[1]} from Purse:{' '}
+              {fundPurse && fundPurse.pursePetname[1]}
             </TableCell>
             <TableCell></TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Borrowing</TableCell>
             <TableCell align="right">
-              {stringifyValue(toBorrow, dstPurse.displayInfo)}{' '}
-              {dstPurse.brandPetname} to Purse: {dstPurse.pursePetname}
+              {dstPurse && stringifyValue(toBorrow, dstPurse.displayInfo)}{' '}
+              {dstPurse && dstPurse.brandPetname} to Purse:{' '}
+              {dstPurse && dstPurse.pursePetname}
             </TableCell>
           </TableRow>
           <TableRow>

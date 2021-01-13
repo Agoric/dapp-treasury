@@ -38,22 +38,23 @@ export function VaultSummary({ vault }) {
           <TableRow>
             <TableCell>Deposited</TableCell>
             <TableCell align="right">
-              {stringifyValue(locked, lockedDisplayInfo)} {lockedBrandPetname}
+              {stringifyValue(locked, lockedDisplayInfo)}{' '}
+              {lockedBrandPetname[1]}
             </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Borrowed</TableCell>
             <TableCell align="right">
-              {stringifyValue(debt, debtDisplayInfo)} {debtBrandPetname}
+              {stringifyValue(debt, debtDisplayInfo)} {debtBrandPetname[1]}
             </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Interest Rate</TableCell>
-            <TableCell align="right">{stabilityFee}%</TableCell>
+            <TableCell align="right">{stabilityFee * 100}%</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Liquidation Ratio</TableCell>
-            <TableCell align="right">{liquidationRatio}%</TableCell>
+            <TableCell align="right">{liquidationRatio * 100}%</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Collateral Ratio</TableCell>
