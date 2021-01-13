@@ -467,7 +467,8 @@ export function VaultConfirmation({ vaultParams }) {
             <TableCell>Depositing</TableCell>
             <TableCell align="right">
               {stringifyValue(toLock, fundPurse && fundPurse.displayInfo)}{' '}
-              {fundPurse.brandPetname} from Purse: {fundPurse.pursePetname}
+              {fundPurse && fundPurse.brandPetname} from Purse:{' '}
+              {fundPurse.pursePetname}
             </TableCell>
             <TableCell></TableCell>
           </TableRow>
