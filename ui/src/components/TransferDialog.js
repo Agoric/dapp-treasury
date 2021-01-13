@@ -92,11 +92,14 @@ export default function TransferDialog({
     setBalances(bals => ({
       ...bals,
       agoric: {
-        value: norm(fundPurse.value || 0, fundPurse.displayInfo.decimalPlaces),
-        decimals: fundPurse.displayInfo.decimalPlaces,
+        value: norm(
+          fundPurse.value || 0,
+          fundPurse && fundPurse.displayInfo.decimalPlaces,
+        ),
+        decimals: fundPurse && fundPurse.displayInfo.decimalPlaces,
       },
     }));
-    setDecimalPlaces(fundPurse.displayInfo.decimalPlaces);
+    setDecimalPlaces(fundPurse && fundPurse.displayInfo.decimalPlaces);
   }, [fundPurse]);
 
   useEffect(() => {

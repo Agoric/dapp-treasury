@@ -24,8 +24,6 @@ import {
 import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
 import NumberFormat from 'react-number-format';
 
-import { E } from '@agoric/eventual-send';
-
 import TransferDialog from './TransferDialog';
 import VaultSteps from './VaultSteps';
 
@@ -224,32 +222,25 @@ function VaultConfigure({
     }
   }, [fundPurses]);
 
-  const [toBorrowDI, setToBorrowDI] = useState();
   useEffect(() => {
     if (!dstPurse && dstPurses.length) {
-      setToBorrowDI(dstPurses[0].displayInfo);
       dispatch(setVaultParams({ ...vaultParams, dstPurse: dstPurses[0] }));
     }
   }, [dstPurses]);
 
-  const [toLockDI, setToLockDI] = useState();
-  useEffect(() => {
-    E(vaultCollateral.brand)
-      .getDisplayInfo()
-      .then(di => setToLockDI(di));
-  }, [vaultCollateral]);
-
   const doSort = (a, b) => (a.pursePetname > b.pursePetname ? 1 : -1);
   fundPurses.sort(doSort);
   dstPurses.sort(doSort);
+
+  const toLockDI = fundPurse && fundPurse.displayInfo;
 
   const adaptBorrowParams = useCallback(
     changes => {
       if (!vaultCollateral) {
         return;
       }
-      const price =
-        vaultCollateral.marketPrice.value / 10 ** toLockDI.decimalPlaces;
+      const decimalPlaces = (toLockDI && toLockDI.decimalPlaces) || 0;
+      const price = vaultCollateral.marketPrice.value / 10 ** decimalPlaces;
       if ('toBorrow' in changes) {
         if ('collateralPercent' in vaultParams) {
           changes.toLock = Math.floor(
@@ -292,7 +283,7 @@ function VaultConfigure({
       }
       dispatch(setVaultParams({ ...vaultParams, ...changes }));
     },
-    [vaultCollateral, toLockDI, toLock, toBorrow, collateralPercent],
+    [vaultCollateral, toLock, toBorrow, collateralPercent],
   );
 
   const fundPurseBalance = (fundPurse && fundPurse.value) || 0;
@@ -388,10 +379,13 @@ function VaultConfigure({
         required
         label="$MOE to receive"
         type="number"
-        value={stringifyValue(toBorrow, toBorrowDI)}
+        value={stringifyValue(toBorrow, dstPurse && dstPurse.displayInfo)}
         onChange={ev =>
           adaptBorrowParams({
-            toBorrow: parseValue(ev.target.value, toBorrowDI),
+            toBorrow: parseValue(
+              ev.target.value,
+              dstPurse && dstPurse.displayInfo,
+            ),
           })
         }
       />
@@ -454,7 +448,7 @@ export function VaultConfirmation({ vaultParams }) {
           <TableRow>
             <TableCell>Depositing</TableCell>
             <TableCell align="right">
-              {stringifyValue(toLock, fundPurse.displayInfo)}{' '}
+              {stringifyValue(toLock, fundPurse && fundPurse.displayInfo)}{' '}
               {fundPurse.brandPetname} from Purse: {fundPurse.pursePetname}
             </TableCell>
             <TableCell></TableCell>
