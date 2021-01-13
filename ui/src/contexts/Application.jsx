@@ -259,11 +259,9 @@ export default function Provider({ children }) {
       const brandOut = outputPurse.brand;
       const outputP = E(ammPublicFacet).getInputPrice(amountIn, brandOut);
 
-      outputP.then(_output => {
-        // dispatch(setOutputAmount(output.value));
+      outputP.then(output => {
+        dispatch(setOutputAmount(output.value));
       });
-      // TODO: take out these fake numbers and use the response above
-      dispatch(setOutputAmount(10));
 
       dispatch(setOutputChanged(false));
       dispatch(setInputChanged(false));
@@ -274,11 +272,9 @@ export default function Provider({ children }) {
       const amountOut = { brand: outputPurse.brand, value: outputAmount };
       const inputP = E(ammPublicFacet).getOutputPrice(amountOut, brandIn);
 
-      inputP.then(_input => {
-        // dispatch(setInputAmount(input.value));
+      inputP.then(input => {
+        dispatch(setInputAmount(input.value));
       });
-      // TODO: take out these fake numbers and use the response above
-      dispatch(setInputAmount(20));
 
       dispatch(setOutputChanged(false));
       dispatch(setInputChanged(false));

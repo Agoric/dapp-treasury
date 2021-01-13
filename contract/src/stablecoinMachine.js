@@ -144,13 +144,16 @@ export async function start(zcf) {
       trace('liq prep', liqInvitation, liqProposal);
 
       // eslint-disable-next-line no-underscore-dangle
-      const _poolSeat = await offerTo(
+      const poolSeat = await offerTo(
         zcf,
         liqInvitation,
         govSeat,
         liqProposal,
         govSeat,
       );
+
+      const offerResult = await E(poolSeat).getOfferResult();
+      trace('offerResult', offerResult);
       // isComplete: () => done
       trace('liquidity setup');
 
