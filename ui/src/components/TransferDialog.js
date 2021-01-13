@@ -68,12 +68,16 @@ const erc20Abi = [
 export default function TransferDialog({
   toTransfer,
   setToTransfer,
-  fundPurse,
+  fundPursePetname,
+  purses,
   depositFacetId,
   required,
   requiredDisplayInfo,
   requiredSymbol,
 }) {
+  const fundPurse = purses.find(
+    p => JSON.stringify(p.pursePetname) === JSON.stringify(fundPursePetname),
+  );
   const requiredDisplay = stringifyValue(required, requiredDisplayInfo);
   const [transferring, setTransferring] = useState(false);
   const [stateChange, setStateChange] = useState(0);

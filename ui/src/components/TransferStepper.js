@@ -29,9 +29,19 @@ export default function TransferStepper({
 }) {
   const classes = useStyles();
 
+  const getActiveStep = () => {
+    if (outgoingEth > 0) {
+      return 1;
+    }
+    if (outgoingPeggy > 0) {
+      return 3;
+    }
+    return 5;
+  };
+
   return (
     <div className={classes.root}>
-      <Stepper activeStep={5} orientation="vertical">
+      <Stepper activeStep={getActiveStep()} orientation="vertical">
         <Step key="Ethereum">
           <StepLabel>Ethereum {eth}</StepLabel>
         </Step>
