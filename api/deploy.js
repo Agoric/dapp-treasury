@@ -248,6 +248,9 @@ export default async function deployApi(homePromise, endowments) {
   await installURLHandler();
   await priceAuthoritiesHandler();
 
+  // Add MoeIssuer to scratch for dappCardStore
+  await E(scratch).set('moeIssuer', moeIssuer);
+
   const invitationBrand = await invitationBrandP;
   const INVITE_BRAND_BOARD_ID = await E(board).getId(invitationBrand);
 
