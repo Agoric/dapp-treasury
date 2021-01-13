@@ -432,7 +432,7 @@ function VaultConfigure({
         required={toLock}
         requiredDisplayInfo={toLockDI}
         requiredSymbol={vaultCollateral.petname[1]}
-        fundPursePetname={fundPurse && fundPurse.petname}
+        fundPursePetname={fundPurse && fundPurse.pursePetname}
         toTransfer={toTransfer}
         setToTransfer={setToTransfer}
         depositFacetId={depositFacetId}

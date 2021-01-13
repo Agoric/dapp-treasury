@@ -75,9 +75,7 @@ export default function TransferDialog({
   requiredDisplayInfo,
   requiredSymbol,
 }) {
-  const fundPurse = purses.find(
-    p => JSON.stringify(p.pursePetname) === JSON.stringify(fundPursePetname),
-  );
+  const [fundPurse, setFundPurse] = useState();
   const requiredDisplay = stringifyValue(required, requiredDisplayInfo);
   const [transferring, setTransferring] = useState(false);
   const [stateChange, setStateChange] = useState(0);
@@ -88,24 +86,17 @@ export default function TransferDialog({
   });
 
   const [balances, setBalances] = useState(INITIAL_BALANCES);
-  const [decimalPlaces, setDecimalPlaces] = useState(0);
 
   useEffect(() => {
-    if (!fundPurse) {
+    console.log('trying to select fundpurse', fundPursePetname, purses);
+    const fp = purses.find(
+      p => JSON.stringify(p.pursePetname) === JSON.stringify(fundPursePetname),
+    );
+    if (!fp) {
       return;
     }
-    setBalances(bals => ({
-      ...bals,
-      agoric: {
-        value: norm(
-          fundPurse.value || 0,
-          fundPurse && fundPurse.displayInfo.decimalPlaces,
-        ),
-        decimals: fundPurse && fundPurse.displayInfo.decimalPlaces,
-      },
-    }));
-    setDecimalPlaces(fundPurse && fundPurse.displayInfo.decimalPlaces);
-  }, [fundPurse]);
+    setFundPurse(fp);
+  }, [purses, fundPursePetname]);
 
   useEffect(() => {
     if (!REALLY_PEGGY || !globalThis.ethereum) {
@@ -474,10 +465,11 @@ export default function TransferDialog({
             outgoingPeggy={denorm(outgoing.peggy)}
             agoric={
               REALLY_PEGGY
-                ? stringifyValue(fundPurse && fundPurse.value, {
-                    decimalPlaces,
+                ? fundPurse &&
+                  stringifyValue(fundPurse.value, {
+                    decimalPlaces: fundPurse.displayInfo.decimalPlaces,
                   })
-                : denorm(balances.agoric.value)
+                : denorm(balances.agoric)
             }
           ></TransferStepper>
         </DialogContent>
