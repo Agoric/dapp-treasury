@@ -233,7 +233,6 @@ export default async function deployApi(homePromise, endowments) {
         sconesIssuer: moeIssuer,
         issuerToTrades,
         timer: localTimerService,
-        nonce: true,
       }),
     );
 

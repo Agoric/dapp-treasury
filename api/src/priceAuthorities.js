@@ -4,17 +4,19 @@ import { makeIssuerKit, makeLocalAmountMath, MathKind } from '@agoric/ertp';
 import { allComparable } from '@agoric/same-structure';
 
 export default harden(async ({ sconesIssuer, issuerToTrades, timer }) => {
-  const sconesMath = await makeLocalAmountMath(sconesIssuer);
   const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
+  const sconesMath = await makeLocalAmountMath(sconesIssuer);
+  const sconesBrand = await E(sconesMath).getBrand();
 
   // start with issuerToTrades, which has { issuer, fTGC, fTGO }, map to a list
-  // with promises for localAmountMaths added. Use allComparable to resolve the
-  // promises, then map to a list with priceAuthorities and brands.
+  // with promises for localAmountMaths and brand instead of the issuer. Use
+  // allComparable() to resolve the promises, then map to a list with
+  // priceAuthorities and brands.
 
   const addedMathPromises = issuerToTrades.map(
     ({ issuer, fakeTradesGivenCentral, fakeTradesGivenOther }) => {
       return harden({
-        issuer,
+        brand: E(issuer).getBrand(),
         amountMath: makeLocalAmountMath(issuer),
         fakeTradesGivenCentral,
         fakeTradesGivenOther,
@@ -26,7 +28,7 @@ export default harden(async ({ sconesIssuer, issuerToTrades, timer }) => {
 
   const priceAuthorities = [];
   addedAmountMaths.forEach(
-    ({ issuer, amountMath, fakeTradesGivenCentral, fakeTradesGivenOther }) => {
+    ({ brand, amountMath, fakeTradesGivenCentral, fakeTradesGivenOther }) => {
       const sconesInPriceAuthority = makeFakePriceAuthority({
         mathIn: sconesMath,
         mathOut: amountMath,
@@ -36,8 +38,8 @@ export default harden(async ({ sconesIssuer, issuerToTrades, timer }) => {
       });
       priceAuthorities.push({
         priceAuthority: sconesInPriceAuthority,
-        brandIn: E(sconesMath).getBrand(),
-        brandOut: E(issuer).getBrand(),
+        brandIn: sconesBrand,
+        brandOut: brand,
       });
 
       const sconesOutPriceAuthority = makeFakePriceAuthority({
@@ -49,8 +51,8 @@ export default harden(async ({ sconesIssuer, issuerToTrades, timer }) => {
       });
       priceAuthorities.push({
         priceAuthority: sconesOutPriceAuthority,
-        brandIn: E(issuer).getBrand(),
-        brandOut: E(sconesMath).getBrand(),
+        brandIn: brand,
+        brandOut: sconesBrand,
       });
     },
   );
