@@ -37,7 +37,7 @@ export default async function deployApi(homePromise, endowments) {
   const terms = harden({ autoswapInstall, priceAuthority });
 
   const startInstanceConfig = {
-    instancePetname: CONTRACT_NAME,
+    instancePetname: [CONTRACT_NAME],
     installation: stablecoinMachineInstallation,
     terms,
     issuerKeywordRecord: {},
@@ -75,7 +75,7 @@ export default async function deployApi(homePromise, endowments) {
   const walletAdmin = E(wallet).getAdminFacet();
   const issuerManager = E(walletAdmin).getIssuerManager();
 
-  const GOVERNANCE_BRAND_PETNAME = 'governance';
+  const GOVERNANCE_BRAND_PETNAME = [CONTRACT_NAME, 'Governance'];
 
   const [SCONE_ISSUER_BOARD_ID, SCONE_BRAND_BOARD_ID] = await Promise.all([
     E(board).getId(moeIssuer),
