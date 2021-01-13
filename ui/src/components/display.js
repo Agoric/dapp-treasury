@@ -9,7 +9,13 @@ const CONVENTIONAL_DECIMAL_PLACES = 2;
  * @typedef {{ amountMathKind?: AmountMathKind  | 'big' } & DisplayInfo} AmountDisplayInfo
  */
 
-export const BigNum = v => (v === undefined ? undefined : BigInt(v));
+export const BigNum = v => {
+  if (typeof v === 'object') {
+    console.log(v);
+    throw Error(`could not make a bigInt ${v}`);
+  }
+  return v === undefined ? undefined : BigInt(v);
+};
 
 /**
  *

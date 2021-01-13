@@ -466,10 +466,8 @@ export default function TransferDialog({
             agoric={
               REALLY_PEGGY
                 ? fundPurse &&
-                  stringifyValue(fundPurse.value, {
-                    decimalPlaces: fundPurse.displayInfo.decimalPlaces,
-                  })
-                : denorm(balances.agoric)
+                  stringifyValue(fundPurse.value, fundPurse.displayInfo)
+                : denorm(balances.agoric.value)
             }
           ></TransferStepper>
         </DialogContent>
