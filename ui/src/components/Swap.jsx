@@ -23,6 +23,8 @@ import {
   setOutputAmount,
   swapInputs,
   createOffer,
+  setInputChanged,
+  setOutputChanged,
 } from '../store';
 import dappConstants from '../utils/constants';
 
@@ -117,11 +119,13 @@ export default function Swap() {
   function handleChangeInputAmount(event) {
     const amount = parseValue(event.target.value, inputPurse.displayInfo);
     dispatch(setInputAmount(amount));
+    dispatch(setInputChanged(true));
   }
 
   function handleChangeOutputAmount(event) {
     const amount = parseValue(event.target.value, outputPurse.displayInfo);
     dispatch(setOutputAmount(amount));
+    dispatch(setOutputChanged(true));
   }
 
   function handleswapInputs() {

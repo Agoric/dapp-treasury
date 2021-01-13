@@ -29,6 +29,8 @@ import {
   setVaultCreated,
   setOutputAmount,
   setInputAmount,
+  setInputChanged,
+  setOutputChanged,
 } from '../store';
 import dappConstants from '../generated/defaults.js';
 import { getCollaterals } from './getCollaterals';
@@ -113,7 +115,15 @@ function watchOffers(dispatch) {
 /* eslint-disable complexity, react/prop-types */
 export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, defaultState);
-  const { active, inputPurse, outputPurse, inputAmount, outputAmount } = state;
+  const {
+    active,
+    inputPurse,
+    outputPurse,
+    inputAmount,
+    outputAmount,
+    inputChanged,
+    outputChanged,
+  } = state;
 
   useEffect(() => {
     // Receive callbacks from the wallet connection.
@@ -244,26 +254,28 @@ export default function Provider({ children }) {
   }, [active, apiMessageHandler]);
 
   useEffect(() => {
-    if (inputPurse && outputPurse && inputAmount > 0) {
+    if (inputPurse && outputPurse && inputAmount > 0 && inputChanged) {
       const amountIn = { brand: inputPurse.brand, value: inputAmount };
       const brandOut = outputPurse.brand;
-      console.log('GET INPUT PRICE', amountIn, brandOut);
       const outputP = E(ammPublicFacet).getInputPrice(amountIn, brandOut);
 
       outputP.then(output => {
         dispatch(setOutputAmount(output.value));
       });
+      dispatch(setOutputChanged(false));
+      dispatch(setInputChanged(false));
     }
 
-    if (inputPurse && outputPurse && outputAmount > 0) {
+    if (inputPurse && outputPurse && outputAmount > 0 && outputChanged) {
       const brandIn = inputPurse.brand;
       const amountOut = { brand: outputPurse.brand, value: outputAmount };
-      console.log('GET OUTPUT PRICE', amountOut, brandIn);
       const inputP = E(ammPublicFacet).getOutputPrice(amountOut, brandIn);
 
       inputP.then(input => {
         dispatch(setInputAmount(input.value));
       });
+      dispatch(setOutputChanged(false));
+      dispatch(setInputChanged(false));
     }
   }, [inputPurse, outputPurse, inputAmount, outputAmount]);
 

@@ -16,6 +16,8 @@ export const {
     setOutputPurse,
     setInputAmount,
     setOutputAmount,
+    setInputChanged,
+    setOutputChanged,
     swapInputs,
     createOffer,
     resetState,
@@ -40,6 +42,8 @@ export const {
     outputPurse: null,
     inputAmount: null,
     outputAmount: null,
+    inputChanged: false,
+    outputChanged: false,
     // Vault state
     vaultCollateral: null,
     vaultParams: {
@@ -65,7 +69,6 @@ export const {
       };
     },
     updateVault: ({ vaults, ...state }, { id, vault }) => {
-      console.log('-------VAULT', id, vault);
       const oldVaultData = vaults[id];
       const status = vault.liquidated ? 'Liquidated' : 'Loan Initiated';
       return {
