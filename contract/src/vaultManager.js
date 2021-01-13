@@ -1,7 +1,7 @@
 // @ts-check
 import '@agoric/zoe/exported';
 
-import { assert } from '@agoric/assert';
+import { assert, details } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
 import { trade, assertProposalShape } from '@agoric/zoe/src/contractSupport';
 import { makeNotifierKit } from '@agoric/notifier';
@@ -155,7 +155,10 @@ export function makeVaultManager(
     const maxScones = sconeMath.make(
       Math.ceil(salePrice.value / initialMargin),
     ); // todo fee
-    assert(sconeMath.isGTE(maxScones, sconesWanted), 'you ask for too much');
+    assert(
+      sconeMath.isGTE(maxScones, sconesWanted),
+      details`Requested ${sconesWanted} exceeds max ${maxScones}`,
+    );
     // todo fee: maybe mint new Scones, send to reward pool, increment how
     // much must be paid back
 
