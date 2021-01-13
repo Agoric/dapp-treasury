@@ -3,7 +3,6 @@ import { makeStyles } from '@material-ui/core/styles';
 import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
-import Typography from '@material-ui/core/Typography';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -21,10 +20,6 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-function getSteps() {
-  return ['Ethereum', 'Ethereum Outgoing', 'Peggy', 'Peggy Outgoing', 'Agoric'];
-}
-
 export default function TransferStepper({
   eth,
   outgoingEth,
@@ -33,44 +28,25 @@ export default function TransferStepper({
   agoric,
 }) {
   const classes = useStyles();
-  const steps = getSteps();
-
-  function getStepContent(step) {
-    switch (step) {
-      case 0:
-        return <Typography>{eth}</Typography>;
-      case 1:
-        return <Typography>{outgoingEth}</Typography>;
-      case 2:
-        return <Typography>{peggy}</Typography>;
-      case 3:
-        return <Typography>{outgoingPeggy}</Typography>;
-      case 4:
-        return <Typography>{agoric}</Typography>;
-      default:
-        return 'Unknown step';
-    }
-  }
-
-  const getActiveStep = () => {
-    if (agoric > 0) {
-      return 5;
-    }
-    if (outgoingPeggy > 0) {
-      return 4;
-    }
-    return 3;
-  };
 
   return (
     <div className={classes.root}>
-      <Stepper activeStep={getActiveStep()} orientation="vertical">
-        {steps.map((label, index) => (
-          <Step key={label}>
-            <StepLabel>{label}</StepLabel>
-            <Typography>{getStepContent(index)}</Typography>
-          </Step>
-        ))}
+      <Stepper activeStep={5} orientation="vertical">
+        <Step key="Ethereum">
+          <StepLabel>Ethereum {eth}</StepLabel>
+        </Step>
+        <Step key="Ethereum Outgoing">
+          <StepLabel>{outgoingEth}</StepLabel>
+        </Step>
+        <Step key="Peggy">
+          <StepLabel>Peggy {peggy}</StepLabel>
+        </Step>
+        <Step key="Peggy Outgoing">
+          <StepLabel>{outgoingPeggy}</StepLabel>
+        </Step>
+        <Step key="Agoric">
+          <StepLabel>Agoric {agoric}</StepLabel>
+        </Step>
       </Stepper>
     </div>
   );

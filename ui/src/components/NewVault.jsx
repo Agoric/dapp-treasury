@@ -172,9 +172,6 @@ const useConfigStyles = makeStyles(theme => ({
   pulse: {
     animation: '$pulse 1.5s ease-in-out 0.5s infinite',
   },
-  hidden: {
-    display: 'none',
-  },
   '@keyframes pulse': {
     '0%': {
       opacity: 1,
@@ -354,9 +351,7 @@ function VaultConfigure({
                     edge="start"
                   >
                     <FlightTakeoffIcon
-                      className={
-                        balanceExceeded ? classes.pulse : classes.hidden
-                      }
+                      className={balanceExceeded ? classes.pulse : null}
                     />
                   </IconButton>
                 </InputAdornment>
