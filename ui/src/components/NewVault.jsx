@@ -257,8 +257,7 @@ function VaultConfigure({
       } else if ('toLock' in changes) {
         if ('collateralPercent' in vaultParams) {
           changes.toBorrow = Math.floor(
-            ((Number(changes.toLock) * price) / Number(collateralPercent)) *
-              100,
+            (Number(changes.toLock) * price) / Number(collateralPercent),
           );
         } else if ('toBorrow' in vaultParams) {
           changes.collateralPercent = Math.floor(
