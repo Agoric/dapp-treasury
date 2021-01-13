@@ -235,6 +235,10 @@ function VaultConfigure({
 
   const toLockDI = fundPurse && fundPurse.displayInfo;
 
+  // Assume that toBorrow = 5000
+  // don't change collateralPercent
+  // don't change toLock manually (should change automatically once)
+
   const adaptBorrowParams = useCallback(
     changes => {
       if (!vaultCollateral) {
@@ -249,33 +253,33 @@ function VaultConfigure({
               price /
               100,
           );
-        } else if ('toLock' in vaultParams) {
-          changes.collateralPercent = Math.floor(
-            (Number(toLock) * price) / Number(changes.toBorrow),
-          );
+          // } else if ('toLock' in vaultParams) {
+          //   changes.collateralPercent = Math.floor(
+          //     (Number(toLock) * price) / Number(changes.toBorrow),
+          //   );
         }
       } else if ('toLock' in changes) {
-        if ('collateralPercent' in vaultParams) {
-          changes.toBorrow = Math.floor(
-            (Number(changes.toLock) * price) / Number(collateralPercent),
-          );
-        } else if ('toBorrow' in vaultParams) {
-          changes.collateralPercent = Math.floor(
-            (Number(changes.toLock) * price) / Number(toBorrow),
-          );
-        }
+        // if ('collateralPercent' in vaultParams) {
+        //   changes.toBorrow = Math.floor(
+        //     (Number(changes.toLock) * price) / Number(collateralPercent),
+        //   );
+        // } else if ('toBorrow' in vaultParams) {
+        //   changes.collateralPercent = Math.floor(
+        //     (Number(changes.toLock) * price) / Number(toBorrow),
+        //   );
+        // }
       } else if ('collateralPercent' in changes) {
-        if ('toLock' in vaultParams) {
-          changes.toBorrow = Math.floor(
-            (Number(toLock) * price) / Number(changes.collateralPercent),
-          );
-        } else if ('toBorrow' in vaultParams) {
-          changes.toLock = Math.floor(
-            (Number(toBorrow) * Number(changes.collateralPercent)) /
-              price /
-              100,
-          );
-        }
+        // if ('toLock' in vaultParams) {
+        //   changes.toBorrow = Math.floor(
+        //     (Number(toLock) * price) / Number(changes.collateralPercent),
+        //   );
+        // } else if ('toBorrow' in vaultParams) {
+        //   changes.toLock = Math.floor(
+        //     (Number(toBorrow) * Number(changes.collateralPercent)) /
+        //       price /
+        //       100,
+        //   );
+        // }
       } else {
         // No change.
         return;
