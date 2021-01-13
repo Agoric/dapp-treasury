@@ -12,9 +12,11 @@ export const {
     setPurses,
     setCollaterals,
     setInvitationDepositId,
-    changePurse,
+    setInputPurse,
+    setOutputPurse,
+    setInputAmount,
+    setOutputAmount,
     swapInputs,
-    changeAmount,
     createOffer,
     resetState,
     setCollateralBrand,
@@ -38,7 +40,6 @@ export const {
     outputPurse: null,
     inputAmount: null,
     outputAmount: null,
-    freeVariable: null,
     // Vault state
     collateralBrand: null,
     vaultParams: {
@@ -72,30 +73,6 @@ export const {
         vaults: { ...vaults, [id]: { ...oldVaultData, ...vault, status } },
       };
     },
-    changePurse: {
-      // Map positional arguments.
-      create: (purse, fieldNumber, freeVariable = null) => ({
-        purse,
-        fieldNumber,
-        freeVariable,
-      }),
-      reducer: (state, { purse, fieldNumber, freeVariable }) => {
-        let { inputPurse, outputPurse } = state;
-        if (fieldNumber === 0) {
-          inputPurse = purse;
-          if (inputPurse === outputPurse) {
-            outputPurse = null;
-          }
-        }
-        if (fieldNumber === 1) {
-          outputPurse = purse;
-          if (outputPurse === inputPurse) {
-            inputPurse = null;
-          }
-        }
-        return { ...state, inputPurse, outputPurse, freeVariable };
-      },
-    },
     resetVault: state => ({
       ...state,
       collateralBrand: null,
@@ -116,24 +93,6 @@ export const {
         inputAmount: outputAmount,
         outputAmount: inputAmount,
       };
-    },
-    changeAmount: {
-      // Map positional arguments.
-      create: (amount, fieldNumber, freeVariable = null) => ({
-        amount,
-        fieldNumber,
-        freeVariable,
-      }),
-      reducer(state, { amount, fieldNumber, freeVariable }) {
-        let { inputAmount, outputAmount } = state;
-        if (fieldNumber === 0) {
-          inputAmount = amount;
-        }
-        if (fieldNumber === 1) {
-          outputAmount = amount;
-        }
-        return { ...state, inputAmount, outputAmount, freeVariable };
-      },
     },
     createOffer: {
       // Map positional arguments.

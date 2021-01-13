@@ -16,7 +16,14 @@ import AssetInput from './AssetInput';
 import Steps from './Steps';
 
 import { useApplicationContext } from '../contexts/Application';
-import { changePurse, changeAmount, swapInputs, createOffer } from '../store';
+import {
+  setInputPurse,
+  setOutputPurse,
+  setInputAmount,
+  setOutputAmount,
+  swapInputs,
+  createOffer,
+} from '../store';
 import dappConstants from '../utils/constants';
 
 import { parseValue } from './display';
@@ -89,28 +96,32 @@ export default function Swap() {
     inputAmount > 0 &&
     outputAmount > 0;
 
-  function handleChangePurse(event, fieldNumber) {
-    if (!purses) return;
-
+  const getPurse = event => {
     const pursePetname = event.target.value;
     const purse = purses.find(p => p.pursePetname === pursePetname);
+    return purse;
+  };
 
-    let freeVariable = null;
-    if (inputAmount > 0 && outputAmount > 0) {
-      freeVariable = fieldNumber;
-    } else if (inputAmount > 0) {
-      freeVariable = 0;
-    } else if (outputAmount > 0) {
-      freeVariable = 1;
-    }
-
-    dispatch(changePurse(purse, fieldNumber, freeVariable));
+  function handleChangeInputPurse(event) {
+    if (!purses) return;
+    const purse = getPurse(event);
+    dispatch(setInputPurse(purse));
   }
 
-  function handleChangeAmount(event, fieldNumber, purse) {
-    const amount = parseValue(event.target.value, purse.displayInfo);
-    const freeVariable = fieldNumber;
-    dispatch(changeAmount(amount, fieldNumber, freeVariable));
+  function handleChangeOutputPurse(event) {
+    if (!purses) return;
+    const purse = getPurse(event);
+    dispatch(setOutputPurse(purse));
+  }
+
+  function handleChangeInputAmount(event) {
+    const amount = parseValue(event.target.value, inputPurse.displayInfo);
+    dispatch(setInputAmount(amount));
+  }
+
+  function handleChangeOutputAmount(event) {
+    const amount = parseValue(event.target.value, outputPurse.displayInfo);
+    dispatch(setOutputAmount(amount));
   }
 
   function handleswapInputs() {
@@ -168,8 +179,8 @@ export default function Swap() {
         <AssetInput
           title="Input"
           purses={purses}
-          onPurseChange={event => handleChangePurse(event, 0)}
-          onAmountChange={event => handleChangeAmount(event, 0, inputPurse)}
+          onPurseChange={handleChangeInputPurse}
+          onAmountChange={handleChangeInputAmount}
           purse={inputPurse}
           amount={inputAmount}
           disabled={!connected}
@@ -188,8 +199,8 @@ export default function Swap() {
         <AssetInput
           title="Output"
           purses={purses}
-          onPurseChange={event => handleChangePurse(event, 1)}
-          onAmountChange={event => handleChangeAmount(event, 1, outputPurse)}
+          onPurseChange={handleChangeOutputPurse}
+          onAmountChange={handleChangeOutputAmount}
           purse={outputPurse}
           amount={outputAmount}
           disabled={!connected}

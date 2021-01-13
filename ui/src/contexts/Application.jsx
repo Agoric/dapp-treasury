@@ -15,6 +15,7 @@ import {
   getActiveSocket,
   doFetch,
 } from '../utils/fetch-websocket';
+
 import {
   reducer,
   defaultState,
@@ -22,14 +23,16 @@ import {
   setInvitationDepositId,
   setConnected,
   setActive,
-  changeAmount,
   resetState,
   updateVault,
   setCollaterals,
   setVaultCreated,
+  setOutputAmount,
+  setInputAmount,
 } from '../store';
 import dappConstants from '../generated/defaults.js';
 import { getCollaterals } from './getCollaterals';
+import { getAMMPublicFacet } from './getAMMPublicFacet';
 
 const {
   INVITATION_BRAND_BOARD_ID,
@@ -44,6 +47,7 @@ const {
 // eslint-disable-next-line import/no-mutable-exports
 let walletP;
 export { walletP };
+let ammPublicFacet;
 
 export const ApplicationContext = createContext();
 
@@ -109,27 +113,9 @@ function watchOffers(dispatch) {
 /* eslint-disable complexity, react/prop-types */
 export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, defaultState);
-  const {
-    active,
-    inputPurse,
-    outputPurse,
-    inputAmount,
-    outputAmount,
-    freeVariable,
-  } = state;
+  const { active, inputPurse, outputPurse, inputAmount, outputAmount } = state;
 
   useEffect(() => {
-    function messageHandler(message) {
-      if (!message || !message.type) return;
-      console.log('UNEXPECTED MESSAGE', message);
-      // const { type, data } = message;
-      // if (type === 'walletUpdatePurses') {
-      //   dispatch(setPurses(JSON.parse(data)));
-      // } else if (type === 'walletDepositFacetIdResponse') {
-      //   dispatch(setInvitationDepositId(data));
-      // }
-    }
-
     // Receive callbacks from the wallet connection.
     const otherSide = harden({
       needDappApproval(_dappOrigin, _suggestedDappPetname) {},
@@ -154,6 +140,7 @@ export default function Provider({ children }) {
         walletAbort = ctpAbort;
         walletDispatch = ctpDispatch;
         walletP = getBootstrap();
+        ammPublicFacet = getAMMPublicFacet(walletP);
 
         const collaterals = await getCollaterals(walletP, INSTANCE_BOARD_ID);
         dispatch(setCollaterals(collaterals));
@@ -195,52 +182,45 @@ export default function Provider({ children }) {
       },
       onMessage(data) {
         const obj = JSON.parse(data);
-        (walletDispatch && walletDispatch(obj)) || messageHandler(obj);
+        walletDispatch && walletDispatch(obj);
       },
     });
     return deactivateWebSocket;
   }, []);
 
-  const apiMessageHandler = useCallback(
-    async message => {
-      if (!message) {
+  const apiMessageHandler = useCallback(async message => {
+    if (!message) {
+      return;
+    }
+    const { type, data } = message;
+    switch (type) {
+      case 'autoswap/sendSwapInvitationResponse': {
+        // Once the invitation has been sent to the user, we update the
+        // offer to include the invitationHandleBoardId. Then we make a
+        // request to the user's wallet to send the proposed offer for
+        // acceptance/rejection.
+        const { offer } = data;
+        doFetch({
+          type: 'walletAddOffer',
+          data: offer,
+        });
         return;
       }
-      const { type, data } = message;
-      switch (type) {
-        case 'autoswap/getInputPriceResponse': {
-          dispatch(changeAmount(data, 1 - freeVariable));
-          return;
-        }
-        case 'autoswap/sendSwapInvitationResponse': {
-          // Once the invitation has been sent to the user, we update the
-          // offer to include the invitationHandleBoardId. Then we make a
-          // request to the user's wallet to send the proposed offer for
-          // acceptance/rejection.
-          const { offer } = data;
-          doFetch({
-            type: 'walletAddOffer',
-            data: offer,
-          });
-          return;
-        }
-        case 'treasury/makeLoanInvitationResponse': {
-          // Once the invitation has been sent to the user, we update the
-          // offer to include the invitationBoardId. Then we make a
-          // request to the user's wallet to send the proposed offer for
-          // acceptance/rejection.
-          const { offer } = data;
-          await E(walletP).addOffer(offer);
-          dispatch(setVaultCreated(false));
-          break;
-        }
-        default: {
-          console.log('Unexpected response', message);
-        }
+      case 'treasury/makeLoanInvitationResponse': {
+        // Once the invitation has been sent to the user, we update the
+        // offer to include the invitationBoardId. Then we make a
+        // request to the user's wallet to send the proposed offer for
+        // acceptance/rejection.
+        const { offer } = data;
+        await E(walletP).addOffer(offer);
+        dispatch(setVaultCreated(false));
+        break;
       }
-    },
-    [freeVariable],
-  );
+      default: {
+        console.log('Unexpected response', message);
+      }
+    }
+  });
 
   useEffect(() => {
     if (active) {
@@ -264,39 +244,28 @@ export default function Provider({ children }) {
   }, [active, apiMessageHandler]);
 
   useEffect(() => {
-    if (inputPurse && outputPurse && freeVariable === 0 && inputAmount > 0) {
-      doFetch(
-        {
-          type: 'autoswap/getInputPrice',
-          data: {
-            amountIn: { brand: inputPurse.brandBoardId, value: inputAmount },
-            brandOut: outputPurse.brandBoardId,
-          },
-        },
-        '/api',
-      ).then(apiMessageHandler);
+    if (inputPurse && outputPurse && inputAmount > 0) {
+      const amountIn = { brand: inputPurse.brand, value: inputAmount };
+      const brandOut = outputPurse.brand;
+      console.log('GET INPUT PRICE', amountIn, brandOut);
+      const outputP = E(ammPublicFacet).getInputPrice(amountIn, brandOut);
+
+      outputP.then(output => {
+        dispatch(setOutputAmount(output.value));
+      });
     }
 
-    if (inputPurse && outputPurse && freeVariable === 1 && outputAmount > 0) {
-      doFetch(
-        {
-          type: 'autoswap/getInputPrice',
-          data: {
-            amountIn: { brand: outputPurse.brandBoardId, value: outputAmount },
-            brandOut: inputPurse.brandBoardId,
-          },
-        },
-        '/api',
-      ).then(apiMessageHandler);
+    if (inputPurse && outputPurse && outputAmount > 0) {
+      const brandIn = inputPurse.brand;
+      const amountOut = { brand: outputPurse.brand, value: outputAmount };
+      console.log('GET OUTPUT PRICE', amountOut, brandIn);
+      const inputP = E(ammPublicFacet).getOutputPrice(amountOut, brandIn);
+
+      inputP.then(input => {
+        dispatch(setInputAmount(input.value));
+      });
     }
-  }, [
-    inputPurse,
-    outputPurse,
-    inputAmount,
-    outputAmount,
-    apiMessageHandler,
-    freeVariable,
-  ]);
+  }, [inputPurse, outputPurse, inputAmount, outputAmount]);
 
   return (
     <ApplicationContext.Provider value={{ state, dispatch }}>
