@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
-import { Button, Chip } from '@material-ui/core';
-import PersonIcon from '@material-ui/icons/Person';
+import { Button } from '@material-ui/core';
 
 import { useApplicationContext } from '../contexts/Application';
 import { setActive } from '../store';
@@ -30,7 +29,7 @@ const useStyles = makeStyles(theme => ({
 export default function Web3Status() {
   const classes = useStyles();
   const { state, dispatch } = useApplicationContext();
-  const { active, connected, account } = state;
+  const { active } = state;
 
   // Automatically connect to the wallet.
   useEffect(() => dispatch(setActive(true)), [dispatch]);
@@ -45,13 +44,6 @@ export default function Web3Status() {
 
   return (
     <>
-      {connected && (
-        <Chip
-          className={classes.divider}
-          label={account || 'anonymous'}
-          avatar={<PersonIcon />}
-        />
-      )}
       {active ? (
         <Button variant="contained" onClick={handleDisconnect}>
           Disconnect

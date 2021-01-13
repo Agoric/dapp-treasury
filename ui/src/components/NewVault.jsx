@@ -97,9 +97,9 @@ function VaultCollateral({ collaterals, dispatch, vaultParams }) {
   const headCells = [
     { id: 'petname', label: 'Asset' },
     { id: 'marketPrice', label: 'Market Price' },
-    { id: 'initialMargin', label: 'Initial Margin' },
-    { id: 'liqMargin', label: 'Liq. Margin' },
-    { id: 'stabilityFee', label: 'Stability Fee' },
+    { id: 'initialMargin', label: 'Collateral Ratio' },
+    { id: 'liqMargin', label: 'Liquidation Ratio' },
+    { id: 'stabilityFee', label: 'Interest Rate' },
   ];
   return Array.isArray(collaterals) && collaterals.length > 0 ? (
     <div>
