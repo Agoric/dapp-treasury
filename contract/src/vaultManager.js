@@ -151,14 +151,14 @@ export function makeVaultManager(
       collateralAmount,
       sconeBrand,
     );
-    // console.log("SALE PRICE  ", salePrice, salePrice.value / initialMargin);
-    const maxScones = sconeMath.make(
-      Math.ceil(salePrice.value / initialMargin),
-    ); // todo fee
-    assert(
-      sconeMath.isGTE(maxScones, sconesWanted),
-      details`Requested ${sconesWanted} exceeds max ${maxScones}`,
-    );
+    console.log('SALE PRICE  ', salePrice, salePrice.value / initialMargin);
+    // const maxScones = sconeMath.make(
+    //   Math.ceil(salePrice.value / initialMargin),
+    // ); // todo fee
+    // assert(
+    //   sconeMath.isGTE(maxScones, sconesWanted),
+    //   details`Requested ${sconesWanted} exceeds max ${maxScones}`,
+    // );
     // todo fee: maybe mint new Scones, send to reward pool, increment how
     // much must be paid back
 
