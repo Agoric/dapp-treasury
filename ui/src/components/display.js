@@ -32,7 +32,7 @@ export const convertBigint = (from, fromDecimals, toDecimals) => {
  * @param {AmountDisplayInfo} displayInfo
  * @param {boolean} strict
  */
-export function parseValue(str, displayInfo, strict = true) {
+export function parseValue(str, displayInfo, strict = false) {
   const { amountMathKind = MathKind.NAT, decimalPlaces = 0 } =
     displayInfo || {};
 
@@ -50,8 +50,8 @@ export function parseValue(str, displayInfo, strict = true) {
     details`${str} must be a non-negative decimal number`,
   );
 
-  const unitstr = match[1] || '0';
-  const dec0str = match[3] || '';
+  const unitstr = (match && match[1]) || '0';
+  const dec0str = (match && match[3]) || '';
   const dec0str0 = dec0str.padEnd(decimalPlaces, '0');
   assert(
     dec0str0.length <= decimalPlaces,

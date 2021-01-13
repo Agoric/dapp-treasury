@@ -12,7 +12,7 @@ const useStyles = makeStyles(theme => ({
 /* eslint-disable react/prop-types */
 export default function VaultSteps({
   connected,
-  collateralBrand,
+  vaultCollateral,
   vaultParams,
 }) {
   const classes = useStyles();
@@ -27,14 +27,14 @@ export default function VaultSteps({
   useEffect(() => {
     if (!connected) {
       setActiveStep(0);
-    } else if (!collateralBrand) {
+    } else if (!vaultCollateral) {
       setActiveStep(1);
     } else if (!hasVaultParams(vaultParams)) {
       setActiveStep(2);
     } else {
       setActiveStep(3);
     }
-  }, [connected, collateralBrand, vaultParams]);
+  }, [connected, vaultCollateral, vaultParams]);
 
   return (
     <Stepper

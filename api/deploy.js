@@ -32,6 +32,7 @@ export default async function deployApi(homePromise, endowments) {
     INSTALLATION_BOARD_ID,
     AMM_INSTALLATION_BOARD_ID,
     CONTRACT_NAME,
+    DEPLOY_NAME,
     AMM_NAME,
   } = installationConstants;
 
@@ -44,14 +45,12 @@ export default async function deployApi(homePromise, endowments) {
 
   const terms = harden({ autoswapInstall, priceAuthority });
 
-  console.log('Waiting for you to approve', CONTRACT_NAME, 'in your wallet...');
-  await E(
-    E(wallet).getScopedBridge(CONTRACT_NAME, 'http://localhost:3000'),
-  ).getBoard();
-  console.log('ok');
+  console.log('Waiting for you to approve', DEPLOY_NAME, 'in your wallet...');
+  await E(E(wallet).getScopedBridge(DEPLOY_NAME, 'deploy')).getBoard();
+  console.log('Approved!');
 
   const startInstanceConfig = {
-    instancePetname: [CONTRACT_NAME],
+    instancePetname: [DEPLOY_NAME],
     installation: stablecoinMachineInstallation,
     terms,
     issuerKeywordRecord: {},
@@ -88,7 +87,7 @@ export default async function deployApi(homePromise, endowments) {
   const walletAdmin = E(wallet).getAdminFacet();
   const issuerManager = E(walletAdmin).getIssuerManager();
 
-  const GOVERNANCE_BRAND_PETNAME = [CONTRACT_NAME, 'Governance'];
+  const GOVERNANCE_BRAND_PETNAME = [DEPLOY_NAME, 'Governance'];
 
   const [SCONE_ISSUER_BOARD_ID, SCONE_BRAND_BOARD_ID] = await Promise.all([
     E(board).getId(moeIssuer),
@@ -162,6 +161,13 @@ export default async function deployApi(homePromise, endowments) {
     };
   });
 
+  // Add keyword/symbol as the petname in the wallet
+  await Promise.all(
+    treasuryVaultManagerParams.map(vmp =>
+      E(issuerManager).add(vmp.keyword, vmp.issuer),
+    ),
+  );
+
   const governanceAmountMath = await makeLocalAmountMath(governanceIssuer);
   const emptyGovernanceAmount = governanceAmountMath.getEmpty();
 
@@ -222,8 +228,16 @@ export default async function deployApi(homePromise, endowments) {
     };
   });
 
-  const registerPriceAuthority = ({ pa, brandIn, brandOut }) =>
-    E(priceAuthorityAdmin).registerPriceAuthority(pa, brandIn, brandOut);
+  const FORCE_REGISTER = true;
+  const registerPriceAuthority = async ({ pa, brandIn, brandOut }) => {
+    const authority = await pa;
+    return E(priceAuthorityAdmin).registerPriceAuthority(
+      authority,
+      brandIn,
+      brandOut,
+      FORCE_REGISTER,
+    );
+  };
 
   const priceAuthoritiesHandler = async () => {
     const priceAuthoritiesBundle = await bundleSource(
@@ -242,7 +256,7 @@ export default async function deployApi(homePromise, endowments) {
       }),
     );
 
-    priceAuthorities.forEach(registerPriceAuthority);
+    await Promise.all(priceAuthorities.map(registerPriceAuthority));
   };
 
   await installURLHandler();

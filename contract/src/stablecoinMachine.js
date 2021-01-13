@@ -30,8 +30,8 @@ export async function start(zcf) {
   trace('terms', autoswapInstall);
 
   const [sconeMint, govMint] = await Promise.all([
-    zcf.makeZCFMint('Scones'),
-    zcf.makeZCFMint('Governance'),
+    zcf.makeZCFMint('Scones', undefined, { decimalPlaces: 3 }),
+    zcf.makeZCFMint('Governance', undefined, { decimalPlaces: 6 }),
   ]);
   const {
     issuer: sconeIssuer,
@@ -234,16 +234,21 @@ export async function start(zcf) {
     autoswap: autoswapAPI,
   }));
 
-  function getCollaterals() {
+  async function getCollaterals() {
     // should be collateralTypes.map((vm, brand) => ({
     return harden(
-      collateralTypes.entries().map(([brand, vm]) => ({
-        brand,
-        liquidationMargin: vm.getLiquidationMargin(),
-        initialMargin: vm.getInitialMargin(),
-        stabilityFee: vm.getStabilityFee(),
-        marketPrice: vm.getCollateralQuote(),
-      })),
+      Promise.all(
+        collateralTypes.entries().map(async ([brand, vm]) => {
+          const { quoteAmount } = await vm.getCollateralQuote();
+          return {
+            brand,
+            liquidationMargin: vm.getLiquidationMargin(),
+            initialMargin: vm.getInitialMargin(),
+            stabilityFee: vm.getStabilityFee(),
+            marketPrice: quoteAmount.value[0].amountOut,
+          };
+        }),
+      ),
     );
   }
 

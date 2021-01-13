@@ -6,7 +6,7 @@ import { allComparable } from '@agoric/same-structure';
 export default harden(async ({ sconesIssuer, issuerToTrades, timer }) => {
   const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
   const sconesMath = await makeLocalAmountMath(sconesIssuer);
-  const sconesBrand = await E(sconesMath).getBrand();
+  const sconesBrand = sconesMath.getBrand();
 
   // start with issuerToTrades, which has { issuer, fTGC, fTGO }, map to a list
   // with promises for localAmountMaths and brand instead of the issuer. Use
@@ -37,7 +37,7 @@ export default harden(async ({ sconesIssuer, issuerToTrades, timer }) => {
         quoteMint,
       });
       priceAuthorities.push({
-        priceAuthority: sconesInPriceAuthority,
+        pa: sconesInPriceAuthority,
         brandIn: sconesBrand,
         brandOut: brand,
       });
@@ -50,7 +50,7 @@ export default harden(async ({ sconesIssuer, issuerToTrades, timer }) => {
         quoteMint,
       });
       priceAuthorities.push({
-        priceAuthority: sconesOutPriceAuthority,
+        pa: sconesOutPriceAuthority,
         brandIn: brand,
         brandOut: sconesBrand,
       });
