@@ -41,7 +41,7 @@ const denorm = n => stringifyValue(n, { decimalPlaces: NORMALIZE_PLACES });
 const INITIAL_BALANCES = REALLY_PEGGY
   ? {
       eth: { value: norm(0), decimals: 0 },
-      peggy: { value: norm(0), decimals: 0 },
+      peggy: { value: norm(0), decimals: 18 },
       agoric: { value: norm(0), decimals: 0 },
     }
   : {

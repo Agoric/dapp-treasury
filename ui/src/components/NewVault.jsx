@@ -244,8 +244,8 @@ function VaultConfigure({
       if (!vaultCollateral) {
         return;
       }
-      const decimalPlaces = (toLockDI && toLockDI.decimalPlaces) || 0;
-      const price = vaultCollateral.marketPrice.value / 10 ** decimalPlaces;
+      // const decimalPlaces = (toLockDI && toLockDI.decimalPlaces) || 0;
+      const price = vaultCollateral.marketPrice.value / 10 ** 6;
       if ('toBorrow' in changes) {
         if ('collateralPercent' in vaultParams) {
           changes.toLock = Math.floor(
