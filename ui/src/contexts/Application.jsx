@@ -137,6 +137,7 @@ export default function Provider({ children }) {
     activateWebSocket({
       async onConnect() {
         dispatch(setConnected(true));
+        dispatch(setActive(true));
         const socket = getActiveSocket();
         const {
           abort: ctpAbort,

@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { Link as RouterLink } from 'react-router-dom';
+import { makeStyles } from '@material-ui/core/styles';
+import { NavLink } from 'react-router-dom';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -15,12 +16,28 @@ import SwapIcon from '@material-ui/icons/SwapHoriz';
 import TrendingUpIcon from '@material-ui/icons/TrendingUp';
 import HowToVoteIcon from '@material-ui/icons/HowToVote';
 
+const useStyles = makeStyles(_theme => ({
+  selected: {
+    fontWeight: 'bold',
+    textDecoration: 'underline',
+  },
+}));
+
 function ListItemLink(props) {
   const { icon, primary, to, replace } = props;
 
+  const classes = useStyles();
+
   const renderLink = React.useMemo(() => {
     const listRouterLink = (itemProps, ref) => (
-      <RouterLink to={to} ref={ref} replace={replace} {...itemProps} />
+      <NavLink
+        to={to}
+        ref={ref}
+        exact
+        replace={replace}
+        {...itemProps}
+        activeClassName={classes.selected}
+      />
     );
     listRouterLink.displayName = `listRouterLink(RouterLink)`;
     return React.forwardRef(listRouterLink);

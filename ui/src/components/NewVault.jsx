@@ -20,6 +20,7 @@ import {
   TableRow,
   TextField,
   Typography,
+  Grid,
 } from '@material-ui/core';
 import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
 import NumberFormat from 'react-number-format';
@@ -171,6 +172,9 @@ const useConfigStyles = makeStyles(theme => ({
   pulse: {
     animation: '$pulse 1.5s ease-in-out 0.5s infinite',
   },
+  hidden: {
+    display: 'none',
+  },
   '@keyframes pulse': {
     '0%': {
       opacity: 1,
@@ -292,13 +296,144 @@ function VaultConfigure({
 
   return (
     <div className={classes.root}>
-      <h5>Choose your {vaultCollateral.petname[1]} vault parameters</h5>
-      <TextField
-        variant="outlined"
-        label={`Available ${vaultCollateral.petname[1]}`}
-        disabled
-        value={fundPurseBalanceDisplay}
-      />
+      <Grid container spacing={1}>
+        <Grid item xs={4} spacing={3}>
+          <FormLabel component="legend" style={{ paddingTop: 20 }}>
+            Choose your {vaultCollateral.petname[1]} vault parameters
+          </FormLabel>
+          <div style={{ paddingTop: 20 }}>
+            {fundPurseBalanceDisplay} {vaultCollateral.petname[1]} Available
+            from Funding Purse
+          </div>
+        </Grid>
+        <Grid item xs={4} spacing={3}>
+          <TextField
+            variant="outlined"
+            required
+            label="Funding purse"
+            select
+            value={fundPurse ? JSON.stringify(fundPurse.pursePetname) : ''}
+          >
+            {fundPurses.map(purse => (
+              <MenuItem
+                key={JSON.stringify(purse.pursePetname)}
+                value={JSON.stringify(purse.pursePetname)}
+                onClick={() =>
+                  dispatch(
+                    setVaultParams({
+                      ...vaultParams,
+                      fundPurse: purse,
+                    }),
+                  )
+                }
+              >
+                {displayPetname(purse.pursePetname)}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            variant="outlined"
+            required
+            error={balanceExceeded}
+            helperText={balanceExceeded && 'Need to obtain more funds'}
+            label={`${vaultCollateral.petname[1]} to lock up`}
+            value={stringifyValue(toLock, toLockDI)}
+            type="number"
+            onChange={ev =>
+              adaptBorrowParams({
+                toLock: parseValue(ev.target.value, toLockDI),
+              })
+            }
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <IconButton
+                    onClick={() => {
+                      setToTransfer(toLock);
+                    }}
+                    edge="start"
+                  >
+                    <FlightTakeoffIcon
+                      className={
+                        balanceExceeded ? classes.pulse : classes.hidden
+                      }
+                    />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+          <TextField
+            variant="outlined"
+            required
+            label="Collateralization percent"
+            InputProps={{
+              inputComponent: NumberFormatPercent,
+            }}
+            value={collateralPercent}
+            onChange={ev =>
+              adaptBorrowParams({
+                collateralPercent: ev.target.value,
+              })
+            }
+          />
+        </Grid>
+        <Grid item xs={4} spacing={3}>
+          <TextField
+            variant="outlined"
+            required
+            label="$MOE to receive"
+            type="number"
+            value={stringifyValue(toBorrow, dstPurse && dstPurse.displayInfo)}
+            onChange={ev =>
+              adaptBorrowParams({
+                toBorrow: parseValue(
+                  ev.target.value,
+                  dstPurse && dstPurse.displayInfo,
+                ),
+              })
+            }
+          />
+          <TextField
+            variant="outlined"
+            required
+            label="Destination purse"
+            select
+            value={dstPurse ? JSON.stringify(dstPurse.pursePetname) : ''}
+          >
+            {dstPurses.map(purse => (
+              <MenuItem
+                key={JSON.stringify(purse.pursePetname)}
+                value={JSON.stringify(purse.pursePetname)}
+                onClick={() =>
+                  dispatch(
+                    setVaultParams({
+                      ...vaultParams,
+                      dstPurse: purse,
+                    }),
+                  )
+                }
+              >
+                {displayPetname(purse.pursePetname)}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Grid>
+        <Grid container justify="flex-end" alignItems="center">
+          <Button
+            onClick={() => {
+              if (balanceExceeded) {
+                setToTransfer(parseFloat(toLock));
+              } else {
+                dispatch(setVaultConfigured(true));
+              }
+            }}
+          >
+            Configure
+          </Button>
+          <Button onClick={() => dispatch(resetVault())}>Cancel</Button>
+        </Grid>
+      </Grid>
       <TransferDialog
         required={toLock}
         requiredDisplayInfo={toLockDI}
@@ -308,123 +443,6 @@ function VaultConfigure({
         setToTransfer={setToTransfer}
         depositFacetId={depositFacetId}
       />
-      <TextField
-        variant="outlined"
-        required
-        label="Funding purse"
-        select
-        value={fundPurse ? JSON.stringify(fundPurse.pursePetname) : ''}
-      >
-        {fundPurses.map(purse => (
-          <MenuItem
-            key={JSON.stringify(purse.pursePetname)}
-            value={JSON.stringify(purse.pursePetname)}
-            onClick={() =>
-              dispatch(
-                setVaultParams({
-                  ...vaultParams,
-                  fundPurse: purse,
-                }),
-              )
-            }
-          >
-            {displayPetname(purse.pursePetname)}
-          </MenuItem>
-        ))}
-      </TextField>
-      <TextField
-        variant="outlined"
-        required
-        error={balanceExceeded}
-        helperText={balanceExceeded && 'Need to obtain more funds'}
-        label={`${vaultCollateral.petname[1]} to lock up`}
-        value={stringifyValue(toLock, toLockDI)}
-        type="number"
-        onChange={ev =>
-          adaptBorrowParams({ toLock: parseValue(ev.target.value, toLockDI) })
-        }
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <IconButton
-                onClick={() => {
-                  setToTransfer(toLock);
-                }}
-                edge="start"
-              >
-                <FlightTakeoffIcon
-                  className={balanceExceeded ? classes.pulse : null}
-                />
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
-      />
-      <TextField
-        variant="outlined"
-        required
-        label="Collateralization percent"
-        InputProps={{
-          inputComponent: NumberFormatPercent,
-        }}
-        value={collateralPercent}
-        onChange={ev =>
-          adaptBorrowParams({
-            collateralPercent: ev.target.value,
-          })
-        }
-      />
-      <TextField
-        variant="outlined"
-        required
-        label="$MOE to receive"
-        type="number"
-        value={stringifyValue(toBorrow, dstPurse && dstPurse.displayInfo)}
-        onChange={ev =>
-          adaptBorrowParams({
-            toBorrow: parseValue(
-              ev.target.value,
-              dstPurse && dstPurse.displayInfo,
-            ),
-          })
-        }
-      />
-      <TextField
-        variant="outlined"
-        required
-        label="Destination purse"
-        select
-        value={dstPurse ? JSON.stringify(dstPurse.pursePetname) : ''}
-      >
-        {dstPurses.map(purse => (
-          <MenuItem
-            key={JSON.stringify(purse.pursePetname)}
-            value={JSON.stringify(purse.pursePetname)}
-            onClick={() =>
-              dispatch(
-                setVaultParams({
-                  ...vaultParams,
-                  dstPurse: purse,
-                }),
-              )
-            }
-          >
-            {displayPetname(purse.pursePetname)}
-          </MenuItem>
-        ))}
-      </TextField>
-      <Button
-        onClick={() => {
-          if (balanceExceeded) {
-            setToTransfer(parseFloat(toLock));
-          } else {
-            dispatch(setVaultConfigured(true));
-          }
-        }}
-      >
-        Configure
-      </Button>
-      <Button onClick={() => dispatch(resetVault())}>Cancel</Button>
     </div>
   );
 }

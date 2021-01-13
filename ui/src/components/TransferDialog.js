@@ -8,10 +8,11 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
-import { Button, Divider, Paper } from '@material-ui/core';
+import { Button } from '@material-ui/core';
 
 import { parseValue, stringifyValue } from './display';
 import PeggyContract from '../Peggy.json';
+import TransferStepper from './TransferStepper';
 
 import {
   PEGGY_CONTRACT_ADDRESS,
@@ -466,17 +467,20 @@ export default function TransferDialog({
             }
           />
           <Button onClick={onTransfer}>Transfer</Button>
-          <Divider />
-          <Paper>Ethereum {denorm(balances.eth.value)}</Paper>
-          {denorm(outgoing.eth)}
-          <Paper>Peggy {denorm(balances.peggy.value)}</Paper>
-          {denorm(outgoing.peggy)}
-          <Paper>
-            Agoric{' '}
-            {REALLY_PEGGY &&
-              stringifyValue(fundPurse && fundPurse.value, { decimalPlaces })}
-            {!REALLY_PEGGY && denorm(balances.agoric.value)}
-          </Paper>
+
+          <TransferStepper
+            eth={denorm(balances.eth.value)}
+            outgoingEth={denorm(outgoing.eth)}
+            peggy={denorm(balances.peggy.value)}
+            outgoingPeggy={denorm(outgoing.peggy)}
+            agoric={
+              REALLY_PEGGY
+                ? stringifyValue(fundPurse && fundPurse.value, {
+                    decimalPlaces,
+                  })
+                : denorm(balances.agoric.value)
+            }
+          ></TransferStepper>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Done</Button>

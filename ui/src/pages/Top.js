@@ -14,7 +14,6 @@ import NavDrawer from '../components/NavDrawer';
 import Swap from '../components/Swap';
 import NewVault from '../components/NewVault';
 import Treasury from '../components/Treasury';
-import Web3Status from '../components/Web3Status';
 
 const navigationDrawerWidth = 200;
 
@@ -26,11 +25,14 @@ const useStyles = makeStyles(theme => ({
   body: {
     display: 'flex',
     flexDirection: 'row',
+    maxWidth: '1080px',
+    margin: '0 auto !important',
+    float: 'none !important',
   },
   content: {
     flexGrow: 1,
     backgroundColor: theme.palette.background.default,
-    padding: theme.spacing(3),
+    padding: theme.spacing(1),
   },
 }));
 
@@ -46,9 +48,7 @@ function Top() {
         <AppHeader
           handleDrawerToggle={handleDrawerToggle}
           drawerWidth={navigationDrawerWidth}
-        >
-          <Web3Status />
-        </AppHeader>
+        ></AppHeader>
         <div className={classes.body}>
           <ResponsiveNavigation
             drawerWidth={navigationDrawerWidth}
