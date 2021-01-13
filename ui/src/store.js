@@ -131,7 +131,7 @@ export const {
         const offer = {
           // JSONable ID for this offer.  Eventually this will be scoped to
           // the current site.
-          id: Date.now(),
+          id: `${Date.now()}`,
 
           // TODO: get this from the invitation instead in the wallet. We
           // don't want to trust the dapp on this.
@@ -163,7 +163,7 @@ export const {
           {
             type: 'autoswap/sendSwapInvitation',
             data: {
-              depositFacetId: invitationDepositId,
+              invitationDepositId,
               offer,
             },
           },
