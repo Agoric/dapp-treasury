@@ -251,7 +251,7 @@ function VaultConfigure({
           );
         } else if ('toLock' in vaultParams) {
           changes.collateralPercent = Math.floor(
-            ((Number(toLock) * price) / Number(changes.toBorrow)) * 100,
+            (Number(toLock) * price) / Number(changes.toBorrow),
           );
         }
       } else if ('toLock' in changes) {
@@ -262,14 +262,13 @@ function VaultConfigure({
           );
         } else if ('toBorrow' in vaultParams) {
           changes.collateralPercent = Math.floor(
-            ((Number(changes.toLock) * price) / Number(toBorrow)) * 100,
+            (Number(changes.toLock) * price) / Number(toBorrow),
           );
         }
       } else if ('collateralPercent' in changes) {
         if ('toLock' in vaultParams) {
           changes.toBorrow = Math.floor(
-            ((Number(toLock) * price) / Number(changes.collateralPercent)) *
-              100,
+            (Number(toLock) * price) / Number(changes.collateralPercent),
           );
         } else if ('toBorrow' in vaultParams) {
           changes.toLock = Math.floor(

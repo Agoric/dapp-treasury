@@ -100,7 +100,9 @@ export default function Swap() {
 
   const getPurse = event => {
     const pursePetname = event.target.value;
-    const purse = purses.find(p => p.pursePetname === pursePetname);
+    const purse = purses.find(
+      p => JSON.stringify(p.pursePetname) === JSON.stringify(pursePetname),
+    );
     return purse;
   };
 
