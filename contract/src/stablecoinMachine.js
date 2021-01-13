@@ -64,7 +64,7 @@ export async function start(zcf) {
   async function makeAddTypeInvitation(
     collateralIssuer,
     collateralKeyword,
-    rate,
+    rates,
   ) {
     await zcf.saveIssuer(collateralIssuer, collateralKeyword);
     const collateralBrand = zcf.getBrandForIssuer(collateralIssuer);
@@ -85,7 +85,9 @@ export async function start(zcf) {
       // of restructure so that's not an issue
       // TODO assert that the collateralIn is of the right brand
       trace('add collateral', collateralIn);
-      const sconesAmount = sconeMath.make(rate * collateralIn.value);
+      const sconesAmount = sconeMath.make(
+        rates.initialPrice * collateralIn.value,
+      );
       const govAmount = govMath.make(sconesAmount.value); // TODO what's the right amount?
       trace('math', sconesAmount);
 
@@ -167,6 +169,7 @@ export async function start(zcf) {
         sconeMint,
         collateralBrand,
         priceAuthority,
+        rates,
       );
       collateralTypes.init(collateralBrand, vm);
       return vm;

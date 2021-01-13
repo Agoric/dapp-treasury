@@ -149,7 +149,26 @@ export default async function deployApi(homePromise, endowments) {
     );
   }
 
-  const additionalConfig = [{ rate: 125 }, { rate: 125 }, { rate: 102 }];
+  const additionalConfig = [
+    {
+      initialPrice: 125,
+      initialMargin: 1.5,
+      liquidationMargin: 1.25,
+      interestRate: 0.025,
+    },
+    {
+      initialPrice: 150,
+      initialMargin: 1.5,
+      liquidationMargin: 1.2,
+      interestRate: 0.02,
+    },
+    {
+      initialPrice: 110,
+      initialMargin: 1.2,
+      liquidationMargin: 1.05,
+      interestRate: 0.01,
+    },
+  ];
 
   const trades = [
     {
@@ -166,10 +185,10 @@ export default async function deployApi(homePromise, endowments) {
     },
   ];
 
-  const treasuryVaultManagerParams = additionalConfig.map(({ rate }, i) => {
+  const treasuryVaultManagerParams = additionalConfig.map((rates, i) => {
     return {
       keyword: collateralIssuers[i].symbol,
-      rate,
+      rates,
       issuer: collateralIssuers[i].issuer,
       amount: collateralIssuers[i].amount,
       payment: collateralIssuers[i].payment,

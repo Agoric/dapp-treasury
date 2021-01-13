@@ -31,6 +31,11 @@ import { makeVault } from './vault';
  * @param {ZCFMint} sconeMint
  * @param {Brand} collateralBrand
  * @param {Promise<PriceAuthority>} priceAuthority
+ * @param {number} arg5.initialPrice
+ * @param {number} arg5.initialMargin
+ * @param {number} arg5.liquidationMargin
+ * @param {number} arg5.interestRate
+ * @param rates
  */
 export function makeVaultManager(
   zcf,
@@ -38,6 +43,7 @@ export function makeVaultManager(
   sconeMint,
   collateralBrand,
   priceAuthority,
+  rates,
 ) {
   const {
     issuer: _sconeIssuer,
@@ -86,11 +92,10 @@ export function makeVaultManager(
   // end users can ask the SCM for loans with some collateral, and the SCM asks
   // us to make a new Vault
 
-  // loans must initially have at least 1.5x collateralization
-  const initialMargin = 1.5;
+  const initialMargin = rates.initialMargin;
   // loans below this margin may be liquidated
-  const liquidationMargin = 1.2;
-  const stabilityFee = 0.01;
+  const liquidationMargin = rates.liquidationMargin;
+  const stabilityFee = rates.interestRate;
 
   const shared = {
     getLiquidationMargin() {

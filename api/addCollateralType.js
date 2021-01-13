@@ -7,7 +7,7 @@ export const makeAddCollateralType = ({
 }) => {
   const addCollateralType = async ({
     keyword,
-    rate,
+    rates,
     issuer,
     amount,
     payment,
@@ -15,7 +15,7 @@ export const makeAddCollateralType = ({
     const addTypeInvitation = E(stablecoinMachine).makeAddTypeInvitation(
       issuer,
       keyword,
-      rate,
+      rates,
     );
 
     const proposal = harden({

@@ -105,7 +105,9 @@ test('first', async t => {
   } = setupAssets();
 
   const priceAuthorityPromiseKit = makePromiseKit();
-  const { creatorFacet: stablecoinMachine, publicFacet: lender } = await E(zoe).startInstance(
+  const { creatorFacet: stablecoinMachine, publicFacet: lender } = await E(
+    zoe,
+  ).startInstance(
     stablecoinInstall,
     {},
     { autoswapInstall, priceAuthority: priceAuthorityPromiseKit.promise },
@@ -150,8 +152,14 @@ test('first', async t => {
 
   // Add a pool with 99 aeth collateral at a 201 aeth/scones rate
   const capitalAmount = aethMath.make(99);
+  const rates = {
+    initialPrice: 110,
+    initialMargin: 1.2,
+    liquidationMargin: 1.05,
+    interestRate: 0.01,
+  };
   const aethVaultSeat = await E(zoe).offer(
-    E(stablecoinMachine).makeAddTypeInvitation(aethIssuer, 'AEth', 201),
+    E(stablecoinMachine).makeAddTypeInvitation(aethIssuer, 'AEth', rates),
     harden({
       give: { Collateral: capitalAmount },
       want: { Governance: govMath.getEmpty() },
@@ -281,7 +289,9 @@ test('price drop', async t => {
   } = setupAssets();
 
   const priceAuthorityPromiseKit = makePromiseKit();
-  const { creatorFacet: stablecoinMachine, publicFacet: lender } = await E(zoe).startInstance(
+  const { creatorFacet: stablecoinMachine, publicFacet: lender } = await E(
+    zoe,
+  ).startInstance(
     stablecoinInstall,
     {},
     { autoswapInstall, priceAuthority: priceAuthorityPromiseKit.promise },
@@ -324,8 +334,14 @@ test('price drop', async t => {
 
   // Add a pool with 99 aeth collateral at a 201 aeth/scones rate
   const capitalAmount = aethMath.make(99);
+  const rates = {
+    initialPrice: 110,
+    initialMargin: 1.2,
+    liquidationMargin: 1.05,
+    interestRate: 0.01,
+  };
   const aethVaultSeat = await E(zoe).offer(
-    E(stablecoinMachine).makeAddTypeInvitation(aethIssuer, 'AEth', 201),
+    E(stablecoinMachine).makeAddTypeInvitation(aethIssuer, 'AEth', rates),
     harden({
       give: { Collateral: capitalAmount },
       want: { Governance: govMath.getEmpty() },
