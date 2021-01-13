@@ -44,9 +44,9 @@ const INITIAL_BALANCES = REALLY_PEGGY
       agoric: { value: norm(0), decimals: 0 },
     }
   : {
-      eth: { value: norm(110), decimals: 18 },
-      peggy: { value: norm(20), decimals: 18 },
-      agoric: { value: norm(30), decimals: 6 },
+      eth: { value: norm(1000), decimals: 18 },
+      peggy: { value: norm(0), decimals: 18 },
+      agoric: { value: norm(0), decimals: 6 },
     };
 
 const METAMASK_ACCOUNT_NUMBER = undefined;
@@ -476,7 +476,7 @@ export default function TransferDialog({
           </Paper>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>Done</Button>
         </DialogActions>
       </Dialog>
     </>
