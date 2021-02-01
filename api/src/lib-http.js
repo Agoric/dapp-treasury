@@ -25,7 +25,7 @@ export const makeWebSocketHandler = (http, makeConnectionHandler) => {
         // These hooks are run when the websocket is opened or closed.
         onOpen(obj, meta) {
           const { channelHandle } = meta;
-          const send = (objToSend) => E(http).send(objToSend, [channelHandle]);
+          const send = objToSend => E(http).send(objToSend, [channelHandle]);
           const connHandler = makeConnectionHandler(send, meta);
           channelToConnHandler.set(channelHandle, connHandler);
           if (connHandler.onOpen) {

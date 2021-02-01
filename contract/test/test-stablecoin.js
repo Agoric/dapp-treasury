@@ -153,7 +153,7 @@ test('first', async t => {
   // Add a pool with 99 aeth collateral at a 201 aeth/scones rate
   const capitalAmount = aethMath.make(99);
   const rates = {
-    initialPrice: 110,
+    initialPrice: 201,
     initialMargin: 1.2,
     liquidationMargin: 1.05,
     interestRate: 0.01,
@@ -288,6 +288,11 @@ test('price drop', async t => {
     aethKit: { mint: aethMint, issuer: aethIssuer, amountMath: aethMath },
   } = setupAssets();
 
+  // When the price falls to 1540, the loan will get liquidated. 1540 for 11
+  // Aeth is 140 each. The loan is 470 scones, the collateral is 4 Aeth.
+  // When the price is 140, the collateral is worth 560. The margin is 1.2, so
+  // at 140, the collateral could support a loan of 466.
+
   const priceAuthorityPromiseKit = makePromiseKit();
   const { creatorFacet: stablecoinMachine, publicFacet: lender } = await E(
     zoe,
@@ -303,7 +308,7 @@ test('price drop', async t => {
 
   trace('stablecoin machine', stablecoinMachine);
   const {
-    issuer: _sconeIssuer,
+    issuer: sconeIssuer,
     amountMath: sconeMath,
     brand: _sconeBrand,
   } = stablecoin;
@@ -316,6 +321,7 @@ test('price drop', async t => {
   // Our wrapper gives us a Vault which holds 5 Collateral, has lent out 10
   // Scones, which uses an autoswap that presents a fixed price of 4 Scones
   // per Collateral.
+
   const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
   const manualTimer = buildManualTimer(console.log);
 
@@ -324,18 +330,18 @@ test('price drop', async t => {
   const priceAuthority = makePriceAuthority(
     aethMath,
     sconeMath,
-    [60, 32, 6, 5],
+    [2200, 19180, 1650, 1600, 1540],
     null,
     manualTimer,
     quoteMint,
-    aethMath.make(10),
+    aethMath.make(11),
   );
   priceAuthorityPromiseKit.resolve(priceAuthority);
 
-  // Add a pool with 99 aeth collateral at a 201 aeth/scones rate
+  // Add a pool with 99 aeth at a 201 scones/aeth rate
   const capitalAmount = aethMath.make(99);
   const rates = {
-    initialPrice: 110,
+    initialPrice: 201,
     initialMargin: 1.2,
     liquidationMargin: 1.05,
     interestRate: 0.01,
@@ -356,9 +362,9 @@ test('price drop', async t => {
   const aethVaultManager = await E(aethVaultSeat).getOfferResult();
   trace(aethVaultManager);
 
-  // Create a loan for 47 scones with 11 aeth collateral
-  const collateralAmount = aethMath.make(11);
-  const loanAmount = sconeMath.make(47);
+  // Create a loan for 470 scones with 4 aeth collateral
+  const collateralAmount = aethMath.make(4);
+  const loanAmount = sconeMath.make(470);
   const loanSeat = await E(zoe).offer(
     E(lender).makeLoanInvitation(),
     harden({
@@ -374,16 +380,16 @@ test('price drop', async t => {
     loanSeat,
   ).getOfferResult();
   const debtAmount = await E(vault).getDebtAmount();
-  t.truthy(sconeMath.isEqual(debtAmount, loanAmount), 'vault lent 47 Scones');
+  t.truthy(sconeMath.isEqual(debtAmount, loanAmount), 'vault lent 470 Scones');
   trace('correct debt', debtAmount);
 
   const initialNotification = await uiNotifier.getUpdateSince();
   t.falsy(initialNotification.value.liquidated);
   t.truthy((await initialNotification.value.collateralizationRatio) > 120);
   const { Scones: lentAmount } = await E(loanSeat).getCurrentAllocation();
-  t.truthy(sconeMath.isEqual(lentAmount, loanAmount), 'received 47 Scones');
+  t.truthy(sconeMath.isEqual(lentAmount, loanAmount), 'received 470 Scones');
   t.truthy(
-    aethMath.isEqual(vault.getCollateralAmount(), aethMath.make(11)),
+    aethMath.isEqual(vault.getCollateralAmount(), aethMath.make(4)),
     'vault holds 11 Collateral',
   );
   trace();
@@ -395,7 +401,14 @@ test('price drop', async t => {
   await manualTimer.tick();
   t.falsy(sconeMath.isEmpty(await E(vault).getDebtAmount()));
   await manualTimer.tick();
-  await liquidationPayout;
+  // The price at the autoswap is still 201, so there will be a refund. 3 Aeth
+  // will be sold for 583, so the borrower will get 1 Aeth and 113 scones back
+  const sconesPayout = await E.G(liquidationPayout).Scones;
+  const sconesAmount = await E(sconeIssuer).getAmountOf(sconesPayout);
+  t.deepEqual(sconesAmount, sconeMath.make(113));
+  const aethPayout = await E.G(liquidationPayout).Collateral;
+  const aethPayoutAmount = await E(aethIssuer).getAmountOf(aethPayout);
+  t.deepEqual(aethPayoutAmount, aethMath.make(1));
   const debtAmountAfter = await E(vault).getDebtAmount();
   const finalNotification = await uiNotifier.getUpdateSince(
     initialNotification.updateCount,
@@ -403,4 +416,148 @@ test('price drop', async t => {
   t.truthy(finalNotification.value.liquidated);
   t.is(await finalNotification.value.collateralizationRatio, 0);
   t.truthy(sconeMath.isEmpty(debtAmountAfter));
+});
+
+test('price falls precipitously', async t => {
+  const autoswapInstall = await makeInstall(autoswapRoot);
+
+  const stablecoinInstall = await makeInstall(stablecoinRoot);
+
+  const {
+    aethKit: { mint: aethMint, issuer: aethIssuer, amountMath: aethMath },
+  } = setupAssets();
+
+  // When the price falls to 1540, the loan will get liquidated. 1540 for 11
+  // Aeth is 140 each. The loan is 470 scones, the collateral is 4 Aeth.
+  // When the price is 140, the collateral is worth 560. The margin is 1.2, so
+  // at 140, the collateral could support a loan of 466. The price level at the
+  // autoswap has fallen to 51, so there aren't sufficient funds. 4 Aeth will be
+  // sold for 204. and nothing will be returned
+
+  const priceAuthorityPromiseKit = makePromiseKit();
+  const { creatorFacet: stablecoinMachine, publicFacet: lender } = await E(
+    zoe,
+  ).startInstance(
+    stablecoinInstall,
+    {},
+    { autoswapInstall, priceAuthority: priceAuthorityPromiseKit.promise },
+  );
+  trace('start stablecoin', stablecoinMachine);
+
+  trace('got jig', testJig);
+  const { stablecoin, governance, autoswap: autoswapAPI } = testJig;
+
+  trace('stablecoin machine', stablecoinMachine);
+  const {
+    issuer: sconeIssuer,
+    amountMath: sconeMath,
+    brand: _sconeBrand,
+  } = stablecoin;
+  const {
+    issuer: _govIssuer,
+    amountMath: govMath,
+    brand: _govBrand,
+  } = governance;
+  trace('got math', govMath, sconeMath);
+  // Our wrapper gives us a Vault which holds 5 Collateral, has lent out 10
+  // Scones, which uses an autoswap that presents a fixed price of 4 Scones
+  // per Collateral.
+
+  const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
+  const manualTimer = buildManualTimer(console.log);
+
+  // priceAuthority needs sconeMath, which isn't available till the
+  // stablecoinMachine has been built, so resolve priceAuthorityPromiseKit here
+  const priceAuthority = makePriceAuthority(
+    aethMath,
+    sconeMath,
+    [2200, 19180, 1650, 1600, 1540],
+    null,
+    manualTimer,
+    quoteMint,
+    aethMath.make(11),
+  );
+  priceAuthorityPromiseKit.resolve(priceAuthority);
+
+  // Add a pool with 99 aeth at a 201 scones/aeth rate
+  const capitalAmount = aethMath.make(99);
+  const rates = {
+    initialPrice: 201,
+    initialMargin: 1.2,
+    liquidationMargin: 1.05,
+    interestRate: 0.01,
+  };
+  const aethVaultSeat = await E(zoe).offer(
+    E(stablecoinMachine).makeAddTypeInvitation(aethIssuer, 'AEth', rates),
+    harden({
+      give: { Collateral: capitalAmount },
+      want: { Governance: govMath.getEmpty() },
+    }),
+    harden({
+      Collateral: aethMint.mintPayment(capitalAmount),
+    }),
+  );
+  trace('added aeth type', aethVaultSeat);
+
+  /** @type {VaultManager} */
+  const aethVaultManager = await E(aethVaultSeat).getOfferResult();
+  trace(aethVaultManager);
+
+  // Create a loan for 470 scones with 4 aeth collateral
+  const collateralAmount = aethMath.make(4);
+  const loanAmount = sconeMath.make(470);
+  const loanSeat = await E(zoe).offer(
+    E(lender).makeLoanInvitation(),
+    harden({
+      give: { Collateral: collateralAmount },
+      want: { Scones: loanAmount },
+    }),
+    harden({
+      Collateral: aethMint.mintPayment(collateralAmount),
+    }),
+  );
+
+  const { vault, liquidationPayout } = await E(loanSeat).getOfferResult();
+  const debtAmount = await E(vault).getDebtAmount();
+  t.truthy(sconeMath.isEqual(debtAmount, loanAmount), 'vault lent 470 Scones');
+  trace('correct debt', debtAmount);
+
+  const { Scones: lentAmount } = await E(loanSeat).getCurrentAllocation();
+  t.truthy(sconeMath.isEqual(lentAmount, loanAmount), 'received 470 Scones');
+  t.truthy(
+    aethMath.isEqual(vault.getCollateralAmount(), aethMath.make(4)),
+    'vault holds 11 Collateral',
+  );
+  trace();
+
+  // Sell some Eth to drive the value down
+  const swapInvitation = E(autoswapAPI).makeSwapInvitation();
+  const proposal = {
+    give: { In: aethMath.make(200) },
+    want: { Out: sconeMath.make(0) },
+    exit: { onDemand: null },
+  };
+  await E(zoe).offer(
+    swapInvitation,
+    proposal,
+    harden({
+      In: aethMint.mintPayment(aethMath.make(200)),
+    }),
+  );
+
+  await manualTimer.tick();
+  t.falsy(sconeMath.isEmpty(await E(vault).getDebtAmount()));
+  await manualTimer.tick();
+  t.falsy(sconeMath.isEmpty(await E(vault).getDebtAmount()));
+  await manualTimer.tick();
+  t.falsy(sconeMath.isEmpty(await E(vault).getDebtAmount()));
+  await manualTimer.tick();
+  const sconesPayout = await E.G(liquidationPayout).Scones;
+  const sconesAmount = await E(sconeIssuer).getAmountOf(sconesPayout);
+  t.deepEqual(sconesAmount, sconeMath.make(0));
+  const aethPayout = await E.G(liquidationPayout).Collateral;
+  const aethPayoutAmount = await E(aethIssuer).getAmountOf(aethPayout);
+  t.deepEqual(aethPayoutAmount, aethMath.make(0));
+  const debtAmountAfter = await E(vault).getDebtAmount();
+  await t.falsy(sconeMath.isEmpty(debtAmountAfter));
 });

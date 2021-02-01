@@ -26,16 +26,20 @@ import { makeVault } from './vault';
  */
 
 /**
+ * @typedef {Object} Rates
+ * @property {number} initialPrice
+ * @property {number} initialMargin
+ * @property {number} liquidationMargin
+ * @property {number} interestRate
+ */
+
+/**
  * @param {ContractFacet} zcf
  * @param {MultipoolAutoswap} autoswap
  * @param {ZCFMint} sconeMint
  * @param {Brand} collateralBrand
  * @param {Promise<PriceAuthority>} priceAuthority
- * @param {number} arg5.initialPrice
- * @param {number} arg5.initialMargin
- * @param {number} arg5.liquidationMargin
- * @param {number} arg5.interestRate
- * @param rates
+ * @param {Rates} rates
  */
 export function makeVaultManager(
   zcf,
@@ -147,18 +151,20 @@ export function makeVaultManager(
     // get the payout to provide access to the collateral if the
     // contract abandons
     const collateralPayoutP = E(userSeat).getPayouts();
-    const salePrice = await E(autoswap).getInputPrice(
+
+    const { amountOut } = await E(autoswap).getPriceGivenAvailableInput(
       collateralAmount,
       sconeBrand,
     );
-    console.log('SALE PRICE  ', salePrice, salePrice.value / initialMargin);
-    // const maxScones = sconeMath.make(
-    //   Math.ceil(salePrice.value / initialMargin),
-    // ); // todo fee
-    // assert(
-    //   sconeMath.isGTE(maxScones, sconesWanted),
-    //   details`Requested ${sconesWanted} exceeds max ${maxScones}`,
-    // );
+    console.log('SALE PRICE  ', amountOut, amountOut.value / initialMargin);
+    const maxScones = sconeMath.make(
+      Math.ceil(amountOut.value / initialMargin),
+    ); // todo fee
+
+    assert(
+      sconeMath.isGTE(maxScones, sconesWanted),
+      details`Requested ${sconesWanted} exceeds max ${maxScones}`,
+    );
     // todo fee: maybe mint new Scones, send to reward pool, increment how
     // much must be paid back
 

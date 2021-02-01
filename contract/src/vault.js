@@ -303,10 +303,6 @@ export function makeVault(
   }
 
   async function liquidate() {
-    // Sell off all their collateral. We really only need enough to
-    // cover 'sconeDebt', but earlier autoswap API didn't give a way to
-    // specify just the output amount yet.
-    // TODO change to SwapOut
     const collateral = getCollateralAmount();
     trace('liquidating', collateral);
 
@@ -322,18 +318,32 @@ export function makeVault(
       { seat: swapSeat, gains: { In: collateral } },
     );
     swapSeat.exit();
-    // extract the assets to Payments and make the offer
+
+    // extract the assets to payments, and make an offer to autoswap specifying
+    // minimum proceeds.
     const payments = await whenAllProps(E(userSeat).getPayouts());
     trace('selling collateral', payments);
-
     const liqProposal = harden({
       give: { In: collateral },
-      want: { Out: sconeMath.getEmpty() },
+      want: { Out: sconeDebt },
     });
-    const swapInvitation = E(autoswap).makeSwapInvitation();
+    const swapInvitation = E(autoswap).makeSwapOutInvitation();
     const offerSeat = E(zoe).offer(swapInvitation, liqProposal, payments);
-    const swapPayouts = await whenAllProps(E(offerSeat).getPayouts());
-    const swapAmounts = await whenAllProps(E(offerSeat).getCurrentAllocation());
+    let swapPayouts = await whenAllProps(E(offerSeat).getPayouts());
+    let swapAmounts = await whenAllProps(E(offerSeat).getCurrentAllocation());
+
+    if (collateralMath.isEqual(collateral, swapAmounts.In)) {
+      // swapOut failed, so proceeds would have been insufficient. sell it all
+      const dumpInvitation = E(autoswap).makeSwapInInvitation();
+      const dumpProposal = harden({
+        give: { In: collateral },
+        want: { Out: sconeMath.make(0) },
+      });
+      const dumpPayment = harden({ In: swapPayouts.In });
+      const dumpSeat = E(zoe).offer(dumpInvitation, dumpProposal, dumpPayment);
+      swapPayouts = await whenAllProps(E(dumpSeat).getPayouts());
+      swapAmounts = await whenAllProps(E(dumpSeat).getCurrentAllocation());
+    }
     trace('sold collateral', swapAmounts, swapPayouts);
 
     const cAmounts = {
@@ -349,7 +359,6 @@ export function makeVault(
 
     // NOTE that this synchronously separates the collateral out, so it's not on the
     // collateralSeat while the sale is in progress.
-    trace('');
 
     // Now we need to know how much was sold so we can payoff the debt
     const sconeProceedsAmount = collateralSeat.getAmountAllocated(
@@ -359,8 +368,7 @@ export function makeVault(
     trace('scones', sconeProceedsAmount);
 
     // we now claim enough from sconeProceeds to cover the debt (if there's
-    // enough). They get back the rest, as well as any remaining scones.
-
+    // enough). They get the rest back, as well as any remaining scones.
     const isUnderwater = !sconeMath.isGTE(sconeProceedsAmount, sconeDebt);
     const sconesToBurn = isUnderwater ? sconeProceedsAmount : sconeDebt;
     trace('LIQ ', sconeDebt, sconeProceedsAmount, sconesToBurn);
@@ -368,19 +376,9 @@ export function makeVault(
     sconeDebt = sconeMath.subtract(sconeDebt, sconesToBurn);
     trace('burned', sconesToBurn);
 
-    // refund any remaining scones, plus anything else leftover from the sale
-    // (perhaps some collateral, who knows maybe autoswap threw in a free
-    // toaster)
-
-    // const collateralRefund = await salesPayout.In;
-    // const collateralRefundAmount = await collateralRefund
-    //     ? collateralIssuer.getAmountOf(collateralRefund)
-    //     : collateralMath.getEmpty();
-
-    // debugTick('refund1');
-    // const refundAmounts = { Scones: sconeRefundAmount, Collateral: collateralRefundAmount };
-    // const refunds = { Scones: sconePaymentToRefund, Collateral: collateralRefund };
-    // debugTick('refund2');
+    // any remaining scones plus anything else leftover from the sale are
+    // refunded. (perhaps some collateral, who knows maybe autoswap threw in a
+    // free toaster)
 
     collateralSeat.exit();
     trace('refunded');
