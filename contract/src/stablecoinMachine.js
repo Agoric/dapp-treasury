@@ -14,16 +14,9 @@ import { makeTracer } from './makeTracer';
 import { makeVaultManager } from './vaultManager';
 import { offerTo } from './burn';
 
-/*
- * @param { Zoe } zoe
- * @param {string} sourceRoot
- */
-
 const trace = makeTracer('ST');
 
-/**
- * @type {ContractStartFn}
- */
+/** @type {ContractStartFn} */
 export async function start(zcf) {
   const { autoswapInstall, priceAuthority } = zcf.getTerms();
 
@@ -45,6 +38,7 @@ export async function start(zcf) {
   } = govMint.getIssuerRecord();
 
   // TODO sinclair+us: is there a scm/gov token per collateralType (joe says yes), or just one?
+  /** @type {Store<Brand,VaultManager>} */
   const collateralTypes = makeStore(); // Brand -> vaultManager
 
   const zoe = zcf.getZoeService();
@@ -52,7 +46,7 @@ export async function start(zcf) {
   // we assume the multipool-autoswap is public, so folks can buy/sell
   // through it without our involvement
   // Should it use creatorFacet, creatorInvitation, instance?
-  /** @type {{ publicFacet: MultipoolAutoswap, instance: Instance}} */
+  /** @type {{ publicFacet: MultipoolAutoswapPublicFacet, instance: Instance}} */
   const { publicFacet: autoswapAPI, instance: autoswapInstance } = await E(
     zoe,
   ).startInstance(autoswapInstall, { Central: sconeIssuer });
@@ -201,6 +195,7 @@ export async function start(zcf) {
         collateralTypes.has(brandIn),
         details`Not a supported collateral type ${brandIn}`,
       );
+      /** @type {VaultManager} */
       const mgr = collateralTypes.get(brandIn);
       return mgr.makeLoan(seat);
     }

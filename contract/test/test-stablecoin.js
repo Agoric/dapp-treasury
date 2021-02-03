@@ -31,7 +31,7 @@ const trace = makeTracer('TestST');
  * @property {ContractFacet} zcf
  * @property {IssuerRecord} stablecoin
  * @property {IssuerRecord} governance
- * @property {MultipoolAutoswap} autoswap
+ * @property {ERef<MultipoolAutoswapPublicFacet>} autoswap
  */
 /*
  * @type {TestContext}
@@ -401,6 +401,7 @@ test('price drop', async t => {
   await manualTimer.tick();
   t.falsy(sconeMath.isEmpty(await E(vault).getDebtAmount()));
   await manualTimer.tick();
+
   // The price at the autoswap is still 201, so there will be a refund. 3 Aeth
   // will be sold for 583, so the borrower will get 1 Aeth and 113 scones back
   const sconesPayout = await E.G(liquidationPayout).Scones;

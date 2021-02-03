@@ -37,12 +37,15 @@ export async function start(zcf) {
 
   const { zcfSeat: collateralSeat, userSeat: liqSeat } = zcf.makeEmptySeatKit();
 
+  /** @type {MultipoolAutoswapPublicFacet} */
   const autoswapMock = {
     getInputPrice(amountIn, brandOut) {
       assert.equal(brandOut, sconeBrand);
       return sconeMath.make(4 * amountIn.value);
     },
   };
+
+  /** @type {InnerVaultManager} */
   const managerMock = {
     getLiquidationMargin() {
       return 1.2;
@@ -61,7 +64,7 @@ export async function start(zcf) {
     mathIn: collateralMath,
     mathOut: sconeMath,
     priceList: [80],
-    tradeList: null,
+    tradeList: undefined,
     timer: buildManualTimer(console.log),
     quoteMint: makeIssuerKit('quote', MathKind.SET).mint,
   };

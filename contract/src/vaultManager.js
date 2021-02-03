@@ -15,32 +15,7 @@ import { makeVault } from './vault';
 // todo: two timers: one to increment fees, second (not really timer) when
 // the autoswap price changes, to check if we need to liquidate
 
-/**
- *
- * @typedef {Object} InnerVaultManager
- * @property {AmountMath} collateralMath
- * @property {Brand} collateralBrand
- * @property {() => number} getLiquidationMargin
- * @property {() => number} getStabilityFee
- * @property {() => Amount} getCollateralQuote
- */
-
-/**
- * @typedef {Object} Rates
- * @property {number} initialPrice
- * @property {number} initialMargin
- * @property {number} liquidationMargin
- * @property {number} interestRate
- */
-
-/**
- * @param {ContractFacet} zcf
- * @param {MultipoolAutoswap} autoswap
- * @param {ZCFMint} sconeMint
- * @param {Brand} collateralBrand
- * @param {Promise<PriceAuthority>} priceAuthority
- * @param {Rates} rates
- */
+/** @type {MakeVaultManager} */
 export function makeVaultManager(
   zcf,
   autoswap,
@@ -129,9 +104,7 @@ export function makeVaultManager(
     collateralMath,
   });
 
-  /**
-   * @param {ZCFSeat} seat
-   */
+  /** @param {ZCFSeat} seat */
   async function makeLoan(seat) {
     assertProposalShape(seat, {
       give: { Collateral: null },
@@ -152,19 +125,20 @@ export function makeVaultManager(
     // contract abandons
     const collateralPayoutP = E(userSeat).getPayouts();
 
-    const { amountOut } = await E(autoswap).getPriceGivenAvailableInput(
+    const salePrice = await E(autoswap).getInputPrice(
       collateralAmount,
       sconeBrand,
     );
-    console.log('SALE PRICE  ', amountOut, amountOut.value / initialMargin);
+    console.log('SALE PRICE  ', salePrice, salePrice.value / initialMargin);
     const maxScones = sconeMath.make(
-      Math.ceil(amountOut.value / initialMargin),
+      Math.ceil(salePrice.value / initialMargin),
     ); // todo fee
 
     assert(
       sconeMath.isGTE(maxScones, sconesWanted),
       details`Requested ${sconesWanted} exceeds max ${maxScones}`,
     );
+
     // todo fee: maybe mint new Scones, send to reward pool, increment how
     // much must be paid back
 
@@ -216,6 +190,7 @@ export function makeVaultManager(
    */
   // function helpLiquidateFallback(underwaterBy) {}
 
+  /** @type {VaultManager} */
   return harden({
     ...shared,
     makeLoan,

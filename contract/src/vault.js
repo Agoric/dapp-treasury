@@ -17,22 +17,7 @@ const { floorDivide } = natSafeMath;
 // a Vault is an individual loan, using some collateralType as the
 // collateral, and lending Scones to the borrower
 
-/**
- * @typedef {import('./vaultManager').InnerVaultManager} InnerVaultManager
- */
-
-/**
- * @typedef {ReturnType<typeof import('./vaultManager').makeVaultManager>} VaultManager
- * @typedef {ReturnType<typeof makeVault>} Vault
- * @param {ContractFacet} zcf
- * @param {InnerVaultManager} manager
- * @param {ZCFSeat} collateralSeat
- * @param {Amount} sconeDebt
- * @param {ZCFMint} sconeMint
- * @param {MultipoolAutoswap} autoswap
- * @param {Promise<PriceAuthority>} priceAuthority
- * @param {IterationObserver<UIState>} uiUpdater
- */
+/** @type {MakeVaultKit} */
 export function makeVault(
   zcf,
   manager,
@@ -86,15 +71,15 @@ export function makeVault(
   }
 
   // call this whenever anything changes!
-  function updateUiState() {
+  async function updateUiState() {
+    /** @type {UIState} */
     const uiState = harden({
       interestRate: 0,
       // TODO(hibbert): change liquidationMargin to be an int.
       liquidationRatio: manager.getLiquidationMargin() * 100,
-      stabilityFee: manager.getStabilityFee() * 100,
       locked: getCollateralAmount(),
       debt: sconeDebt,
-      collateralizationRatio: getCollateralizationRatio(),
+      collateralizationRatio: await getCollateralizationRatio(),
       liquidated: !active,
     });
     if (active) {
@@ -318,11 +303,10 @@ export function makeVault(
       { seat: swapSeat, gains: { In: collateral } },
     );
     swapSeat.exit();
-
-    // extract the assets to payments, and make an offer to autoswap specifying
-    // minimum proceeds.
+    // extract the assets to Payments and make the offer
     const payments = await whenAllProps(E(userSeat).getPayouts());
     trace('selling collateral', payments);
+
     const liqProposal = harden({
       give: { In: collateral },
       want: { Out: sconeDebt },
@@ -331,7 +315,6 @@ export function makeVault(
     const offerSeat = E(zoe).offer(swapInvitation, liqProposal, payments);
     let swapPayouts = await whenAllProps(E(offerSeat).getPayouts());
     let swapAmounts = await whenAllProps(E(offerSeat).getCurrentAllocation());
-
     if (collateralMath.isEqual(collateral, swapAmounts.In)) {
       // swapOut failed, so proceeds would have been insufficient. sell it all
       const dumpInvitation = E(autoswap).makeSwapInInvitation();
@@ -369,6 +352,7 @@ export function makeVault(
 
     // we now claim enough from sconeProceeds to cover the debt (if there's
     // enough). They get the rest back, as well as any remaining scones.
+
     const isUnderwater = !sconeMath.isGTE(sconeProceedsAmount, sconeDebt);
     const sconesToBurn = isUnderwater ? sconeProceedsAmount : sconeDebt;
     trace('LIQ ', sconeDebt, sconeProceedsAmount, sconesToBurn);
@@ -443,6 +427,7 @@ export function makeVault(
   //   return sconeDebt.value / getCollateralAmount().value;
   // }
 
+  /** @type {Vault} */
   const vault = harden({
     makeAddCollateralInvitation,
     makePaybackInvitation,

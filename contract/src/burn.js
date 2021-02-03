@@ -13,11 +13,11 @@ import { trade } from '@agoric/zoe/src/contractSupport';
  */
 export async function burn(zcf, fromSeat, what) {
   assert(!fromSeat.hasExited(), 'An active offer is required');
-  const { zcfSeat: burnSeat } = zcf.makeEmptySeatKit();
+  const { zcfSeat: burnSeat, userSeat } = zcf.makeEmptySeatKit();
 
   trade(zcf, { seat: burnSeat, gains: what }, { seat: fromSeat, gains: {} });
   burnSeat.exit();
-  const payoutRecord = await burnSeat.getPayouts();
+  const payoutRecord = await E(userSeat).getPayouts();
   // TODO this is just all wrong, since this should use
   // `burnLosses`.
   const burns = Object.values(payoutRecord).map(async payment => {

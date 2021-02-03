@@ -1,14 +1,11 @@
 // This file can contain .js-specific Typescript compiler config.
 {
     "compilerOptions": {
-        "noEmit": false,
-        "declaration": true,
-        "emitDeclarationOnly": true,
-        "downlevelIteration": true,
+        "target": "esnext",
+
+        "noEmit": true,
         "strictNullChecks": true,
-    }, 
-    "include": [
-        "src/**/*.js",
-        "exports.js"
-    ],
+        "moduleResolution": "node"
+    },
+    "include": ["src/**/*.js"]
 }
