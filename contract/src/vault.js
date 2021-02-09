@@ -8,11 +8,13 @@ import {
   assertProposalShape,
   natSafeMath,
 } from '@agoric/zoe/src/contractSupport';
+import { offerTo } from '@agoric/zoe/src/contractSupport/zoeHelpers';
 
-import { burn, escrowAllTo, whenAllProps } from './burn';
+import { burn } from './burn';
 import { makeTracer } from './makeTracer';
 
 const { floorDivide } = natSafeMath;
+const AutoswapInsufficientMsg = / is insufficient to buy amountOut /;
 
 // a Vault is an individual loan, using some collateralType as the
 // collateral, and lending Scones to the borrower
@@ -45,9 +47,6 @@ export function makeVault(
     amountMath: sconeMath,
     brand: sconeBrand,
   } = sconeMint.getIssuerRecord();
-  const zoe = zcf.getZoeService();
-
-  // const FixMeEmptyGO = {};
 
   function getCollateralAmount() {
     // todo?: assert(active, 'vault has been liquidated');
@@ -82,6 +81,7 @@ export function makeVault(
       collateralizationRatio: await getCollateralizationRatio(),
       liquidated: !active,
     });
+
     if (active) {
       uiUpdater.updateState(uiState);
     } else {
@@ -140,7 +140,6 @@ export function makeVault(
     sconeDebt = sconeMath.getEmpty();
     // burn the scones. first we need zoe to make us a payment
     await burn(zcf, collateralHolderOffer, { Scones: sconeDebt });
-    // AWAIT
 
     offerHandle.exit();
     updateUiState();
@@ -175,7 +174,6 @@ export function makeVault(
       remainingCollateral,
       sconeBrand,
     );
-    // AWAIT
 
     // IF THE COLLATERAL HAS CHANGED, RESTART
     if (!collateralMath.isGTE(precheckCollateral, getCollateralAmount())) {
@@ -272,7 +270,6 @@ export function makeVault(
     // burn the scones. first we need zoe to make us a payment
     // TODO
     await burn(zcf, collateralSeat, { Scones: acceptedScones });
-    // AWAIT
 
     // todo: close the vault
     active = false;
@@ -288,60 +285,61 @@ export function makeVault(
   }
 
   async function liquidate() {
-    const collateral = getCollateralAmount();
-    trace('liquidating', collateral);
-
-    // Move assets to a new seat to extract to Payments
-    const { zcfSeat: swapSeat, userSeat } = zcf.makeEmptySeatKit();
-    trade(
-      zcf,
-      {
-        seat: collateralSeat,
-        gains: {},
-        losses: { Collateral: collateral },
-      },
-      { seat: swapSeat, gains: { In: collateral } },
-    );
-    swapSeat.exit();
-    // extract the assets to Payments and make the offer
-    const payments = await whenAllProps(E(userSeat).getPayouts());
-    trace('selling collateral', payments);
-
+    const collateralBefore = getCollateralAmount();
     const liqProposal = harden({
-      give: { In: collateral },
+      give: { In: collateralBefore },
       want: { Out: sconeDebt },
     });
     const swapInvitation = E(autoswap).makeSwapOutInvitation();
-    const offerSeat = E(zoe).offer(swapInvitation, liqProposal, payments);
-    let swapPayouts = await whenAllProps(E(offerSeat).getPayouts());
-    let swapAmounts = await whenAllProps(E(offerSeat).getCurrentAllocation());
-    if (collateralMath.isEqual(collateral, swapAmounts.In)) {
-      // swapOut failed, so proceeds would have been insufficient. sell it all
-      const dumpInvitation = E(autoswap).makeSwapInInvitation();
-      const dumpProposal = harden({
-        give: { In: collateral },
+    const keywordMapping = harden({
+      Collateral: 'In',
+      Scones: 'Out',
+    });
+    const { deposited, userSeatPromise: liqSeat } = await offerTo(
+      zcf,
+      swapInvitation,
+      keywordMapping,
+      liqProposal,
+      collateralSeat,
+    );
+
+    // if swapOut failed for insufficient funds, we'll sell it all
+    async function onSwapOutFail(error) {
+      assert(
+        error.message.match(AutoswapInsufficientMsg),
+        `unable to liquidate: ${error}`,
+      );
+      const sellAllInvitation = E(autoswap).makeSwapInInvitation();
+      const sellAllProposal = harden({
+        give: { In: collateralBefore },
         want: { Out: sconeMath.make(0) },
       });
-      const dumpPayment = harden({ In: swapPayouts.In });
-      const dumpSeat = E(zoe).offer(dumpInvitation, dumpProposal, dumpPayment);
-      swapPayouts = await whenAllProps(E(dumpSeat).getPayouts());
-      swapAmounts = await whenAllProps(E(dumpSeat).getCurrentAllocation());
+
+      const {
+        deposited: sellAllDeposited,
+        userSeatPromise: sellAllSeat,
+      } = await offerTo(
+        zcf,
+        sellAllInvitation,
+        keywordMapping,
+        sellAllProposal,
+        collateralSeat,
+      );
+      // await sellAllDeposited, but don't need the value
+      await Promise.all([
+        E(sellAllSeat).getOfferResult(),
+        sellAllDeposited,
+      ]).catch(sellAllError => {
+        throw Error(`Unable to liquidate ${sellAllError}`);
+      });
     }
-    trace('sold collateral', swapAmounts, swapPayouts);
 
-    const cAmounts = {
-      Scones: swapAmounts.Out,
-      Collateral: swapAmounts.In,
-    };
-    const cPayments = {
-      Scones: swapPayouts.Out,
-      Collateral: swapPayouts.In,
-    };
-    await escrowAllTo(zcf, collateralSeat, cAmounts, cPayments);
-    trace('re-escrowed', cAmounts, cPayments);
-
-    // NOTE that this synchronously separates the collateral out, so it's not on the
-    // collateralSeat while the sale is in progress.
+    // await deposited, but we don't need the value. We'll need it to have
+    // resolved in both branches, so can't put it in Promise.all.
+    await deposited;
+    await E(liqSeat)
+      .getOfferResult()
+      .catch(onSwapOutFail);
 
     // Now we need to know how much was sold so we can payoff the debt
     const sconeProceedsAmount = collateralSeat.getAmountAllocated(

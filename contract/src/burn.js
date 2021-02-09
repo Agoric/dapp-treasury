@@ -69,47 +69,6 @@ export async function escrowAllTo(zcf, recipientSeat, amounts, payments) {
 }
 
 /**
- * The `proposal` must use the same keywords as are present on the srcSeat.
- * Otherwise there will be a `rights were not conserved for brand` error.
- *
- * @param {ContractFacet} zcf
- * @param {ERef<Invitation>} invitation
- * @param {ZCFSeat} srcSeat
- * @param {Proposal} proposal
- * @param {ZCFSeat} toSeat
- * @returns {Promise<Omit<UserSeat, "getPayouts" | "getPayout">>}
- */
-export async function offerTo(zcf, invitation, srcSeat, proposal, toSeat) {
-  assert(!srcSeat.hasExited(), 'An active seat is required');
-  const zoe = zcf.getZoeService();
-  // Synchronously pull the assets off the source onto a temporary seat
-  const { zcfSeat, userSeat } = zcf.makeEmptySeatKit();
-  trade(
-    zcf,
-    { seat: srcSeat, gains: {} },
-    { seat: zcfSeat, gains: proposal.give || {} },
-  );
-  zcfSeat.exit();
-  // extract the assets to Payments and make the offer
-  const extracts = E(userSeat).getPayouts();
-  const payments = await whenAllProps(extracts);
-  const offerSeat = await E(zoe).offer(invitation, proposal, payments);
-
-  // When the payouts are available, add them to the toSeat
-  // but don't wait for that
-  await E(offerSeat)
-    .getPayouts()
-    .then(async payouts => {
-      const amounts = await E(offerSeat).getCurrentAllocation();
-      const offerPayouts = await whenAllProps(payouts);
-      return escrowAllTo(zcf, toSeat, amounts, offerPayouts);
-    });
-  // TODO add `isComplete` to the return type
-  // TODO this should not expose the payouts directly
-  return offerSeat;
-}
-
-/**
  * @param {ContractFacet} zcf
  * @param {ZCFMint} zcfMint
  * @param {Amount} amount

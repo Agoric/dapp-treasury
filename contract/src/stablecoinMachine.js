@@ -4,23 +4,23 @@ import '@agoric/zoe/src/contracts/exported';
 
 // The StableCoinMachine owns a number of VaultManagers, and a mint for the
 // "Scone" stablecoin.
-
 import { E } from '@agoric/eventual-send';
 import { assert, details } from '@agoric/assert';
 import makeStore from '@agoric/store';
-import { trade, assertProposalShape } from '@agoric/zoe/src/contractSupport';
-import { makeTracer } from './makeTracer';
+import {
+  trade,
+  assertProposalShape,
+  offerTo,
+} from '@agoric/zoe/src/contractSupport';
 
+import { makeTracer } from './makeTracer';
 import { makeVaultManager } from './vaultManager';
-import { offerTo } from './burn';
 
 const trace = makeTracer('ST');
 
 /** @type {ContractStartFn} */
 export async function start(zcf) {
   const { autoswapInstall, priceAuthority } = zcf.getTerms();
-
-  trace('terms', autoswapInstall);
 
   const [sconeMint, govMint] = await Promise.all([
     zcf.makeZCFMint('Scones', undefined, { decimalPlaces: 3 }),
@@ -50,7 +50,6 @@ export async function start(zcf) {
   const { publicFacet: autoswapAPI, instance: autoswapInstance } = await E(
     zoe,
   ).startInstance(autoswapInstall, { Central: sconeIssuer });
-  trace('autoswap', autoswapAPI);
 
   // We process only one offer per collateralType. They must tell us the
   // dollar value of their collateral, and we create that many Scones.
@@ -62,7 +61,6 @@ export async function start(zcf) {
   ) {
     await zcf.saveIssuer(collateralIssuer, collateralKeyword);
     const collateralBrand = zcf.getBrandForIssuer(collateralIssuer);
-    trace('collateralBrand', collateralBrand);
     assert(!collateralTypes.has(collateralBrand));
 
     async function addTypeHook(seat) {
@@ -83,14 +81,16 @@ export async function start(zcf) {
         rates.initialPrice * collateralIn.value,
       );
       const govAmount = govMath.make(sconesAmount.value); // TODO what's the right amount?
-      trace('math', sconesAmount);
 
-      // Create new governance tokens, trade with the incoming offer to
-      // provide them in exchange for the collateral
+      // Create new governance tokens, trade them with the incoming offer for
+      // collateral. The offer uses the keywords Collateral and Governance.
+      // govSeat stores the collateral as Secondary. We then mint new Scones for
+      // govSeat and store them as Central. govSeat then creates a liquidity
+      // pool for autoswap, trading in Central and Secondary for governance
+      // tokens as Liquidity
       const { zcfSeat: govSeat } = zcf.makeEmptySeatKit();
       // TODO this should create the seat for us
       govMint.mintGains({ Governance: govAmount }, govSeat);
-      trace('mint governance', govAmount);
 
       // trade the governance tokens for collateral, putting the
       // collateral on Secondary to be positioned for Autoswap
@@ -127,31 +127,27 @@ export async function start(zcf) {
         liquidityIssuer,
         `${collateralKeyword}_Liquidity`,
       );
-      trace('pool setup', liquidityMath);
 
       // inject both the collateral and the scones into the new autoswap, to
       // provide the initial liquidity pool
-      // TODO I'm here in the conversion
       const liqProposal = harden({
         give: { Secondary: collateralIn, Central: sconesAmount },
         want: { Liquidity: liquidityMath.getEmpty() },
       });
       const liqInvitation = E(autoswapAPI).makeAddLiquidityInvitation();
-      trace('liq prep', liqInvitation, liqProposal);
 
-      // eslint-disable-next-line no-underscore-dangle
-      const poolSeat = await offerTo(
+      const { deposited } = await offerTo(
         zcf,
         liqInvitation,
-        govSeat,
+        undefined,
         liqProposal,
         govSeat,
       );
 
-      const offerResult = await E(poolSeat).getOfferResult();
-      trace('offerResult', offerResult);
-      // isComplete: () => done
-      trace('liquidity setup');
+      const depositValue = await deposited;
+
+      // TODO(hibbert): make use of these assets (Liquidity: 19899 Aeth)
+      trace('depositValue', depositValue);
 
       // const { payout: salesPayoutP } = await E(zoe).offer(swapInvitation, saleOffer, payout2);
       // const { Scones: sconeProceeds, ...otherProceeds } = await salesPayoutP;
