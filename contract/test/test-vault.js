@@ -42,10 +42,8 @@ const zoe = makeFar(makeZoe(makeFakeVatAdmin(setJig, makeRemote).admin));
 trace('makeZoe');
 
 /**
- *
  * @param {ERef<ZoeService>} zoeP
  * @param {string} sourceRoot
- *
  */
 async function launch(zoeP, sourceRoot) {
   const contractBundle = await bundleSource(require.resolve(sourceRoot));
@@ -53,8 +51,19 @@ async function launch(zoeP, sourceRoot) {
   const { creatorInvitation, creatorFacet, instance } = await E(
     zoeP,
   ).startInstance(installation);
+  const { sconeKit, collateralKit } = testJig;
+  const sconeMath = sconeKit.getIssuerRecord().amountMath;
+  const collateral50 = collateralKit.amountMath.make(50);
+  const proposal = harden({
+    give: { Collateral: collateral50 },
+    want: { Scones: sconeMath.make(70) },
+    exit: { onDemand: null },
+  });
+  const payments = harden({
+    Collateral: collateralKit.mint.mintPayment(collateral50),
+  });
   return {
-    creatorSeat: E(zoeP).offer(creatorInvitation),
+    creatorSeat: E(zoeP).offer(creatorInvitation, proposal, payments),
     creatorFacet,
     instance,
   };
@@ -63,36 +72,33 @@ async function launch(zoeP, sourceRoot) {
 const helperContract = launch(zoe, vaultRoot);
 
 test('first', async t => {
-  const { creatorSeat, creatorFacet, _instance } = await helperContract;
+  const { creatorSeat, creatorFacet } = await helperContract;
 
-  // Our wrapper gives us a Vault which holds 5 Collateral, has lent out 10
-  // Scones, which uses an autoswap that presents a fixed price of 4 Scones
-  // per Collateral.
-  const { _liquidationPayout } = await E(creatorSeat).getOfferResult();
-
+  // Our wrapper gives us a Vault which holds 50 Collateral, has lent out 70
+  // Scones (charging 3 scones fee), which uses an autoswap that presents a
+  // fixed price of 4 Scones per Collateral.
+  await E(creatorSeat).getOfferResult();
   const { sconeKit: sconeMint, collateralKit, vault } = testJig;
 
   const { issuer: cIssuer, amountMath: cMath, mint: cMint } = collateralKit;
-  const {
-    issuer: _sconeIssuer,
-    amountMath: sconeMath,
-    brand: _sconeBrand,
-  } = sconeMint.getIssuerRecord();
+  const { amountMath: sconeMath } = sconeMint.getIssuerRecord();
 
-  t.truthy(
-    sconeMath.isEqual(vault.getDebtAmount(), sconeMath.make(10)),
-    'vault lent 10 Scones',
+  t.deepEqual(
+    vault.getDebtAmount(),
+    sconeMath.make(73),
+    'borrower owes 73 Scones',
   );
-  t.truthy(
-    cMath.isEqual(vault.getCollateralAmount(), cMath.make(5)),
-    'vault holds 5 Collateral',
+  t.deepEqual(
+    vault.getCollateralAmount(),
+    cMath.make(50),
+    'vault holds 50 Collateral',
   );
 
   // Add more collateral to an existing loan. We get nothing back but a warm
   // fuzzy feeling.
   trace('vault starts correct', creatorFacet);
 
-  const collateralAmount = cMath.make(2);
+  const collateralAmount = cMath.make(20);
   const invite = await E(creatorFacet).makeAddCollateralInvitation();
   trace('invite collateral', invite);
   await E(zoe).offer(
@@ -107,9 +113,10 @@ test('first', async t => {
     }),
   );
   trace('addCollateral');
-  t.truthy(
-    cMath.isEqual(vault.getCollateralAmount(), cMath.make(7)),
-    'vault holds 7 Collateral',
+  t.deepEqual(
+    vault.getCollateralAmount(),
+    cMath.make(70),
+    'vault holds 70 Collateral',
   );
   trace('addCollateral');
 
@@ -135,19 +142,18 @@ test('first', async t => {
   trace('returnedCollateral', returnedCollateral, cIssuer);
   const returnedAmount = await cIssuer.getAmountOf(returnedCollateral);
   trace('returnedAmount', returnedAmount, cMath.make(1));
-  t.truthy(
-    sconeMath.isEqual(vault.getDebtAmount(), sconeMath.make(7)),
-    'debt reduced to 7 scones',
+  t.deepEqual(
+    vault.getDebtAmount(),
+    sconeMath.make(70),
+    'debt reduced to 70 scones',
   );
-  t.truthy(
-    cMath.isEqual(vault.getCollateralAmount(), cMath.make(6)),
-    'vault holds 6 Collateral',
+  t.deepEqual(
+    vault.getCollateralAmount(),
+    cMath.make(69),
+    'vault holds 69 Collateral',
   );
-  t.truthy(
-    cMath.isEqual(returnedAmount, cMath.make(1)),
-    'withdrew 1 collateral',
-  );
-  // t.is(returnedAmount.value, 1, 'withdrew 1 collateral');
+  t.deepEqual(returnedAmount, cMath.make(1), 'withdrew 1 collateral');
+  t.is(returnedAmount.value, 1, 'withdrew 1 collateral');
 });
 
 test('bad collateral', async t => {
@@ -155,20 +161,22 @@ test('bad collateral', async t => {
 
   const { sconeKit: sconeMint, collateralKit, vault } = testJig;
 
-  // Our wrapper gives us a Vault which holds 5 Collateral, has lent out 10
-  // Scones, which uses an autoswap that presents a fixed price of 4 Scones
-  // per Collateral.
+  // Our wrapper gives us a Vault which holds 50 Collateral, has lent out 70
+  // Scones (charging 3 scones fee), which uses an autoswap that presents a
+  // fixed price of 4 Scones per Collateral.
   await E(offerKit).getOfferResult();
-  const { amountMath: cMath, mint: _cMint } = collateralKit;
+  const { amountMath: cMath } = collateralKit;
   const { amountMath: sconeMath } = sconeMint.getIssuerRecord();
 
-  t.assert(
-    cMath.isEqual(vault.getCollateralAmount(), cMath.make(5)),
-    'vault holds 5 Collateral',
+  t.deepEqual(
+    vault.getCollateralAmount(),
+    cMath.make(50),
+    'vault should hold 50 Collateral',
   );
-  t.assert(
-    sconeMath.isEqual(vault.getDebtAmount(), sconeMath.make(10)),
-    'vault lent 10 Scones',
+  t.deepEqual(
+    vault.getDebtAmount(),
+    sconeMath.make(73),
+    'borrower owes 73 Scones',
   );
 
   const collateralAmount = cMath.make(2);

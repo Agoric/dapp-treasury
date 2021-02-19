@@ -7,9 +7,10 @@ import { assert } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
 import buildManualTimer from '@agoric/zoe/tools/manualTimer';
 import { makeFakePriceAuthority } from '@agoric/zoe/tools/fakePriceAuthority';
-import { makeNotifierKit } from '@agoric/notifier';
-import { makeVault } from '../src/vault';
-import { escrowAllTo, paymentFromZCFMint } from '../src/burn';
+import { makePercent } from '@agoric/zoe/src/contractSupport/percentMath';
+import { trade } from '@agoric/zoe/src/contractSupport';
+import { makeVaultKit } from '../src/vault';
+import { paymentFromZCFMint } from '../src/burn';
 import { MathKind } from '../../_agstate/yarn-links/@agoric/ertp';
 
 /** @param {ContractFacet} zcf */
@@ -17,11 +18,7 @@ export async function start(zcf) {
   console.log(`contract started`);
 
   const collateralKit = makeIssuerKit('Collateral');
-  const {
-    mint: collateralMint,
-    amountMath: collateralMath,
-    brand: collateralBrand,
-  } = collateralKit;
+  const { amountMath: collateralMath, brand: collateralBrand } = collateralKit;
   await zcf.saveIssuer(collateralKit.issuer, 'Collateral'); // todo: CollateralETH, etc
 
   // const collateralKit = await zcf.makeZCFMint('Collateral');
@@ -33,9 +30,9 @@ export async function start(zcf) {
     amountMath: sconeMath,
     brand: sconeBrand,
   } = sconeKit.getIssuerRecord();
-  const sconeDebt = sconeMath.make(10);
 
-  const { zcfSeat: collateralSeat, userSeat: liqSeat } = zcf.makeEmptySeatKit();
+  const { zcfSeat: _collateralSt, userSeat: liqSeat } = zcf.makeEmptySeatKit();
+  const { zcfSeat: stableCoinSeat } = zcf.makeEmptySeatKit();
 
   /** @type {MultipoolAutoswapPublicFacet} */
   const autoswapMock = {
@@ -48,13 +45,13 @@ export async function start(zcf) {
   /** @type {InnerVaultManager} */
   const managerMock = {
     getLiquidationMargin() {
-      return 1.2;
+      return makePercent(105, sconeMath, 100);
     },
     getInitialMargin() {
       return 1.5;
     },
-    getStabilityFee() {
-      return 0.02;
+    getLoanFee() {
+      return makePercent(500, sconeMath, 10000);
     },
     collateralMath,
     collateralBrand,
@@ -70,32 +67,23 @@ export async function start(zcf) {
   };
   const priceAuthority = makeFakePriceAuthority(options);
 
-  const { updater, notifier: uiNotifier } = makeNotifierKit();
-  const { vault, liquidate, checkMargin } = makeVault(
+  function rewardPoolStaging(amount, fromSeat) {
+    return stableCoinSeat.stage({ Scones: amount });
+  }
+
+  const { vault, openLoan } = await makeVaultKit(
     zcf,
     managerMock,
-    collateralSeat,
-    sconeDebt,
     sconeKit,
     autoswapMock,
     priceAuthority,
-    updater,
+    rewardPoolStaging,
   );
 
-  zcf.setTestJig(() => ({ collateralKit, sconeKit, vault, uiNotifier }));
+  zcf.setTestJig(() => ({ collateralKit, sconeKit, vault }));
 
   async function makeHook(seat) {
-    console.log(`makeHook invoked`, seat);
-    // console.log(`-- collateralHoldingOffer is`, collateralSeat);
-    const initialCollateralAmount = collateralMath.make(5);
-    await escrowAllTo(
-      zcf,
-      collateralSeat,
-      { Collateral: initialCollateralAmount },
-      { Collateral: collateralMint.mintPayment(initialCollateralAmount) },
-    );
-
-    seat.exit();
+    openLoan(seat);
 
     return {
       vault,
@@ -103,8 +91,6 @@ export async function start(zcf) {
       sconeKit,
       collateralKit,
       actions: {
-        liquidate,
-        checkMargin,
         add() {
           return vault.makeAddCollateralInvitation();
         },
@@ -115,8 +101,6 @@ export async function start(zcf) {
   console.log(`makeContract returning`);
 
   const vaultAPI = harden({
-    liquidate,
-    checkMargin,
     makeAddCollateralInvitation() {
       return vault.makeAddCollateralInvitation();
     },

@@ -1,4 +1,5 @@
 // @ts-check
+
 /**
  * @typedef  {Object} AutoswapLocal
  * @property {(amount: Amount, brand: Brand) => Amount} getInputPrice
@@ -9,17 +10,23 @@
  * @typedef {Object} Collateral
  * @property {number} initialMargin
  * @property {number} liquidationMargin
- * @property {number} stabilityFee
+ * @property {Percent} stabilityFee
  * @property {Amount} marketPrice
  * @property {Brand} brand
  */
 
 /**
  * @typedef {Object} Rates
- * @property {number} initialMargin
- * @property {number} liquidationMargin
- * @property {number} initialPrice
- * @property {number} interestRate
+ * @property {number} initialMargin minimum required over-collateralization
+ * required to open a loan
+ * @property {number} liquidationMargin margin below which collateral will be
+ * liquidated to satisfy the debt.
+ * @property {number} initialPrice price ratio of collateral to stablecoin
+ * @property {number} interestRateBPs interest rate (in Basis Points) charged
+ * on loans. This number will be divided by chargingPeriods/year to get a rate
+ * per chargingPeriod.
+ * @property {number} loanFeeBPs The fee (in BasisPoints) charged when opening
+ * or increasing a loan.
  */
 
 /**
@@ -44,20 +51,26 @@
  * @typedef {Object} InnerVaultManager
  * @property {AmountMath} collateralMath
  * @property {Brand} collateralBrand
- * @property {() => number} getLiquidationMargin
- * @property {() => number} getStabilityFee
+ * @property {() => Percent} getLiquidationMargin
+ * @property {() => Percent} getLoanFee
  * @property {() => Promise<PriceQuote>} getCollateralQuote
  * @property {() => number} getInitialMargin
  */
 
 /**
  * @typedef {Object} VaultManager
- * @property {MakeLoan} makeLoan
+ * @property {(ZCFSeat) => Promise<LoanKit>}  makeLoanKit
  * @property {() => void} liquidateAll
- * @property {() => number} getLiquidationMargin
- * @property {() => number} getStabilityFee
+ * @property {() => Percent} getLiquidationMargin
+ * @property {() => Percent} getLoanFee
  * @property {() => Promise<PriceQuote>} getCollateralQuote
  * @property {() => number} getInitialMargin
+ */
+
+/**
+ * @typedef {Object} OpenLoanKit
+ * @property {Notifier<UIState>} notifier
+ * @property {Promise<PaymentPKeywordRecord>} collateralPayoutP
  */
 
 /**
@@ -81,12 +94,14 @@
  * @property {Vault} vault
  * @property {() => void} liquidate
  * @property {() => void} checkMargin
+ * @property {(ZCFSeat) => Promise<OpenLoanKit>} openLoan
  */
 
 /**
- * @callback MakeLoan
- * @param {ZCFSeat} zcfSeat
- * @returns {Promise<LoanKit>}
+ * @callback RewardPoolStaging return a seat staging (for use in reallocate)
+ * that will add the indicated amount to the stablecoin machine's reward pool.
+ * @param {Amount} amount
+ * @param {ZCFSeat} fromSeat
  */
 
 /**
@@ -97,6 +112,7 @@
  * @param {Brand} collateralBrand
  * @param {ERef<PriceAuthority>} priceAuthority
  * @param {Rates} rates
+ * @param {RewardPoolStaging} rewardPoolStaging
  * @returns {VaultManager}
  */
 
@@ -104,11 +120,9 @@
  * @callback MakeVaultKit
  * @param {ContractFacet} zcf
  * @param {InnerVaultManager} manager
- * @param {ZCFSeat} collateralSeat
- * @param {Amount} sconeDebt
  * @param {ZCFMint} sconeMint
  * @param {ERef<MultipoolAutoswapPublicFacet>} autoswap
  * @param {ERef<PriceAuthority>} priceAuthority
- * @param {IterationObserver<UIState>} uiUpdater
+ * @param {RewardPoolStaging} rewardPoolStaging
  * @returns {VaultKit}
  */

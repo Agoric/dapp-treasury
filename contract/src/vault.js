@@ -1,52 +1,78 @@
 // @ts-check
 import '@agoric/zoe/exported';
 
-import { assert } from '@agoric/assert';
+import { assert, details } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
 import {
   trade,
   assertProposalShape,
   natSafeMath,
+  offerTo,
 } from '@agoric/zoe/src/contractSupport';
-import { offerTo } from '@agoric/zoe/src/contractSupport/zoeHelpers';
+import { makeNotifierKit } from '@agoric/notifier';
 
 import { burn } from './burn';
 import { makeTracer } from './makeTracer';
 
-const { floorDivide } = natSafeMath;
+const { floorDivide, multiply } = natSafeMath;
 const AutoswapInsufficientMsg = / is insufficient to buy amountOut /;
 
 // a Vault is an individual loan, using some collateralType as the
 // collateral, and lending Scones to the borrower
 
+/*
+ * TODO(hibbert) add invitations for the following:
+ * Borrow
+ *   give: { Collateral }, want: { Scones },
+ *
+ * repay and borrowMore might have Collateral as either give or want
+ * repayDebt
+ *   give: { Scones }
+ * borrowMore
+ *   want: { Scones }
+ *
+ * recapitalize and withdrawCollateral might also have Scones as give or want
+ * recapitalize
+ *   give: { Collateral }
+ * withdrawCollateral
+ *   want: { Collateral }
+ *
+ * close supports aptionally giving Scones
+ * close
+ *   want: { Collateral }
+ *   want: { Collateral } give: Scones
+ */
+
+const PERCENT_BASE = 100;
+
 /** @type {MakeVaultKit} */
-export function makeVault(
+export function makeVaultKit(
   zcf,
   manager,
-  collateralSeat,
-  sconeDebt,
   sconeMint,
   autoswap,
   priceAuthority,
-  uiUpdater,
+  rewardPoolStaging,
 ) {
   const trace = makeTracer('VV');
+  const { updater: uiUpdater, notifier } = makeNotifierKit();
 
   let active = true; // liquidation halts all user actions
-  // eslint-disable-next-line no-unused-vars
-  const accumulatedFee = 0;
   const collateralMath = manager.collateralMath;
   const collateralBrand = manager.collateralBrand;
-  // eslint-disable-next-line no-unused-vars
-  const collateralIssuer = zcf.getIssuerForBrand(collateralBrand);
 
-  // 'collateralHolderOffer' is the Offer that currently holds the borrower's
-  // collateral (zoe owns the tokens for the benefit of this Offer)
+  // this seat will hold the collateral until the loan is retired. The
+  // payout from it will be handed to the user: if the vault dies early
+  // (because the StableCoinMachine vat died), they'll get all their
+  // collateral back. If that happens, the isuser for the Scones will be dead,
+  // so their loan will be worthless.
+  const { zcfSeat: collateralSeat, userSeat } = zcf.makeEmptySeatKit();
+
   const {
-    issuer: _sconeIssuer,
     amountMath: sconeMath,
     brand: sconeBrand,
   } = sconeMint.getIssuerRecord();
+  let sconeDebt = sconeMath.getEmpty();
 
   function getCollateralAmount() {
     // todo?: assert(active, 'vault has been liquidated');
@@ -55,27 +81,33 @@ export function makeVault(
       : collateralSeat.getAmountAllocated('Collateral', collateralBrand);
   }
 
-  function getCollateralizationRatio() {
+  async function getCollateralizationRatio() {
     if (collateralMath.isEmpty(getCollateralAmount())) {
       return Promise.resolve(0);
     }
-    return E(priceAuthority)
-      .quoteGiven(getCollateralAmount(), sconeBrand)
-      .then(({ quoteAmount }) => {
-        const collateralValue = quoteAmount.value[0].amountOut.value;
-        const numerator = natSafeMath.multiply(collateralValue, 100);
-        const denominator = sconeDebt.value;
-        return natSafeMath.floorDivide(numerator, denominator);
-      });
+    const { quoteAmount } = await E(priceAuthority).quoteGiven(
+      getCollateralAmount(),
+      sconeBrand,
+    );
+    // When Percents can produce a value for display, we should use that instead
+    const collateralValueInScones = quoteAmount.value[0].amountOut.value;
+    const numerator = multiply(collateralValueInScones, PERCENT_BASE);
+    const denominator = sconeDebt.value;
+    return floorDivide(numerator, denominator);
   }
 
   // call this whenever anything changes!
   async function updateUiState() {
+    // liquidationRatio is used in the UI as a percent to be multiplied by 100
+    // for display
+    const liquidationRatio = manager
+      .getLiquidationMargin()
+      .scale(sconeMath.make(PERCENT_BASE)).value;
     /** @type {UIState} */
     const uiState = harden({
       interestRate: 0,
       // TODO(hibbert): change liquidationMargin to be an int.
-      liquidationRatio: manager.getLiquidationMargin() * 100,
+      liquidationRatio,
       locked: getCollateralAmount(),
       debt: sconeDebt,
       collateralizationRatio: await getCollateralizationRatio(),
@@ -188,9 +220,9 @@ export function makeVault(
     // if we accept your scones, this is how much you'd still owe
     const remainingDebt = sconeMath.subtract(sconeDebt, acceptedScones);
 
-    // that will require at least this much collateral:
     const margin = manager.getLiquidationMargin();
-    const maxScones = sconeMath.make(Math.ceil(salePrice.value / margin));
+    // that collateral will support a loan of at most this many scones
+    const maxScones = margin.scale(salePrice);
     // TODO is there a better policy than:
     //      don't reject if they are not taking out collateral
     if (!collateralMath.isEmpty(collateralWanted)) {
@@ -353,7 +385,6 @@ export function makeVault(
 
     const isUnderwater = !sconeMath.isGTE(sconeProceedsAmount, sconeDebt);
     const sconesToBurn = isUnderwater ? sconeProceedsAmount : sconeDebt;
-    trace('LIQ ', sconeDebt, sconeProceedsAmount, sconesToBurn);
     sconeMint.burnLosses({ Scones: sconesToBurn }, collateralSeat);
     sconeDebt = sconeMath.subtract(sconeDebt, sconesToBurn);
     trace('burned', sconesToBurn);
@@ -363,7 +394,6 @@ export function makeVault(
     // free toaster)
 
     collateralSeat.exit();
-    trace('refunded');
     active = false;
     updateUiState();
 
@@ -393,25 +423,82 @@ export function makeVault(
   // We're currently only calling this once, but as we add or remove collateral,
   // and as the debt accrues, it should be called multiple times. When we do,
   // previous requests for quotes will be able to fire, but should be ignored.
-  function scheduleLiquidation() {
+  async function scheduleLiquidation() {
     const liquidationMargin = manager.getLiquidationMargin();
-    // compute how much debt is supported by the current collateral
-    const debtAllowed = collateralMath.make(
-      floorDivide(getCollateralAmount().value, liquidationMargin),
+    // how much collateral valuation is required to support the current debt
+    const collateralSconesValueRequired = liquidationMargin.scale(sconeDebt);
+    const collateralAmountWhenScheduled = getCollateralAmount();
+    const quote = await E(priceAuthority).quoteWhenLT(
+      collateralAmountWhenScheduled,
+      collateralSconesValueRequired,
     );
-    E(priceAuthority)
-      .quoteWhenLT(debtAllowed, sconeDebt)
-      // priceQuote is { amountIn, amountOut, timer, timestamp }
-      .then(quote => {
-        const { amountIn, amountOut } = quote.quoteAmount.value[0];
-        // If this quote doesn't correspond to the current balance, ignore it.
-        if (collateralMath.isEqual(debtAllowed, amountIn)) {
-          checkMargin(amountOut);
-        }
-      });
+    // priceQuote is { amountIn, amountOut, timer, timestamp }
+    const { amountIn, amountOut } = quote.quoteAmount.value[0];
+    // If this quote doesn't correspond to the current balance, ignore it.
+    if (collateralMath.isEqual(collateralAmountWhenScheduled, amountIn)) {
+      checkMargin(amountOut);
+    }
   }
-  scheduleLiquidation();
-  updateUiState();
+
+  async function openLoan(seat) {
+    assert(
+      sconeMath.isEmpty(sconeDebt),
+      details`vault must be empty initially`,
+    );
+    // get the payout to provide access to the collateral if the
+    // contract abandons
+    const {
+      give: { Collateral: collateralAmount },
+      want: { Scones: sconesWanted },
+    } = seat.getProposal();
+
+    const collateralPayoutP = E(userSeat).getPayouts();
+
+    const salePrice = await E(autoswap).getInputPrice(
+      collateralAmount,
+      sconeBrand,
+    );
+    // TODO(hibbert) When we can divide by Ratios, use a Ratio here
+    const maxValue = Math.ceil(salePrice.value / manager.getInitialMargin());
+    const maxScones = sconeMath.make(maxValue);
+    assert(
+      sconeMath.isGTE(maxScones, sconesWanted),
+      details`Requested ${sconesWanted} exceeds max ${maxScones}`,
+    );
+
+    // todo trigger process() check right away, in case the price dropped while we ran
+
+    const fee = manager.getLoanFee().scale(sconesWanted);
+    if (sconeMath.isEmpty(fee)) {
+      throw seat.exit('loan requested is too small; cannot accrue interest');
+    }
+
+    sconeDebt = sconeMath.add(sconesWanted, fee);
+    await sconeMint.mintGains({ Scones: sconeDebt }, collateralSeat);
+    const priorCollateral = collateralSeat.getAmountAllocated(
+      'Collateral',
+      collateralBrand,
+    );
+
+    const collateralSeatStaging = collateralSeat.stage({
+      Collateral: collateralMath.add(priorCollateral, collateralAmount),
+      Scones: sconeMath.getEmpty(),
+    });
+    const loanSeatStaging = seat.stage({
+      Scones: sconesWanted,
+      Collateral: collateralMath.getEmpty(),
+    });
+    zcf.reallocate(
+      collateralSeatStaging,
+      loanSeatStaging,
+      rewardPoolStaging(fee, collateralSeat),
+    );
+
+    scheduleLiquidation();
+    updateUiState();
+
+    return { notifier, collateralPayoutP };
+  }
 
   // todo: add liquidateSome(collateralAmount): sells some collateral, reduces some debt
 
@@ -420,16 +507,12 @@ export function makeVault(
     return sconeDebt;
   }
 
-  // how do I get a floating point number ration here?
-  // function getCollateralizationPercent() {
-  //   return sconeDebt.value / getCollateralAmount().value;
-  // }
-
   /** @type {Vault} */
   const vault = harden({
     makeAddCollateralInvitation,
     makePaybackInvitation,
     makeCloseInvitation,
+    // repay, borrowMore, recapitalize, withdrawCollateral, close
 
     // for status/debugging
     getCollateralAmount,
@@ -441,6 +524,7 @@ export function makeVault(
     vault,
     liquidate,
     checkMargin,
+    openLoan,
   });
 }
 

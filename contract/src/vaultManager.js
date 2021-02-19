@@ -1,19 +1,20 @@
 // @ts-check
 import '@agoric/zoe/exported';
 
-import { assert, details } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
-import { trade, assertProposalShape } from '@agoric/zoe/src/contractSupport';
-import { makeNotifierKit } from '@agoric/notifier';
-import { makeVault } from './vault';
+import { assertProposalShape } from '@agoric/zoe/src/contractSupport';
+import { makePercent } from '@agoric/zoe/src/contractSupport/percentMath';
+import { makeVaultKit } from './vault';
 
 // Each VaultManager manages a single collateralType. It owns an autoswap
 // instance which trades this collateralType against Scones. It also manages
 // some number of outstanding loans, each called a Vault, for which the
-// collateral is provided in exchanged for borrowed Scones.
+// collateral is provided in exchange for borrowed Scones.
 
 // todo: two timers: one to increment fees, second (not really timer) when
 // the autoswap price changes, to check if we need to liquidate
+
+const BASIS_POINTS = 10000;
 
 /** @type {MakeVaultManager} */
 export function makeVaultManager(
@@ -23,9 +24,9 @@ export function makeVaultManager(
   collateralBrand,
   priceAuthority,
   rates,
+  rewardPoolStaging,
 ) {
   const {
-    issuer: _sconeIssuer,
     amountMath: sconeMath,
     brand: sconeBrand,
   } = sconeMint.getIssuerRecord();
@@ -71,20 +72,22 @@ export function makeVaultManager(
   // end users can ask the SCM for loans with some collateral, and the SCM asks
   // us to make a new Vault
 
-  const initialMargin = rates.initialMargin;
-  // loans below this margin may be liquidated
-  const liquidationMargin = rates.liquidationMargin;
-  const stabilityFee = rates.interestRate;
+  const loanFee = makePercent(rates.loanFeeBPs, sconeMath, BASIS_POINTS);
+
+  // We want an inverted version. Ratio will support that, but Percent doesn't
+  const liqMargin = makePercent(rates.liquidationMargin, sconeMath);
 
   const shared = {
+    // loans below this margin may be liquidated
     getLiquidationMargin() {
-      return liquidationMargin;
+      return liqMargin;
     },
+    // loans must initially have at least 1.2x collateralization
     getInitialMargin() {
-      return initialMargin;
+      return rates.initialMargin;
     },
-    getStabilityFee() {
-      return stabilityFee;
+    getLoanFee() {
+      return loanFee;
     },
     async getCollateralQuote() {
       // get a quote for one unit of the collateral
@@ -105,71 +108,25 @@ export function makeVaultManager(
   });
 
   /** @param {ZCFSeat} seat */
-  async function makeLoan(seat) {
+  async function makeLoanKit(seat) {
     assertProposalShape(seat, {
       give: { Collateral: null },
       want: { Scones: null },
     });
-    const {
-      give: { Collateral: collateralAmount },
-      want: { Scones: sconesWanted },
-    } = seat.getProposal();
 
     // TODO check that it's for the right type of collateral
-    // this offer will hold the collateral until the loan is retired. The
-    // payout from it will be handed to the user: if the vault dies early
-    // (because the StableCoinMachine vat died), they'll get all their
-    // collateral back.
-    const { zcfSeat: collateralSeat, userSeat } = zcf.makeEmptySeatKit();
-    // get the payout to provide access to the collateral if the
-    // contract abandons
-    const collateralPayoutP = E(userSeat).getPayouts();
 
-    const salePrice = await E(autoswap).getInputPrice(
-      collateralAmount,
-      sconeBrand,
-    );
-    console.log('SALE PRICE  ', salePrice, salePrice.value / initialMargin);
-    const maxScones = sconeMath.make(
-      Math.ceil(salePrice.value / initialMargin),
-    ); // todo fee
-
-    assert(
-      sconeMath.isGTE(maxScones, sconesWanted),
-      details`Requested ${sconesWanted} exceeds max ${maxScones}`,
-    );
-
-    // todo fee: maybe mint new Scones, send to reward pool, increment how
-    // much must be paid back
-
-    // todo trigger process() check right away, in case the price dropped while we ran
-
-    // todo (from dean) use a different offer for newly minted stablecoins,
-    // to prevent something something that lets them get back both their
-    // collateral and the new coins
-
-    sconeMint.mintGains({ Scones: sconesWanted }, collateralSeat);
-
-    trade(
-      zcf,
-      { seat: collateralSeat, gains: { Collateral: collateralAmount } },
-      { seat, gains: { Scones: sconesWanted } },
-    );
-
-    const sconeDebt = sconesWanted; // todo +fee
-
-    const { updater, notifier } = makeNotifierKit();
-    const vaultKit = makeVault(
+    const vaultKit = makeVaultKit(
       zcf,
       innerFacet,
-      collateralSeat,
-      sconeDebt,
       sconeMint,
       autoswap,
       priceAuthority,
-      updater,
+      rewardPoolStaging,
     );
-    const { vault } = vaultKit;
+
+    const { vault, openLoan } = vaultKit;
+    const { notifier, collateralPayoutP } = await openLoan(seat);
     allVaults.push(vaultKit);
 
     seat.exit();
@@ -193,7 +150,7 @@ export function makeVaultManager(
   /** @type {VaultManager} */
   return harden({
     ...shared,
-    makeLoan,
+    makeLoanKit,
     liquidateAll,
   });
 }

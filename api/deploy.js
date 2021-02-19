@@ -154,19 +154,19 @@ export default async function deployApi(homePromise, endowments) {
     {
       initialPrice: 125,
       initialMargin: 1.5,
-      liquidationMargin: 1.25,
+      liquidationMargin: 125,
       interestRate: 0.025,
     },
     {
       initialPrice: 150,
       initialMargin: 1.5,
-      liquidationMargin: 1.2,
+      liquidationMargin: 120,
       interestRate: 0.02,
     },
     {
       initialPrice: 110,
       initialMargin: 1.2,
-      liquidationMargin: 1.05,
+      liquidationMargin: 105,
       interestRate: 0.01,
     },
   ];

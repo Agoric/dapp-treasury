@@ -20,7 +20,8 @@ const trace = makeTracer('ST');
 
 /** @type {ContractStartFn} */
 export async function start(zcf) {
-  const { autoswapInstall, priceAuthority } = zcf.getTerms();
+  // loanParams has time limits for charging interest
+  const { autoswapInstall, priceAuthority, loanParams: _p } = zcf.getTerms();
 
   const [sconeMint, govMint] = await Promise.all([
     zcf.makeZCFMint('Scones', undefined, { decimalPlaces: 3 }),
@@ -31,11 +32,20 @@ export async function start(zcf) {
     amountMath: sconeMath,
     brand: _sconeBrand,
   } = sconeMint.getIssuerRecord();
+
   const {
     issuer: _govIssuer,
     amountMath: govMath,
     brand: _govBrand,
   } = govMint.getIssuerRecord();
+
+  // This is a stand-in for a reward pool. For now, it's a place to squirrel
+  // away fees so the tests show that the funds have been removed.
+  const { zcfSeat: rewardPoolSeat } = zcf.makeEmptySeatKit();
+
+  function rewardPoolStaging(amount) {
+    return rewardPoolSeat.stage({ Scones: amount });
+  }
 
   // TODO sinclair+us: is there a scm/gov token per collateralType (joe says yes), or just one?
   /** @type {Store<Brand,VaultManager>} */
@@ -87,7 +97,7 @@ export async function start(zcf) {
       // govSeat stores the collateral as Secondary. We then mint new Scones for
       // govSeat and store them as Central. govSeat then creates a liquidity
       // pool for autoswap, trading in Central and Secondary for governance
-      // tokens as Liquidity
+      // tokens as Liquidity. These governance tokens are held by govSeat
       const { zcfSeat: govSeat } = zcf.makeEmptySeatKit();
       // TODO this should create the seat for us
       govMint.mintGains({ Governance: govAmount }, govSeat);
@@ -104,8 +114,6 @@ export async function start(zcf) {
         { seat: govSeat, gains: { Secondary: collateralIn } },
       );
       // the collateral is now on the temporary seat
-      // govSeat.exit();
-      trace('traded');
 
       // once we've done that, we can put both the collateral and the minted
       // scones into the autoswap, giving us liquidity tokens, which we store
@@ -113,7 +121,6 @@ export async function start(zcf) {
       // mint the new scones to the Central position on the govSeat
       // so we can setup the autoswap pool
       sconeMint.mintGains({ Central: sconesAmount }, govSeat);
-      trace('prepped');
 
       // TODO: check for existing pool, use its price instead of the
       // user-provided 'rate'. Or throw an error if it already exists.
@@ -160,6 +167,7 @@ export async function start(zcf) {
         collateralBrand,
         priceAuthority,
         rates,
+        rewardPoolStaging,
       );
       collateralTypes.init(collateralBrand, vm);
       return vm;
@@ -193,7 +201,7 @@ export async function start(zcf) {
       );
       /** @type {VaultManager} */
       const mgr = collateralTypes.get(brandIn);
-      return mgr.makeLoan(seat);
+      return mgr.makeLoanKit(seat);
     }
 
     return zcf.makeInvitation(makeLoanHook, 'make a loan');
@@ -237,16 +245,26 @@ export async function start(zcf) {
       Promise.all(
         collateralTypes.entries().map(async ([brand, vm]) => {
           const { quoteAmount } = await vm.getCollateralQuote();
+          const amountMath = zcf.getAmountMath(brand);
+          // Percent doesn't currently support printing its value, so
+          // scale a standardized value.
+          const margin = vm.getLiquidationMargin().scale(amountMath.make(100));
           return {
             brand,
-            liquidationMargin: vm.getLiquidationMargin(),
+            liquidationMargin: margin.value,
             initialMargin: vm.getInitialMargin(),
-            stabilityFee: vm.getStabilityFee(),
+            stabilityFee: vm.getLoanFee(),
             marketPrice: quoteAmount.value[0].amountOut,
           };
         }),
       ),
     );
+  }
+
+  // Eventually the reward pool will live elsewhere. For now it's here for
+  // bookkeeping. It's needed in tests.
+  function getRewardAllocation() {
+    return rewardPoolSeat.getCurrentAllocation();
   }
 
   const publicFacet = harden({
@@ -264,6 +282,7 @@ export async function start(zcf) {
       return autoswapInstance;
     },
     getCollaterals,
+    getRewardAllocation,
   });
 
   return harden({ creatorFacet: stablecoinMachine, publicFacet });
