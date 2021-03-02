@@ -38,20 +38,20 @@ export async function start(zcf) {
   const autoswapMock = {
     getInputPrice(amountIn, brandOut) {
       assert.equal(brandOut, sconeBrand);
-      return sconeMath.make(4 * amountIn.value);
+      return sconeMath.make(4n * amountIn.value);
     },
   };
 
   /** @type {InnerVaultManager} */
   const managerMock = {
     getLiquidationMargin() {
-      return makePercent(105, sconeMath, 100);
+      return makePercent(105n, sconeMath, 100);
     },
     getInitialMargin() {
-      return 1.5;
+      return 150n;
     },
     getLoanFee() {
-      return makePercent(500, sconeMath, 10000);
+      return makePercent(500n, sconeMath, 10000);
     },
     collateralMath,
     collateralBrand,
@@ -67,7 +67,7 @@ export async function start(zcf) {
   };
   const priceAuthority = makeFakePriceAuthority(options);
 
-  function rewardPoolStaging(amount, fromSeat) {
+  function rewardPoolStaging(amount) {
     return stableCoinSeat.stage({ Scones: amount });
   }
 

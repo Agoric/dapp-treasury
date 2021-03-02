@@ -154,15 +154,15 @@ test('first', async t => {
   const capitalAmount = aethMath.make(900);
   const rates = {
     // exchange rate
-    initialPrice: 201,
+    initialPrice: 201n,
     // margin required to open a loan
-    initialMargin: 1.2,
+    initialMargin: 120n,
     // margin required to maintain a loan
-    liquidationMargin: 105,
+    liquidationMargin: 105n,
     // periodic interest rate (per charging period)
-    interestRateBPs: 100,
+    interestRateBPs: 100n,
     // charge to create or increase loan balance
-    loanFeeBPs: 500,
+    loanFeeBPs: 500n,
   };
   const aethVaultSeat = await E(zoe).offer(
     E(stablecoinMachine).makeAddTypeInvitation(aethIssuer, 'AEth', rates),
@@ -196,7 +196,7 @@ test('first', async t => {
   const { vault, _liquidationPayout } = await E(loanSeat).getOfferResult();
   const debtAmount = await E(vault).getDebtAmount();
   const fee = sconeMath.make(
-    natSafeMath.floorDivide(rates.loanFeeBPs * 4700, BASIS_POINTS),
+    natSafeMath.floorDivide(rates.loanFeeBPs * 4700n, BASIS_POINTS),
   );
   t.deepEqual(
     debtAmount,
@@ -328,11 +328,11 @@ test('price drop', async t => {
   // Add a pool with 900 aeth at a 201 scones/aeth rate
   const capitalAmount = aethMath.make(900);
   const rates = {
-    initialPrice: 201,
-    initialMargin: 1.2,
-    liquidationMargin: 105,
-    interestRateBPs: 100,
-    loanFeeBPs: 500,
+    initialPrice: 201n,
+    initialMargin: 120n,
+    liquidationMargin: 105n,
+    interestRateBPs: 100n,
+    loanFeeBPs: 500n,
   };
   const aethVaultSeat = await E(zoe).offer(
     E(stablecoinMachine).makeAddTypeInvitation(aethIssuer, 'AEth', rates),
@@ -369,7 +369,7 @@ test('price drop', async t => {
   ).getOfferResult();
   const debtAmount = await E(vault).getDebtAmount();
   const fee = sconeMath.make(
-    natSafeMath.floorDivide(rates.loanFeeBPs * 470, BASIS_POINTS),
+    natSafeMath.floorDivide(rates.loanFeeBPs * 470n, BASIS_POINTS),
   );
   t.deepEqual(
     debtAmount,
@@ -489,11 +489,11 @@ test('price falls precipitously', async t => {
   // Add a pool with 900 aeth at a 201 scones/aeth rate
   const capitalAmount = aethMath.make(900);
   const rates = {
-    initialPrice: 201,
-    initialMargin: 1.2,
-    liquidationMargin: 105,
-    interestRateBPs: 100,
-    loanFeeBPs: 500,
+    initialPrice: 201n,
+    initialMargin: 120n,
+    liquidationMargin: 105n,
+    interestRateBPs: 100n,
+    loanFeeBPs: 500n,
   };
   const aethVaultSeat = await E(zoe).offer(
     E(stablecoinMachine).makeAddTypeInvitation(aethIssuer, 'AEth', rates),
@@ -528,7 +528,7 @@ test('price falls precipitously', async t => {
   const { vault, liquidationPayout } = await E(loanSeat).getOfferResult();
   const debtAmount = await E(vault).getDebtAmount();
   const fee = sconeMath.make(
-    natSafeMath.floorDivide(rates.loanFeeBPs * 470, BASIS_POINTS),
+    natSafeMath.floorDivide(rates.loanFeeBPs * 470n, BASIS_POINTS),
   );
   t.deepEqual(
     debtAmount,

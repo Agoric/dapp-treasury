@@ -152,22 +152,25 @@ export default async function deployApi(homePromise, endowments) {
 
   const additionalConfig = [
     {
-      initialPrice: 125,
-      initialMargin: 1.5,
-      liquidationMargin: 125,
-      interestRate: 0.025,
+      initialPrice: 125n,
+      initialMargin: 150n,
+      liquidationMargin: 125n,
+      interestRateBPs: 250n,
+      loanFeeBPs: 50n,
     },
     {
-      initialPrice: 150,
-      initialMargin: 1.5,
-      liquidationMargin: 120,
-      interestRate: 0.02,
+      initialPrice: 150n,
+      initialMargin: 150n,
+      liquidationMargin: 120n,
+      interestRateBPs: 200n,
+      loanFeeBPs: 150n,
     },
     {
-      initialPrice: 110,
-      initialMargin: 1.2,
-      liquidationMargin: 105,
-      interestRate: 0.01,
+      initialPrice: 110n,
+      initialMargin: 120n,
+      liquidationMargin: 105n,
+      interestRateBPs: 100n,
+      loanFeeBPs: 225n,
     },
   ];
 

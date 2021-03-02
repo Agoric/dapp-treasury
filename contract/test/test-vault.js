@@ -153,7 +153,7 @@ test('first', async t => {
     'vault holds 69 Collateral',
   );
   t.deepEqual(returnedAmount, cMath.make(1), 'withdrew 1 collateral');
-  t.is(returnedAmount.value, 1, 'withdrew 1 collateral');
+  t.is(returnedAmount.value, 1n, 'withdrew 1 collateral');
 });
 
 test('bad collateral', async t => {

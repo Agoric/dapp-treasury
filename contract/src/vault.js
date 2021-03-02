@@ -11,6 +11,7 @@ import {
 } from '@agoric/zoe/src/contractSupport';
 import { makeNotifierKit } from '@agoric/notifier';
 
+import { makePercent } from '@agoric/zoe/src/contractSupport/percentMath';
 import { burn } from './burn';
 import { makeTracer } from './makeTracer';
 
@@ -459,8 +460,12 @@ export function makeVaultKit(
       sconeBrand,
     );
     // TODO(hibbert) When we can divide by Ratios, use a Ratio here
-    const maxValue = Math.ceil(salePrice.value / manager.getInitialMargin());
-    const maxScones = sconeMath.make(maxValue);
+    const inverseInitialMargin = makePercent(
+      100n,
+      sconeMath,
+      manager.getInitialMargin(),
+    );
+    const maxScones = inverseInitialMargin.scale(salePrice);
     assert(
       sconeMath.isGTE(maxScones, sconesWanted),
       details`Requested ${sconesWanted} exceeds max ${maxScones}`,
