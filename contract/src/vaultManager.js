@@ -3,7 +3,6 @@ import '@agoric/zoe/exported';
 
 import { E } from '@agoric/eventual-send';
 import { assertProposalShape } from '@agoric/zoe/src/contractSupport';
-import { makePercent } from '@agoric/zoe/src/contractSupport/percentMath';
 import { makeVaultKit } from './vault';
 
 // Each VaultManager manages a single collateralType. It owns an autoswap
@@ -13,8 +12,6 @@ import { makeVaultKit } from './vault';
 
 // todo: two timers: one to increment fees, second (not really timer) when
 // the autoswap price changes, to check if we need to liquidate
-
-const BASIS_POINTS = 10000;
 
 /** @type {MakeVaultManager} */
 export function makeVaultManager(
@@ -27,7 +24,7 @@ export function makeVaultManager(
   rewardPoolStaging,
 ) {
   const {
-    amountMath: sconeMath,
+    amountMath: _sconeMath,
     brand: sconeBrand,
   } = sconeMint.getIssuerRecord();
   const collateralMath = zcf.getAmountMath(collateralBrand);
@@ -72,22 +69,21 @@ export function makeVaultManager(
   // end users can ask the SCM for loans with some collateral, and the SCM asks
   // us to make a new Vault
 
-  const loanFee = makePercent(rates.loanFeeBPs, sconeMath, BASIS_POINTS);
-
   // We want an inverted version. Ratio will support that, but Percent doesn't
-  const liqMargin = makePercent(rates.liquidationMargin, sconeMath);
-
   const shared = {
     // loans below this margin may be liquidated
     getLiquidationMargin() {
-      return liqMargin;
+      return rates.liquidationMargin;
     },
     // loans must initially have at least 1.2x collateralization
     getInitialMargin() {
       return rates.initialMargin;
     },
     getLoanFee() {
-      return loanFee;
+      return rates.loanFee;
+    },
+    getInterestRate() {
+      return rates.interestRate;
     },
     async getCollateralQuote() {
       // get a quote for one unit of the collateral

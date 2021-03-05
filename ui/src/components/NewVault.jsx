@@ -24,6 +24,8 @@ import {
 } from '@material-ui/core';
 import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
 import NumberFormat from 'react-number-format';
+import { multiplyBy } from '@agoric/zoe/src/contractSupport';
+import { toPrintedPercent } from '../utils/helper';
 
 import TransferDialog from './TransferDialog';
 import VaultSteps from './VaultSteps';
@@ -144,12 +146,14 @@ function VaultCollateral({ collaterals, dispatch, vaultParams }) {
                     })}
                   </TableCell>
                   <TableCell align="right">
-                    {row.initialMargin * 100}%
+                    {toPrintedPercent(row.initialMargin)}%
                   </TableCell>
                   <TableCell align="right">
-                    {row.liquidationMargin * 100}%
+                    {toPrintedPercent(row.liquidationMargin)}%
                   </TableCell>
-                  <TableCell align="right">{row.stabilityFee * 100}%</TableCell>
+                  <TableCell align="right">
+                    {toPrintedPercent(row.stabilityFee, 2n)}%
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -245,14 +249,10 @@ function VaultConfigure({
         return;
       }
       // const decimalPlaces = (toLockDI && toLockDI.decimalPlaces) || 0;
-      const price = vaultCollateral.marketPrice.value / 10 ** 6;
+      const price = vaultCollateral.marketPrice;
       if ('toBorrow' in changes) {
         if ('collateralPercent' in vaultParams) {
-          changes.toLock = Math.floor(
-            (Number(changes.toBorrow) * Number(collateralPercent)) /
-              price /
-              100,
-          );
+          changes.toLock = multiplyBy(price, collateralPercent);
           // } else if ('toLock' in vaultParams) {
           //   changes.collateralPercent = Math.floor(
           //     (Number(toLock) * price) / Number(changes.toBorrow),
@@ -480,15 +480,21 @@ export function VaultConfirmation({ vaultParams }) {
           </TableRow>
           <TableRow>
             <TableCell>Interest Rate</TableCell>
-            <TableCell align="right">{stabilityFee * 100}%</TableCell>
+            <TableCell align="right">
+              {toPrintedPercent(stabilityFee, 1n)}%
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Liquidation Ratio</TableCell>
-            <TableCell align="right">{liquidationMargin * 100}%</TableCell>
+            <TableCell align="right">
+              {toPrintedPercent(liquidationMargin)}%
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Collateral Ratio</TableCell>
-            <TableCell align="right">{collateralPercent}%</TableCell>
+            <TableCell align="right">
+              {toPrintedPercent(collateralPercent)}%
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Liquidation Penalty</TableCell>

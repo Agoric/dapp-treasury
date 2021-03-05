@@ -6,16 +6,18 @@ import { E } from '@agoric/eventual-send';
 import {
   trade,
   assertProposalShape,
-  natSafeMath,
   offerTo,
+  divideBy,
+  multiplyBy,
+  getAmountOut,
+  makeRatioFromAmounts,
 } from '@agoric/zoe/src/contractSupport';
 import { makeNotifierKit } from '@agoric/notifier';
 
-import { makePercent } from '@agoric/zoe/src/contractSupport/percentMath';
+import { makeRatio } from '@agoric/zoe/src/contractSupport/ratio';
 import { burn } from './burn';
 import { makeTracer } from './makeTracer';
 
-const { floorDivide, multiply } = natSafeMath;
 const AutoswapInsufficientMsg = / is insufficient to buy amountOut /;
 
 // a Vault is an individual loan, using some collateralType as the
@@ -43,8 +45,6 @@ const AutoswapInsufficientMsg = / is insufficient to buy amountOut /;
  *   want: { Collateral }
  *   want: { Collateral } give: Scones
  */
-
-const PERCENT_BASE = 100;
 
 /** @type {MakeVaultKit} */
 export function makeVaultKit(
@@ -84,34 +84,30 @@ export function makeVaultKit(
 
   async function getCollateralizationRatio() {
     if (collateralMath.isEmpty(getCollateralAmount())) {
-      return Promise.resolve(0);
+      return Promise.resolve(makeRatio(0, sconeBrand));
     }
-    const { quoteAmount } = await E(priceAuthority).quoteGiven(
+    const quoteAmount = await E(priceAuthority).quoteGiven(
       getCollateralAmount(),
       sconeBrand,
     );
-    // When Percents can produce a value for display, we should use that instead
-    const collateralValueInScones = quoteAmount.value[0].amountOut.value;
-    const numerator = multiply(collateralValueInScones, PERCENT_BASE);
-    const denominator = sconeDebt.value;
-    return floorDivide(numerator, denominator);
+    const collateralValueInScones = getAmountOut(quoteAmount);
+    return makeRatioFromAmounts(collateralValueInScones, sconeDebt);
   }
 
   // call this whenever anything changes!
   async function updateUiState() {
-    // liquidationRatio is used in the UI as a percent to be multiplied by 100
-    // for display
-    const liquidationRatio = manager
-      .getLiquidationMargin()
-      .scale(sconeMath.make(PERCENT_BASE)).value;
+    // TODO(123): track down all calls and ensure that they all update a
+    // lastKnownCollateralizationRatio (since they all know) so we don't have to
+    // await quoteGiven() here
+    // [https://github.com/Agoric/dapp-token-economy/issues/123]
+    const collateralizationRatio = await getCollateralizationRatio();
     /** @type {UIState} */
     const uiState = harden({
-      interestRate: 0,
-      // TODO(hibbert): change liquidationMargin to be an int.
-      liquidationRatio,
+      interestRate: manager.getInterestRate(),
+      liquidationRatio: manager.getLiquidationMargin(),
       locked: getCollateralAmount(),
       debt: sconeDebt,
-      collateralizationRatio: await getCollateralizationRatio(),
+      collateralizationRatio,
       liquidated: !active,
     });
 
@@ -223,7 +219,7 @@ export function makeVaultKit(
 
     const margin = manager.getLiquidationMargin();
     // that collateral will support a loan of at most this many scones
-    const maxScones = margin.scale(salePrice);
+    const maxScones = multiplyBy(salePrice, margin);
     // TODO is there a better policy than:
     //      don't reject if they are not taking out collateral
     if (!collateralMath.isEmpty(collateralWanted)) {
@@ -427,7 +423,10 @@ export function makeVaultKit(
   async function scheduleLiquidation() {
     const liquidationMargin = manager.getLiquidationMargin();
     // how much collateral valuation is required to support the current debt
-    const collateralSconesValueRequired = liquidationMargin.scale(sconeDebt);
+    const collateralSconesValueRequired = multiplyBy(
+      sconeDebt,
+      liquidationMargin,
+    );
     const collateralAmountWhenScheduled = getCollateralAmount();
     const quote = await E(priceAuthority).quoteWhenLT(
       collateralAmountWhenScheduled,
@@ -459,13 +458,8 @@ export function makeVaultKit(
       collateralAmount,
       sconeBrand,
     );
-    // TODO(hibbert) When we can divide by Ratios, use a Ratio here
-    const inverseInitialMargin = makePercent(
-      100n,
-      sconeMath,
-      manager.getInitialMargin(),
-    );
-    const maxScones = inverseInitialMargin.scale(salePrice);
+
+    const maxScones = divideBy(salePrice, manager.getInitialMargin());
     assert(
       sconeMath.isGTE(maxScones, sconesWanted),
       details`Requested ${sconesWanted} exceeds max ${maxScones}`,
@@ -473,7 +467,7 @@ export function makeVaultKit(
 
     // todo trigger process() check right away, in case the price dropped while we ran
 
-    const fee = manager.getLoanFee().scale(sconesWanted);
+    const fee = multiplyBy(sconesWanted, manager.getLoanFee());
     if (sconeMath.isEmpty(fee)) {
       throw seat.exit('loan requested is too small; cannot accrue interest');
     }

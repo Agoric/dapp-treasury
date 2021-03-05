@@ -1,17 +1,18 @@
 // @ts-check
 import '@agoric/zoe/src/types';
 
-import { makeIssuerKit } from '@agoric/ertp';
+import { makeIssuerKit, MathKind } from '@agoric/ertp';
 
 import { assert } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
 import buildManualTimer from '@agoric/zoe/tools/manualTimer';
 import { makeFakePriceAuthority } from '@agoric/zoe/tools/fakePriceAuthority';
-import { makePercent } from '@agoric/zoe/src/contractSupport/percentMath';
-import { trade } from '@agoric/zoe/src/contractSupport';
+import { makeRatio } from '@agoric/zoe/src/contractSupport/ratio';
+
 import { makeVaultKit } from '../src/vault';
 import { paymentFromZCFMint } from '../src/burn';
-import { MathKind } from '../../_agstate/yarn-links/@agoric/ertp';
+
+const BASIS_POINTS = 10000n;
 
 /** @param {ContractFacet} zcf */
 export async function start(zcf) {
@@ -45,13 +46,16 @@ export async function start(zcf) {
   /** @type {InnerVaultManager} */
   const managerMock = {
     getLiquidationMargin() {
-      return makePercent(105n, sconeMath, 100);
+      return makeRatio(105n, sconeBrand);
     },
     getInitialMargin() {
-      return 150n;
+      return makeRatio(150n, sconeBrand);
     },
     getLoanFee() {
-      return makePercent(500n, sconeMath, 10000);
+      return makeRatio(500n, sconeBrand, BASIS_POINTS);
+    },
+    getInterestRate() {
+      return makeRatio(200, sconeBrand, BASIS_POINTS);
     },
     collateralMath,
     collateralBrand,

@@ -8,24 +8,22 @@
 
 /**
  * @typedef {Object} Collateral
- * @property {number} initialMargin
- * @property {number} liquidationMargin
- * @property {Percent} stabilityFee
+ * @property {Ratio} initialMargin
+ * @property {Ratio} liquidationMargin
+ * @property {Ratio} stabilityFee
  * @property {Amount} marketPrice
  * @property {Brand} brand
  */
 
 /**
  * @typedef {Object} Rates
- * @property {number} initialMargin minimum required over-collateralization
+ * @property {Ratio} initialMargin minimum required over-collateralization
  * required to open a loan
- * @property {number} liquidationMargin margin below which collateral will be
+ * @property {Ratio} liquidationMargin margin below which collateral will be
  * liquidated to satisfy the debt.
- * @property {number} initialPrice price ratio of collateral to stablecoin
- * @property {number} interestRateBPs interest rate (in Basis Points) charged
- * on loans. This number will be divided by chargingPeriods/year to get a rate
- * per chargingPeriod.
- * @property {number} loanFeeBPs The fee (in BasisPoints) charged when opening
+ * @property {Ratio} initialPrice price ratio of collateral to stablecoin
+ * @property {Ratio} interestRate interest rate charged on loans
+ * @property {Ratio} loanFee The fee (in BasisPoints) charged when opening
  * or increasing a loan.
  */
 
@@ -38,12 +36,11 @@
 
 /**
  * @typedef {Object} UIState
- * @property {number} interestRate
- * @property {number} liquidationRatio
+ * @property {Ratio} interestRate
+ * @property {Ratio} liquidationRatio
  * @property {Amount} locked Amount of Collateral locked
  * @property {Amount} debt Amount of Loan (including accrued interest)
- * @property {number} collateralizationRatio a whole number percent; expected to
- * be greater than 100
+ * @property {Ratio} collateralizationRatio
  * @property {boolean} liquidated boolean showing whether liquidation occurred
  */
 
@@ -51,20 +48,22 @@
  * @typedef {Object} InnerVaultManager
  * @property {AmountMath} collateralMath
  * @property {Brand} collateralBrand
- * @property {() => Percent} getLiquidationMargin
- * @property {() => Percent} getLoanFee
+ * @property {() => Ratio} getLiquidationMargin
+ * @property {() => Ratio} getLoanFee
  * @property {() => Promise<PriceQuote>} getCollateralQuote
- * @property {() => number} getInitialMargin
+ * @property {() => Ratio} getInitialMargin
+ * @property {() => Ratio} getInterestRate
  */
 
 /**
  * @typedef {Object} VaultManager
  * @property {(ZCFSeat) => Promise<LoanKit>}  makeLoanKit
  * @property {() => void} liquidateAll
- * @property {() => Percent} getLiquidationMargin
- * @property {() => Percent} getLoanFee
+ * @property {() => Ratio} getLiquidationMargin
+ * @property {() => Ratio} getLoanFee
  * @property {() => Promise<PriceQuote>} getCollateralQuote
- * @property {() => number} getInitialMargin
+ * @property {() => Ratio} getInitialMargin
+ * @property {() => Ratio} getInterestRate
  */
 
 /**

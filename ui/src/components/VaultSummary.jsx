@@ -8,6 +8,7 @@ import {
   TableRow,
 } from '@material-ui/core';
 
+import { toPrintedPercent } from '../utils/helper';
 import { stringifyValue } from './display';
 
 export function VaultSummary({ vault }) {
@@ -50,19 +51,27 @@ export function VaultSummary({ vault }) {
           </TableRow>
           <TableRow>
             <TableCell>Interest Rate</TableCell>
-            <TableCell align="right">{stabilityFee * 100}%</TableCell>
+            <TableCell align="right">
+              {toPrintedPercent(stabilityFee, 2n)}%
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Liquidation Ratio</TableCell>
-            <TableCell align="right">{liquidationRatio * 100}%</TableCell>
+            <TableCell align="right">
+              {toPrintedPercent(liquidationRatio)}%
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Collateral Ratio</TableCell>
-            <TableCell align="right">{collateralizationRatio}%</TableCell>
+            <TableCell align="right">
+              {toPrintedPercent(collateralizationRatio)}%
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Liquidation Penalty</TableCell>
-            <TableCell align="right">{liquidationPenalty}%</TableCell>
+            <TableCell align="right">
+              {toPrintedPercent(liquidationPenalty)}%
+            </TableCell>
           </TableRow>
         </TableBody>
       </Table>

@@ -8,6 +8,7 @@ import bundleSource from '@agoric/bundle-source';
 import { makeHelpers } from '@agoric/deploy-script-support';
 import { assert } from '@agoric/assert';
 
+import { makeRatio } from '@agoric/zoe/src/contractSupport/ratio';
 import installationConstants from '../ui/src/generated/installationConstants';
 import { makeAddCollateralType } from './addCollateralType';
 import { makeLocalAmountMath } from '../../agoric-sdk/node_modules/@agoric/ertp/src';
@@ -149,28 +150,30 @@ export default async function deployApi(homePromise, endowments) {
       backupCollateralIssuersConfig,
     );
   }
+  const BASIS_POINTS = 10000n;
+  const PERCENT = 100n;
 
   const additionalConfig = [
     {
       initialPrice: 125n,
       initialMargin: 150n,
       liquidationMargin: 125n,
-      interestRateBPs: 250n,
-      loanFeeBPs: 50n,
+      interestRate: 250n,
+      loanFee: 50n,
     },
     {
       initialPrice: 150n,
       initialMargin: 150n,
       liquidationMargin: 120n,
-      interestRateBPs: 200n,
-      loanFeeBPs: 150n,
+      interestRate: 200n,
+      loanFee: 150n,
     },
     {
       initialPrice: 110n,
       initialMargin: 120n,
       liquidationMargin: 105n,
-      interestRateBPs: 100n,
-      loanFeeBPs: 225n,
+      interestRate: 100n,
+      loanFee: 225n,
     },
   ];
 
@@ -190,7 +193,19 @@ export default async function deployApi(homePromise, endowments) {
   ];
 
   const treasuryVaultManagerParams = await Promise.all(
-    additionalConfig.map(async (rates, i) => {
+    additionalConfig.map(async (rateValues, i) => {
+      const rates = {
+        initialPrice: makeRatio(
+          rateValues.initialPrice,
+          moeBrand,
+          PERCENT,
+          collateralIssuers[i].amount.brand,
+        ),
+        initialMargin: makeRatio(150n, moeBrand),
+        liquidationMargin: makeRatio(125n, moeBrand),
+        interestRate: makeRatio(250n, moeBrand, BASIS_POINTS),
+        loanFee: makeRatio(50n, moeBrand, BASIS_POINTS),
+      };
       const issuerBoardId = await E(board).getId(collateralIssuers[i].issuer);
       return {
         keyword: collateralIssuers[i].symbol,

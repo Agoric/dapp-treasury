@@ -11,8 +11,10 @@ import {
   trade,
   assertProposalShape,
   offerTo,
+  getAmountOut,
 } from '@agoric/zoe/src/contractSupport';
 
+import { multiplyBy } from '@agoric/zoe/src/contractSupport/ratio';
 import { makeTracer } from './makeTracer';
 import { makeVaultManager } from './vaultManager';
 
@@ -27,17 +29,8 @@ export async function start(zcf) {
     zcf.makeZCFMint('Scones', undefined, { decimalPlaces: 3 }),
     zcf.makeZCFMint('Governance', undefined, { decimalPlaces: 6 }),
   ]);
-  const {
-    issuer: sconeIssuer,
-    amountMath: sconeMath,
-    brand: _sconeBrand,
-  } = sconeMint.getIssuerRecord();
-
-  const {
-    issuer: _govIssuer,
-    amountMath: govMath,
-    brand: _govBrand,
-  } = govMint.getIssuerRecord();
+  const { issuer: sconeIssuer } = sconeMint.getIssuerRecord();
+  const { amountMath: govMath } = govMint.getIssuerRecord();
 
   // This is a stand-in for a reward pool. For now, it's a place to squirrel
   // away fees so the tests show that the funds have been removed.
@@ -87,9 +80,7 @@ export async function start(zcf) {
       // of restructure so that's not an issue
       // TODO assert that the collateralIn is of the right brand
       trace('add collateral', collateralIn);
-      const sconesAmount = sconeMath.make(
-        rates.initialPrice * collateralIn.value,
-      );
+      const sconesAmount = multiplyBy(collateralIn, rates.initialPrice);
       const govAmount = govMath.make(sconesAmount.value); // TODO what's the right amount?
 
       // Create new governance tokens, trade them with the incoming offer for
@@ -244,17 +235,13 @@ export async function start(zcf) {
     return harden(
       Promise.all(
         collateralTypes.entries().map(async ([brand, vm]) => {
-          const { quoteAmount } = await vm.getCollateralQuote();
-          const amountMath = zcf.getAmountMath(brand);
-          // Percent doesn't currently support printing its value, so
-          // scale a standardized value.
-          const margin = vm.getLiquidationMargin().scale(amountMath.make(100));
+          const quoteAmount = await vm.getCollateralQuote();
           return {
             brand,
-            liquidationMargin: margin.value,
+            liquidationMargin: vm.getLiquidationMargin(),
             initialMargin: vm.getInitialMargin(),
             stabilityFee: vm.getLoanFee(),
-            marketPrice: quoteAmount.value[0].amountOut,
+            marketPrice: getAmountOut(quoteAmount),
           };
         }),
       ),

@@ -34,6 +34,7 @@
     "@agoric/ertp": "*",
     "@agoric/eventual-send": "*",
     "@agoric/notifier": "*",
+    "@agoric/zoe": "*",
     "@material-ui/core": "^4.9.3",
     "@material-ui/icons": "^4.9.1",
     "@material-ui/styles": "^4.11.2",
