@@ -11,12 +11,14 @@ import {
   multiplyBy,
   getAmountOut,
   makeRatioFromAmounts,
+  getAmountIn,
 } from '@agoric/zoe/src/contractSupport';
 import { makeNotifierKit } from '@agoric/notifier';
 
 import { makeRatio } from '@agoric/zoe/src/contractSupport/ratio';
 import { burn } from './burn';
 import { makeTracer } from './makeTracer';
+import { makeInterestCalculator } from './interest';
 
 const AutoswapInsufficientMsg = / is insufficient to buy amountOut /;
 
@@ -53,7 +55,8 @@ export function makeVaultKit(
   sconeMint,
   autoswap,
   priceAuthority,
-  rewardPoolStaging,
+  loanParams,
+  startTimeStamp,
 ) {
   const trace = makeTracer('VV');
   const { updater: uiUpdater, notifier } = makeNotifierKit();
@@ -61,6 +64,8 @@ export function makeVaultKit(
   let active = true; // liquidation halts all user actions
   const collateralMath = manager.collateralMath;
   const collateralBrand = manager.collateralBrand;
+  // timestamp of most recent update to interest
+  let latestInterestUpdate = startTimeStamp;
 
   // this seat will hold the collateral until the loan is retired. The
   // payout from it will be handed to the user: if the vault dies early
@@ -74,6 +79,12 @@ export function makeVaultKit(
     brand: sconeBrand,
   } = sconeMint.getIssuerRecord();
   let sconeDebt = sconeMath.getEmpty();
+  const interestCalculator = makeInterestCalculator(
+    sconeMath,
+    manager.getInterestRate(),
+    loanParams.chargingPeriod,
+    loanParams.recordingPeriod,
+  );
 
   function getCollateralAmount() {
     // todo?: assert(active, 'vault has been liquidated');
@@ -199,10 +210,11 @@ export function makeVaultKit(
       precheckCollateral,
       collateralWanted,
     );
-    const salePrice = await E(autoswap).getInputPrice(
+    const quoteAmount = await E(priceAuthority).quoteGiven(
       remainingCollateral,
       sconeBrand,
     );
+    const valueOfRemainingCollateral = getAmountOut(quoteAmount);
 
     // IF THE COLLATERAL HAS CHANGED, RESTART
     if (!collateralMath.isGTE(precheckCollateral, getCollateralAmount())) {
@@ -219,7 +231,7 @@ export function makeVaultKit(
 
     const margin = manager.getLiquidationMargin();
     // that collateral will support a loan of at most this many scones
-    const maxScones = multiplyBy(salePrice, margin);
+    const maxScones = multiplyBy(valueOfRemainingCollateral, margin);
     // TODO is there a better policy than:
     //      don't reject if they are not taking out collateral
     if (!collateralMath.isEmpty(collateralWanted)) {
@@ -314,6 +326,10 @@ export function makeVaultKit(
   }
 
   async function liquidate() {
+    if (!active) {
+      return;
+    }
+
     const collateralBefore = getCollateralAmount();
     const liqProposal = harden({
       give: { In: collateralBefore },
@@ -432,11 +448,10 @@ export function makeVaultKit(
       collateralAmountWhenScheduled,
       collateralSconesValueRequired,
     );
-    // priceQuote is { amountIn, amountOut, timer, timestamp }
-    const { amountIn, amountOut } = quote.quoteAmount.value[0];
+    const amountIn = getAmountIn(quote);
     // If this quote doesn't correspond to the current balance, ignore it.
     if (collateralMath.isEqual(collateralAmountWhenScheduled, amountIn)) {
-      checkMargin(amountOut);
+      liquidate();
     }
   }
 
@@ -454,11 +469,12 @@ export function makeVaultKit(
 
     const collateralPayoutP = E(userSeat).getPayouts();
 
-    const salePrice = await E(autoswap).getInputPrice(
+    const { quoteAmount } = await E(priceAuthority).quoteGiven(
       collateralAmount,
       sconeBrand,
     );
 
+    const salePrice = quoteAmount.value[0].amountOut;
     const maxScones = divideBy(salePrice, manager.getInitialMargin());
     assert(
       sconeMath.isGTE(maxScones, sconesWanted),
@@ -487,16 +503,28 @@ export function makeVaultKit(
       Scones: sconesWanted,
       Collateral: collateralMath.getEmpty(),
     });
-    zcf.reallocate(
-      collateralSeatStaging,
-      loanSeatStaging,
-      rewardPoolStaging(fee, collateralSeat),
-    );
+    const stageReward = manager.stageReward(fee);
+    zcf.reallocate(collateralSeatStaging, loanSeatStaging, stageReward);
 
     scheduleLiquidation();
     updateUiState();
 
     return { notifier, collateralPayoutP };
+  }
+
+  function accrueInterestAndAddToPool(currentTime) {
+    const interestKit = interestCalculator.calculateReportingPeriod(
+      { latestInterestUpdate, currentDebt: sconeDebt },
+      currentTime,
+    );
+
+    if (interestKit.latestInterestUpdate === latestInterestUpdate) {
+      return sconeMath.getEmpty();
+    }
+
+    ({ latestInterestUpdate, newDebt: sconeDebt } = interestKit);
+    updateUiState();
+    return interestKit.interest;
   }
 
   // todo: add liquidateSome(collateralAmount): sells some collateral, reduces some debt
@@ -524,6 +552,7 @@ export function makeVaultKit(
     liquidate,
     checkMargin,
     openLoan,
+    accrueInterestAndAddToPool,
   });
 }
 

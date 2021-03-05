@@ -22,15 +22,12 @@ export async function start(zcf) {
   const { amountMath: collateralMath, brand: collateralBrand } = collateralKit;
   await zcf.saveIssuer(collateralKit.issuer, 'Collateral'); // todo: CollateralETH, etc
 
-  // const collateralKit = await zcf.makeZCFMint('Collateral');
-  // const { amountMath: collateralMath, brand: collateralBrand } = collateralKit.getIssuerRecord();
-
-  const sconeKit = await zcf.makeZCFMint('Scones');
+  const sconeMint = await zcf.makeZCFMint('Scones');
   const {
     issuer: _sconeIssuer,
     amountMath: sconeMath,
     brand: sconeBrand,
-  } = sconeKit.getIssuerRecord();
+  } = sconeMint.getIssuerRecord();
 
   const { zcfSeat: _collateralSt, userSeat: liqSeat } = zcf.makeEmptySeatKit();
   const { zcfSeat: stableCoinSeat } = zcf.makeEmptySeatKit();
@@ -42,6 +39,10 @@ export async function start(zcf) {
       return sconeMath.make(4n * amountIn.value);
     },
   };
+
+  function stageReward(amount, _fromSeat) {
+    return stableCoinSeat.stage({ Scones: amount });
+  }
 
   /** @type {InnerVaultManager} */
   const managerMock = {
@@ -59,8 +60,10 @@ export async function start(zcf) {
     },
     collateralMath,
     collateralBrand,
+    stageReward,
   };
 
+  const timer = buildManualTimer(console.log);
   const options = {
     mathIn: collateralMath,
     mathOut: sconeMath,
@@ -71,34 +74,34 @@ export async function start(zcf) {
   };
   const priceAuthority = makeFakePriceAuthority(options);
 
-  function rewardPoolStaging(amount) {
-    return stableCoinSeat.stage({ Scones: amount });
-  }
-
-  const { vault, openLoan } = await makeVaultKit(
+  const { vault, openLoan, accrueInterestAndAddToPool } = await makeVaultKit(
     zcf,
     managerMock,
-    sconeKit,
+    sconeMint,
     autoswapMock,
     priceAuthority,
-    rewardPoolStaging,
+    { chargingPeriod: 3n, recordingPeriod: 9n },
+    timer.getCurrentTimestamp(),
   );
 
-  zcf.setTestJig(() => ({ collateralKit, sconeKit, vault }));
+  zcf.setTestJig(() => ({ collateralKit, sconeMint, vault, timer }));
 
   async function makeHook(seat) {
-    openLoan(seat);
+    const { notifier, collateralPayoutP } = await openLoan(seat);
 
     return {
       vault,
       liquidationPayout: E(liqSeat).getPayout('Collateral'),
-      sconeKit,
+      sconeMint,
       collateralKit,
       actions: {
         add() {
           return vault.makeAddCollateralInvitation();
         },
+        accrueInterestAndAddToPool,
       },
+      notifier,
+      collateralPayoutP,
     };
   }
 
@@ -109,7 +112,7 @@ export async function start(zcf) {
       return vault.makeAddCollateralInvitation();
     },
     mintScones(amount) {
-      return paymentFromZCFMint(zcf, sconeKit, amount);
+      return paymentFromZCFMint(zcf, sconeMint, amount);
     },
   });
 

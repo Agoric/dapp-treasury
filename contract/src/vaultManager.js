@@ -3,6 +3,7 @@ import '@agoric/zoe/exported';
 
 import { E } from '@agoric/eventual-send';
 import { assertProposalShape } from '@agoric/zoe/src/contractSupport';
+import { observeIteration } from '@agoric/notifier';
 import { makeVaultKit } from './vault';
 
 // Each VaultManager manages a single collateralType. It owns an autoswap
@@ -21,21 +22,46 @@ export function makeVaultManager(
   collateralBrand,
   priceAuthority,
   rates,
-  rewardPoolStaging,
+  stageReward,
+  timerService,
+  loanParams,
 ) {
   const {
-    amountMath: _sconeMath,
+    amountMath: sconeMath,
     brand: sconeBrand,
   } = sconeMint.getIssuerRecord();
   const collateralMath = zcf.getAmountMath(collateralBrand);
 
   // todo: sort by price at which we need to liquidate
-  const allVaults = [];
+  const allVaultKits = [];
 
   function liquidateAll() {
-    const promises = allVaults.map(vaultKit => E(vaultKit).liquidate());
+    const promises = allVaultKits.map(vaultKit => E(vaultKit).liquidate());
     return Promise.all(promises);
   }
+
+  async function chargeAllVaults(updateTime, poolIncrementSeat) {
+    const poolIncrement = allVaultKits.reduce(
+      (total, vaultKit) =>
+        sconeMath.add(total, vaultKit.accrueInterestAndAddToPool(updateTime)),
+      sconeMath.getEmpty(),
+    );
+    sconeMint.mintGains({ Scones: poolIncrement }, poolIncrementSeat);
+    const poolStage = poolIncrementSeat.stage({
+      Scones: sconeMath.getEmpty(),
+    });
+    const poolSeatStaging = stageReward(poolIncrement);
+    zcf.reallocate(poolStage, poolSeatStaging);
+  }
+
+  const periodNotifier = timerService.makeNotifier(
+    0n,
+    loanParams.recordingPeriod,
+  );
+  const { zcfSeat: poolIncrementSeat } = zcf.makeEmptySeatKit();
+  observeIteration(periodNotifier, {
+    updateState: updateTime => chargeAllVaults(updateTime, poolIncrementSeat),
+  });
 
   // the SCM can call invest. This will mint Scones and buy liquidity tokens
   // from the pool
@@ -94,6 +120,7 @@ export function makeVaultManager(
         sconeBrand,
       );
     },
+    stageReward,
   };
 
   /** @type {InnerVaultManager} */
@@ -112,18 +139,20 @@ export function makeVaultManager(
 
     // TODO check that it's for the right type of collateral
 
+    const startTimeStamp = await timerService.getCurrentTimestamp();
     const vaultKit = makeVaultKit(
       zcf,
       innerFacet,
       sconeMint,
       autoswap,
       priceAuthority,
-      rewardPoolStaging,
+      loanParams,
+      startTimeStamp,
     );
 
     const { vault, openLoan } = vaultKit;
     const { notifier, collateralPayoutP } = await openLoan(seat);
-    allVaults.push(vaultKit);
+    allVaultKits.push(vaultKit);
 
     seat.exit();
 

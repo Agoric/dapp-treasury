@@ -23,13 +23,13 @@ const trace = makeTracer('TestVault');
  *
  * @typedef {Object} TestContext
  * @property {ContractFacet} zcf
- * @property {ZCFMint} sconeKit
+ * @property {ZCFMint} sconeMint
  * @property {IssuerKit} collateralKit
  * @property {Vault} vault
+ * @property {TimerService} timer
  */
-/*
- * @type {TestContext}
- */
+
+/* @type {TestContext} */
 let testJig;
 const setJig = jig => {
   testJig = jig;
@@ -51,8 +51,8 @@ async function launch(zoeP, sourceRoot) {
   const { creatorInvitation, creatorFacet, instance } = await E(
     zoeP,
   ).startInstance(installation);
-  const { sconeKit, collateralKit } = testJig;
-  const sconeMath = sconeKit.getIssuerRecord().amountMath;
+  const { sconeMint, collateralKit } = testJig;
+  const sconeMath = sconeMint.getIssuerRecord().amountMath;
   const collateral50 = collateralKit.amountMath.make(50);
   const proposal = harden({
     give: { Collateral: collateral50 },
@@ -78,7 +78,7 @@ test('first', async t => {
   // Scones (charging 3 scones fee), which uses an autoswap that presents a
   // fixed price of 4 Scones per Collateral.
   await E(creatorSeat).getOfferResult();
-  const { sconeKit: sconeMint, collateralKit, vault } = testJig;
+  const { sconeMint, collateralKit, vault } = testJig;
 
   const { issuer: cIssuer, amountMath: cMath, mint: cMint } = collateralKit;
   const { amountMath: sconeMath } = sconeMint.getIssuerRecord();
@@ -159,7 +159,7 @@ test('first', async t => {
 test('bad collateral', async t => {
   const { creatorSeat: offerKit } = await helperContract;
 
-  const { sconeKit: sconeMint, collateralKit, vault } = testJig;
+  const { sconeMint, collateralKit, vault } = testJig;
 
   // Our wrapper gives us a Vault which holds 50 Collateral, has lent out 70
   // Scones (charging 3 scones fee), which uses an autoswap that presents a

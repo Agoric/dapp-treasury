@@ -45,6 +45,13 @@
  */
 
 /**
+ * @callback StageReward return a seat staging (for use in reallocate)
+ * that will add the indicated amount to the stablecoin machine's reward pool.
+ * @param {Amount} amount
+ * @returns SeatStaging
+ */
+
+/**
  * @typedef {Object} InnerVaultManager
  * @property {AmountMath} collateralMath
  * @property {Brand} collateralBrand
@@ -53,6 +60,7 @@
  * @property {() => Promise<PriceQuote>} getCollateralQuote
  * @property {() => Ratio} getInitialMargin
  * @property {() => Ratio} getInterestRate
+ * @property {StageReward} stageReward
  */
 
 /**
@@ -94,13 +102,13 @@
  * @property {() => void} liquidate
  * @property {() => void} checkMargin
  * @property {(ZCFSeat) => Promise<OpenLoanKit>} openLoan
+ * @property {(Timestamp) => Amount} accrueInterestAndAddToPool
  */
 
 /**
- * @callback RewardPoolStaging return a seat staging (for use in reallocate)
- * that will add the indicated amount to the stablecoin machine's reward pool.
- * @param {Amount} amount
- * @param {ZCFSeat} fromSeat
+ * @typedef {Object} LoanParams
+ * @property {RelativeTime} chargingPeriod
+ * @property {RelativeTime} recordingPeriod
  */
 
 /**
@@ -111,7 +119,9 @@
  * @param {Brand} collateralBrand
  * @param {ERef<PriceAuthority>} priceAuthority
  * @param {Rates} rates
- * @param {RewardPoolStaging} rewardPoolStaging
+ * @param {StageReward} rewardPoolStaging
+ * @param {TimerService} timerService
+ * @param {LoanParams} loanParams
  * @returns {VaultManager}
  */
 
@@ -122,6 +132,40 @@
  * @param {ZCFMint} sconeMint
  * @param {ERef<MultipoolAutoswapPublicFacet>} autoswap
  * @param {ERef<PriceAuthority>} priceAuthority
- * @param {RewardPoolStaging} rewardPoolStaging
+ * @param {LoanParams} loanParams
+ * @param {Timestamp} startTimeStamp
  * @returns {VaultKit}
+ */
+
+/**
+ * @typedef {Object} DebtStatus
+ * @property {Timestamp} updateTime
+ * @property {Amount} interest
+ * @property {Amount} newDebt
+ */
+
+/**
+ * @callback Calculate
+ * @param {DebtStatus} debtStatus
+ * @param {Timestamp} currentTime
+ * @returns {DebtStatus}
+ */
+
+/**
+ * @typedef {Object} Calculator
+ * @property {Calculate} calculate calculate new debt for charging periods up to
+ * the present.
+ * @property {Calculate} calculateReportingPeriod calculate new debt for
+ * reporting periods up to the present. If some charging periods have elapsed
+ * that don't constitute whole reporting periods, the time is not updated past
+ * them and interest is not accumulated for them.
+ */
+
+/**
+ * @callback MakeInterestCalculator
+ * @param {AmountMath} math
+ * @param {Ratio} rate
+ * @param {RelativeTime} chargingPeriod
+ * @param {RelativeTime} recordingPeriod
+ * @returns {Calculator}
  */

@@ -23,21 +23,38 @@ const trace = makeTracer('ST');
 /** @type {ContractStartFn} */
 export async function start(zcf) {
   // loanParams has time limits for charging interest
-  const { autoswapInstall, priceAuthority, loanParams: _p } = zcf.getTerms();
+  const {
+    autoswapInstall,
+    priceAuthority,
+    loanParams,
+    timerService,
+  } = zcf.getTerms();
 
   const [sconeMint, govMint] = await Promise.all([
     zcf.makeZCFMint('Scones', undefined, { decimalPlaces: 3 }),
     zcf.makeZCFMint('Governance', undefined, { decimalPlaces: 6 }),
   ]);
-  const { issuer: sconeIssuer } = sconeMint.getIssuerRecord();
-  const { amountMath: govMath } = govMint.getIssuerRecord();
+  const {
+    issuer: sconeIssuer,
+    amountMath: sconeMath,
+    brand: sconeBrand,
+  } = sconeMint.getIssuerRecord();
+
+  const {
+    issuer: _govIssuer,
+    amountMath: govMath,
+    brand: _govBrand,
+  } = govMint.getIssuerRecord();
 
   // This is a stand-in for a reward pool. For now, it's a place to squirrel
   // away fees so the tests show that the funds have been removed.
   const { zcfSeat: rewardPoolSeat } = zcf.makeEmptySeatKit();
 
-  function rewardPoolStaging(amount) {
-    return rewardPoolSeat.stage({ Scones: amount });
+  // We provide an easy way for the vaultManager and vaults to add rewards to
+  // this seat, with directly exposing the seat to them.
+  function stageReward(amount) {
+    const priorReward = rewardPoolSeat.getAmountAllocated('Scones', sconeBrand);
+    return rewardPoolSeat.stage({ Scones: sconeMath.add(priorReward, amount) });
   }
 
   // TODO sinclair+us: is there a scm/gov token per collateralType (joe says yes), or just one?
@@ -158,7 +175,9 @@ export async function start(zcf) {
         collateralBrand,
         priceAuthority,
         rates,
-        rewardPoolStaging,
+        stageReward,
+        timerService,
+        loanParams,
       );
       collateralTypes.init(collateralBrand, vm);
       return vm;

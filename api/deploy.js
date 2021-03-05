@@ -15,6 +15,9 @@ import { makeLocalAmountMath } from '../../agoric-sdk/node_modules/@agoric/ertp/
 
 const API_PORT = process.env.API_PORT || '8000';
 
+const SECONDS_PER_HOUR = 3600;
+const SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR;
+
 export default async function deployApi(homePromise, endowments) {
   const {
     board,
@@ -43,8 +46,17 @@ export default async function deployApi(homePromise, endowments) {
   const stablecoinMachineInstallation = await E(board).getValue(
     INSTALLATION_BOARD_ID,
   );
+  const loanParams = {
+    chargingPeriod: SECONDS_PER_HOUR,
+    recordingPeriod: SECONDS_PER_DAY,
+  };
 
-  const terms = harden({ autoswapInstall, priceAuthority });
+  const terms = harden({
+    autoswapInstall,
+    priceAuthority,
+    loanParams,
+    timerService: localTimerService,
+  });
 
   console.log('Waiting for you to approve', DEPLOY_NAME, 'in your wallet...');
   const walletBridge = E(wallet).getScopedBridge(DEPLOY_NAME, 'deploy');
