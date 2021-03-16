@@ -1,4 +1,5 @@
 // @ts-check
+
 import '@agoric/zoe/src/types';
 
 import { makeIssuerKit, MathKind } from '@agoric/ertp';

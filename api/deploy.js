@@ -1,3 +1,4 @@
+/* global process */
 // @ts-check
 // Agoric Dapp api deployment script
 
@@ -7,11 +8,11 @@ import '@agoric/zoe/exported';
 import bundleSource from '@agoric/bundle-source';
 import { makeHelpers } from '@agoric/deploy-script-support';
 import { assert } from '@agoric/assert';
+import { makeLocalAmountMath } from '@agoric/ertp';
 
 import { makeRatio } from '@agoric/zoe/src/contractSupport/ratio';
 import installationConstants from '../ui/src/generated/installationConstants';
 import { makeAddCollateralType } from './addCollateralType';
-import { makeLocalAmountMath } from '../../agoric-sdk/node_modules/@agoric/ertp/src';
 
 const API_PORT = process.env.API_PORT || '8000';
 

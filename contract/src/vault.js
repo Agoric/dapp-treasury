@@ -290,9 +290,8 @@ export function makeVaultKit(
     // you must pay off the entire remainder
     assert(sconeMath.isGTE(sconesReturned, sconeDebt));
     // but if you offer too much, we won't take more than you owe
-    const acceptedScones = sconeMath.make(
-      Math.min(sconesReturned.value, sconeDebt.value),
-    );
+    const min = (x, y) => ((sconeMath.isGTE(x, y) ? y : x));
+    const acceptedScones = min(sconesReturned, sconeDebt);
 
     trade(
       zcf,
@@ -357,7 +356,7 @@ export function makeVaultKit(
       const sellAllInvitation = E(autoswap).makeSwapInInvitation();
       const sellAllProposal = harden({
         give: { In: collateralBefore },
-        want: { Out: sconeMath.make(0) },
+        want: { Out: sconeMath.make(0n) },
       });
 
       const {

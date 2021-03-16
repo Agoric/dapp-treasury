@@ -1,4 +1,7 @@
 // @ts-check
+/* global require */
+
+import '@agoric/zoe/tools/prepare-test-env';
 import '@agoric/zoe/exported';
 
 // eslint-disable-next-line import/no-extraneous-dependencies

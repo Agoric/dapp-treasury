@@ -53,7 +53,7 @@
 
 /**
  * @typedef {Object} InnerVaultManager
- * @property {AmountMath} collateralMath
+ * @property {DeprecatedAmountMath} collateralMath
  * @property {Brand} collateralBrand
  * @property {() => Ratio} getLiquidationMargin
  * @property {() => Ratio} getLoanFee
@@ -163,7 +163,7 @@
 
 /**
  * @callback MakeInterestCalculator
- * @param {AmountMath} math
+ * @param {DeprecatedAmountMath} math
  * @param {Ratio} rate
  * @param {RelativeTime} chargingPeriod
  * @param {RelativeTime} recordingPeriod

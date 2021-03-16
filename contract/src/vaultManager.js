@@ -2,6 +2,7 @@
 import '@agoric/zoe/exported';
 
 import { E } from '@agoric/eventual-send';
+import { Nat } from '@agoric/nat';
 import { assertProposalShape } from '@agoric/zoe/src/contractSupport';
 import { observeIteration } from '@agoric/notifier';
 import { makeVaultKit } from './vault';
@@ -114,9 +115,9 @@ export function makeVaultManager(
     async getCollateralQuote() {
       // get a quote for one unit of the collateral
       const displayInfo = await E(collateralBrand).getDisplayInfo();
-      const decimalPlaces = (displayInfo && displayInfo.decimalPlaces) || 0;
+      const decimalPlaces = (displayInfo && displayInfo.decimalPlaces) || 0n;
       return E(priceAuthority).quoteGiven(
-        collateralMath.make(10 ** decimalPlaces),
+        collateralMath.make(10n ** Nat(decimalPlaces)),
         sconeBrand,
       );
     },

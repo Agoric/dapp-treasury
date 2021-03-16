@@ -1,4 +1,7 @@
 // @ts-check
+/* global require */
+
+import '@agoric/zoe/tools/prepare-test-env';
 import '@agoric/zoe/exported';
 import '../src/types';
 
@@ -560,7 +563,7 @@ test('price falls precipitously', async t => {
   t.deepEqual(lentAmount, loanAmount, 'received 470 Scones');
   t.deepEqual(
     vault.getCollateralAmount(),
-    aethMath.make(400),
+    aethMath.make(400n),
     'vault holds 400 Collateral',
   );
   trace();
@@ -568,15 +571,15 @@ test('price falls precipitously', async t => {
   // Sell some Eth to drive the value down
   const swapInvitation = E(autoswapAPI).makeSwapInvitation();
   const proposal = {
-    give: { In: aethMath.make(200) },
-    want: { Out: sconeMath.make(0) },
+    give: { In: aethMath.make(200n) },
+    want: { Out: sconeMath.make(0n) },
     exit: { onDemand: null },
   };
   await E(zoe).offer(
     swapInvitation,
     proposal,
     harden({
-      In: aethMint.mintPayment(aethMath.make(200)),
+      In: aethMint.mintPayment(aethMath.make(200n)),
     }),
   );
 
