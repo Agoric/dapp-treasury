@@ -95,7 +95,7 @@ export function makeVaultKit(
 
   async function getCollateralizationRatio() {
     if (collateralMath.isEmpty(getCollateralAmount())) {
-      return Promise.resolve(makeRatio(0, sconeBrand));
+      return makeRatio(0n, sconeBrand);
     }
     const quoteAmount = await E(priceAuthority).quoteGiven(
       getCollateralAmount(),

@@ -57,10 +57,10 @@ async function launch(zoeP, sourceRoot) {
   ).startInstance(installation);
   const { sconeMint, collateralKit } = testJig;
   const sconeMath = sconeMint.getIssuerRecord().amountMath;
-  const collateral50 = collateralKit.amountMath.make(50);
+  const collateral50 = collateralKit.amountMath.make(50n);
   const proposal = harden({
     give: { Collateral: collateral50 },
-    want: { Scones: sconeMath.make(70) },
+    want: { Scones: sconeMath.make(70n) },
     exit: { onDemand: null },
   });
   const payments = harden({
@@ -91,18 +91,18 @@ test('interest', async t => {
   } = sconeMint.getIssuerRecord();
 
   const { value: v1, updateCount: c1 } = await E(notifier).getUpdateSince();
-  t.deepEqual(v1.debt, sconeMath.make(73));
-  t.deepEqual(v1.locked, collateralKit.amountMath.make(50));
+  t.deepEqual(v1.debt, sconeMath.make(73n));
+  t.deepEqual(v1.locked, collateralKit.amountMath.make(50n));
   t.is(c1, 2);
 
   t.deepEqual(
     vault.getDebtAmount(),
-    sconeMath.make(73),
+    sconeMath.make(73n),
     'borrower owes 73 Scones',
   );
   t.deepEqual(
     vault.getCollateralAmount(),
-    cMath.make(50),
+    cMath.make(50n),
     'vault holds 50 Collateral',
   );
 
@@ -117,13 +117,13 @@ test('interest', async t => {
 
   const nextInterest = actions.accrueInterestAndAddToPool(10n);
   t.truthy(
-    sconeMath.isEqual(nextInterest, sconeMath.make(3)),
+    sconeMath.isEqual(nextInterest, sconeMath.make(3n)),
     `interest should be 3, was ${nextInterest.value}`,
   );
   const { value: v2, updateCount: c2 } = await E(notifier).getUpdateSince(c1);
-  t.deepEqual(v2.debt, sconeMath.make(76));
-  t.deepEqual(v2.interestRate, makeRatio(200, sconeBrand, 10000));
-  t.deepEqual(v2.liquidationRatio, makeRatio(105, sconeBrand));
+  t.deepEqual(v2.debt, sconeMath.make(76n));
+  t.deepEqual(v2.interestRate, makeRatio(200n, sconeBrand, 10000n));
+  t.deepEqual(v2.liquidationRatio, makeRatio(105n, sconeBrand));
   const collateralization = v2.collateralizationRatio;
   t.truthy(
     collateralization.numerator.value > collateralization.denominator.value,

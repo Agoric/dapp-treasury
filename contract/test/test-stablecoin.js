@@ -170,16 +170,16 @@ test('first', async t => {
   const priceAuthority = makePriceAuthority(
     aethMath,
     sconeMath,
-    [500, 15],
+    [500n, 15n],
     null,
     manualTimer,
     quoteMint,
-    aethMath.make(900),
+    aethMath.make(900n),
   );
   priceAuthorityPromiseKit.resolve(priceAuthority);
 
   // Add a pool with 900 aeth collateral at a 201 aeth/scones rate
-  const capitalAmount = aethMath.make(900);
+  const capitalAmount = aethMath.make(900n);
   const rates = makeRates(sconeBrand, aethBrand);
   const aethVaultSeat = await E(zoe).offer(
     E(stablecoinMachine).makeAddTypeInvitation(aethIssuer, 'AEth', rates),
@@ -197,8 +197,8 @@ test('first', async t => {
   const aethVaultManager = await E(aethVaultSeat).getOfferResult();
 
   // Create a loan for 470 scones with 1100 aeth collateral
-  const collateralAmount = aethMath.make(1100);
-  const loanAmount = sconeMath.make(470);
+  const collateralAmount = aethMath.make(1100n);
+  const loanAmount = sconeMath.make(470n);
   const loanSeat = await E(zoe).offer(
     E(lender).makeLoanInvitation(),
     harden({
@@ -212,7 +212,7 @@ test('first', async t => {
 
   const { vault, _liquidationPayout } = await E(loanSeat).getOfferResult();
   const debtAmount = await E(vault).getDebtAmount();
-  const fee = multiplyBy(sconeMath.make(470), rates.loanFee);
+  const fee = multiplyBy(sconeMath.make(470n), rates.loanFee);
   t.deepEqual(
     debtAmount,
     sconeMath.add(loanAmount, fee),
@@ -227,7 +227,7 @@ test('first', async t => {
   t.deepEqual(lentAmount, loanAmount, 'received 47 Scones');
   t.deepEqual(
     vault.getCollateralAmount(),
-    aethMath.make(1100),
+    aethMath.make(1100n),
     'vault holds 1100 Collateral',
   );
 
@@ -235,8 +235,8 @@ test('first', async t => {
   // fuzzy feeling.
 
   // partially payback
-  const collateralWanted = aethMath.make(100);
-  const paybackAmount = sconeMath.make(200);
+  const collateralWanted = aethMath.make(100n);
+  const paybackAmount = sconeMath.make(200n);
   const [paybackPayment, _remainingPayment] = await E(sconeIssuer).split(
     sconesLent,
     paybackAmount,
@@ -259,15 +259,15 @@ test('first', async t => {
   const returnedAmount = await aethIssuer.getAmountOf(returnedCollateral);
   t.deepEqual(
     vault.getDebtAmount(),
-    sconeMath.make(293),
+    sconeMath.make(293n),
     'debt reduced to 293 scones',
   );
   t.deepEqual(
     vault.getCollateralAmount(),
-    aethMath.make(1000),
+    aethMath.make(1000n),
     'vault holds 1000 Collateral',
   );
-  t.deepEqual(returnedAmount, aethMath.make(100), 'withdrew 100 collateral');
+  t.deepEqual(returnedAmount, aethMath.make(100n), 'withdrew 100 collateral');
 
   console.log('preDEBT ', vault.getDebtAmount());
 
@@ -278,7 +278,7 @@ test('first', async t => {
   t.truthy(aethMath.isEmpty(vault.getCollateralAmount()), 'vault is cleared');
 
   t.deepEqual(stablecoinMachine.getRewardAllocation(), {
-    Scones: sconeMath.make(23),
+    Scones: sconeMath.make(23n),
   });
 });
 
@@ -339,18 +339,18 @@ test('price drop', async t => {
   const priceAuthority = makePriceAuthority(
     aethMath,
     sconeMath,
-    [1000, 677, 636],
+    [1000n, 677n, 636n],
     null,
     manualTimer,
     quoteMint,
-    aethMath.make(900),
+    aethMath.make(900n),
   );
   // priceAuthority needs sconeMath, which isn't available till the
   // stablecoinMachine has been built, so resolve priceAuthorityPromiseKit here
   priceAuthorityPromiseKit.resolve(priceAuthority);
 
   // Add a pool with 900 aeth at a 201 scones/aeth rate
-  const capitalAmount = aethMath.make(900);
+  const capitalAmount = aethMath.make(900n);
   const rates = makeRates(sconeBrand, aethBrand);
   const aethVaultSeat = await E(zoe).offer(
     E(stablecoinMachine).makeAddTypeInvitation(aethIssuer, 'AEth', rates),
@@ -369,8 +369,8 @@ test('price drop', async t => {
   trace(aethVaultManager);
 
   // Create a loan for 270 scones with 40 aeth collateral
-  const collateralAmount = aethMath.make(400);
-  const loanAmount = sconeMath.make(270);
+  const collateralAmount = aethMath.make(400n);
+  const loanAmount = sconeMath.make(270n);
   const loanSeat = await E(zoe).offer(
     E(lender).makeLoanInvitation(),
     harden({
@@ -386,7 +386,7 @@ test('price drop', async t => {
     loanSeat,
   ).getOfferResult();
   const debtAmount = await E(vault).getDebtAmount();
-  const fee = multiplyBy(sconeMath.make(270), rates.loanFee);
+  const fee = multiplyBy(sconeMath.make(270n), rates.loanFee);
   t.deepEqual(
     debtAmount,
     sconeMath.add(loanAmount, fee),
@@ -397,13 +397,13 @@ test('price drop', async t => {
   t.falsy(notification1.value.liquidated);
   t.deepEqual(
     await notification1.value.collateralizationRatio,
-    makeRatio(444, sconeBrand, 283),
+    makeRatio(444n, sconeBrand, 283n),
   );
   const { Scones: lentAmount } = await E(loanSeat).getCurrentAllocation();
   t.truthy(sconeMath.isEqual(lentAmount, loanAmount), 'received 470 Scones');
   t.deepEqual(
     vault.getCollateralAmount(),
-    aethMath.make(400),
+    aethMath.make(400n),
     'vault holds 11 Collateral',
   );
 
@@ -428,18 +428,18 @@ test('price drop', async t => {
   t.deepEqual(sconesAmount, sconeMath.getEmpty());
   const aethPayout = await E.G(liquidationPayout).Collateral;
   const aethPayoutAmount = await E(aethIssuer).getAmountOf(aethPayout);
-  t.deepEqual(aethPayoutAmount, aethMath.make(232));
+  t.deepEqual(aethPayoutAmount, aethMath.make(232n));
   const debtAmountAfter = await E(vault).getDebtAmount();
   const finalNotification = await uiNotifier.getUpdateSince();
   t.truthy(finalNotification.value.liquidated);
   t.deepEqual(
     await finalNotification.value.collateralizationRatio,
-    makeRatio(0, sconeBrand),
+    makeRatio(0n, sconeBrand),
   );
   t.truthy(sconeMath.isEmpty(debtAmountAfter));
 
   t.deepEqual(stablecoinMachine.getRewardAllocation(), {
-    Scones: sconeMath.make(13),
+    Scones: sconeMath.make(13n),
   });
 });
 
@@ -508,16 +508,16 @@ test('price falls precipitously', async t => {
   const priceAuthority = makePriceAuthority(
     aethMath,
     sconeMath,
-    [2200, 19180, 1650, 150],
+    [2200n, 19180n, 1650n, 150n],
     null,
     manualTimer,
     quoteMint,
-    aethMath.make(900),
+    aethMath.make(900n),
   );
   priceAuthorityPromiseKit.resolve(priceAuthority);
 
   // Add a pool with 900 aeth at a 201 scones/aeth rate
-  const capitalAmount = aethMath.make(900);
+  const capitalAmount = aethMath.make(900n);
   const rates = makeRates(sconeBrand, aethBrand);
   const aethVaultSeat = await E(zoe).offer(
     E(stablecoinMachine).makeAddTypeInvitation(aethIssuer, 'AEth', rates),
@@ -536,8 +536,8 @@ test('price falls precipitously', async t => {
   trace(aethVaultManager);
 
   // Create a loan for 370 scones with 400 aeth collateral
-  const collateralAmount = aethMath.make(400);
-  const loanAmount = sconeMath.make(370);
+  const collateralAmount = aethMath.make(400n);
+  const loanAmount = sconeMath.make(370n);
   const loanSeat = await E(zoe).offer(
     E(lender).makeLoanInvitation(),
     harden({
@@ -551,7 +551,7 @@ test('price falls precipitously', async t => {
 
   const { vault, liquidationPayout } = await E(loanSeat).getOfferResult();
   const debtAmount = await E(vault).getDebtAmount();
-  const fee = multiplyBy(sconeMath.make(370), rates.loanFee);
+  const fee = multiplyBy(sconeMath.make(370n), rates.loanFee);
   t.deepEqual(
     debtAmount,
     sconeMath.add(loanAmount, fee),
@@ -595,11 +595,11 @@ test('price falls precipitously', async t => {
   t.deepEqual(sconesAmount, sconeMath.getEmpty());
   const aethPayout = await E.G(liquidationPayout).Collateral;
   const aethPayoutAmount = await E(aethIssuer).getAmountOf(aethPayout);
-  t.deepEqual(aethPayoutAmount, aethMath.make(8));
+  t.deepEqual(aethPayoutAmount, aethMath.make(8n));
   t.truthy(sconeMath.isEmpty(await E(vault).getDebtAmount()));
 
   t.deepEqual(stablecoinMachine.getRewardAllocation(), {
-    Scones: sconeMath.make(18),
+    Scones: sconeMath.make(18n),
   });
 });
 
@@ -642,16 +642,16 @@ test('stablecoin display collateral', async t => {
   const priceAuthority = makePriceAuthority(
     aethMath,
     sconeMath,
-    [500, 1500],
+    [500n, 1500n],
     null,
     manualTimer,
     quoteMint,
-    aethMath.make(90),
+    aethMath.make(90n),
   );
   priceAuthorityPromiseKit.resolve(priceAuthority);
 
   // Add a vaultManager with 900 aeth collateral at a 201 aeth/scones rate
-  const capitalAmount = aethMath.make(900);
+  const capitalAmount = aethMath.make(900n);
   const rates = harden({
     initialPrice: makeRatio(201n, sconeBrand, PERCENT, aethBrand),
     initialMargin: makeRatio(120n, sconeBrand),
@@ -679,7 +679,7 @@ test('stablecoin display collateral', async t => {
     liquidationMargin: makeRatio(105n, sconeBrand),
     initialMargin: makeRatio(120n, sconeBrand),
     stabilityFee: makeRatio(530n, sconeBrand, BASIS_POINTS),
-    marketPrice: sconeMath.make(5),
+    marketPrice: sconeMath.make(5n),
   });
 });
 
@@ -728,16 +728,16 @@ test('interest on multiple vaults', async t => {
   const priceAuthority = makePriceAuthority(
     aethMath,
     sconeMath,
-    [500, 1500],
+    [500n, 1500n],
     null,
     manualTimer,
     quoteMint,
-    aethMath.make(90),
+    aethMath.make(90n),
   );
   priceAuthorityPromiseKit.resolve(priceAuthority);
 
   // Add a vaultManager with 900 aeth collateral at a 201 aeth/scones rate
-  const capitalAmount = aethMath.make(900);
+  const capitalAmount = aethMath.make(900n);
   const rates = makeRates(sconeBrand, aethBrand);
   const aethVaultManagerSeat = await E(zoe).offer(
     E(stablecoinMachine).makeAddTypeInvitation(aethIssuer, 'AEth', rates),
@@ -753,8 +753,8 @@ test('interest on multiple vaults', async t => {
   await E(aethVaultManagerSeat).getOfferResult();
 
   // Create a loan for Alice for 4700 scones with 1100 aeth collateral
-  const collateralAmount = aethMath.make(1100);
-  const aliceLoanAmount = sconeMath.make(4700);
+  const collateralAmount = aethMath.make(1100n);
+  const aliceLoanAmount = sconeMath.make(4700n);
   const aliceLoanSeat = await E(zoe).offer(
     E(lender).makeLoanInvitation(),
     harden({
@@ -785,13 +785,13 @@ test('interest on multiple vaults', async t => {
   t.truthy(
     sconeMath.isEqual(
       await E(sconeIssuer).getAmountOf(sconesLent),
-      sconeMath.make(4700),
+      sconeMath.make(4700n),
     ),
   );
 
   // Create a loan for Bob for 3200 scones with 800 aeth collateral
-  const bobCollateralAmount = aethMath.make(800);
-  const bobLoanAmount = sconeMath.make(3200);
+  const bobCollateralAmount = aethMath.make(800n);
+  const bobLoanAmount = sconeMath.make(3200n);
   const bobLoanSeat = await E(zoe).offer(
     E(lender).makeLoanInvitation(),
     harden({
@@ -822,7 +822,7 @@ test('interest on multiple vaults', async t => {
   t.truthy(
     sconeMath.isEqual(
       await E(sconeIssuer).getAmountOf(bobSconesLent),
-      sconeMath.make(3200),
+      sconeMath.make(3200n),
     ),
   );
 
@@ -836,12 +836,12 @@ test('interest on multiple vaults', async t => {
   await manualTimer.tick();
   const aliceUpdate = await aliceNotifier.getUpdateSince();
   const bobUpdate = await bobNotifier.getUpdateSince();
-  const bobAddedDebt = 160 + 33 + 33 + 34;
-  t.deepEqual(bobUpdate.value.debt, sconeMath.make(3200 + bobAddedDebt));
-  t.deepEqual(bobUpdate.value.interestRate, makeRatio(100, sconeBrand, 10000));
+  const bobAddedDebt = 160n + 33n + 33n + 34n;
+  t.deepEqual(bobUpdate.value.debt, sconeMath.make(3200n + bobAddedDebt));
+  t.deepEqual(bobUpdate.value.interestRate, makeRatio(100n, sconeBrand, 10000n));
   t.deepEqual(
     bobUpdate.value.liquidationRatio,
-    makeRatio(105, sconeBrand, 100),
+    makeRatio(105n, sconeBrand, 100n),
   );
   const bobCollateralization = bobUpdate.value.collateralizationRatio;
   t.truthy(
@@ -849,13 +849,13 @@ test('interest on multiple vaults', async t => {
       bobCollateralization.denominator.value,
   );
 
-  const aliceAddedDebt = 235 + 49 + 49 + 50;
-  t.deepEqual(aliceUpdate.value.debt, sconeMath.make(4700 + aliceAddedDebt));
+  const aliceAddedDebt = 235n + 49n + 49n + 50n;
+  t.deepEqual(aliceUpdate.value.debt, sconeMath.make(4700n + aliceAddedDebt));
   t.deepEqual(
     aliceUpdate.value.interestRate,
-    makeRatio(100, sconeBrand, 10000),
+    makeRatio(100n, sconeBrand, 10000n),
   );
-  t.deepEqual(aliceUpdate.value.liquidationRatio, makeRatio(105, sconeBrand));
+  t.deepEqual(aliceUpdate.value.liquidationRatio, makeRatio(105n, sconeBrand));
   const aliceCollateralization = aliceUpdate.value.collateralizationRatio;
   t.truthy(
     aliceCollateralization.numerator.value >
