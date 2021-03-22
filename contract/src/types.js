@@ -82,8 +82,7 @@
 
 /**
  * @typedef {Object} Vault
- * @property {() => Promise<Invitation>} makeAddCollateralInvitation
- * @property {() => Promise<Invitation>} makePaybackInvitation
+ * @property {() => Promise<Invitation>} makeAdjustBalancesInvitation
  * @property {() => Promise<Invitation>} makeCloseInvitation
  * @property {() => Amount} getCollateralAmount
  * @property {() => Amount} getDebtAmount
@@ -100,7 +99,6 @@
  * @typedef {Object} VaultKit
  * @property {Vault} vault
  * @property {() => void} liquidate
- * @property {() => void} checkMargin
  * @property {(ZCFSeat) => Promise<OpenLoanKit>} openLoan
  * @property {(Timestamp) => Amount} accrueInterestAndAddToPool
  */

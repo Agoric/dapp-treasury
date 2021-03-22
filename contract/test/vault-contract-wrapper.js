@@ -9,6 +9,7 @@ import { E } from '@agoric/eventual-send';
 import buildManualTimer from '@agoric/zoe/tools/manualTimer';
 import { makeFakePriceAuthority } from '@agoric/zoe/tools/fakePriceAuthority';
 import { makeRatio } from '@agoric/zoe/src/contractSupport/ratio';
+import { Far } from '@agoric/marshal';
 
 import { makeVaultKit } from '../src/vault';
 import { paymentFromZCFMint } from '../src/burn';
@@ -42,7 +43,8 @@ export async function start(zcf) {
   };
 
   function stageReward(amount, _fromSeat) {
-    return stableCoinSeat.stage({ Scones: amount });
+    const priorReward = stableCoinSeat.getAmountAllocated('Scones', sconeBrand);
+    return stableCoinSeat.stage({ Scones: sconeMath.add(priorReward, amount) });
   }
 
   /** @type {InnerVaultManager} */
@@ -97,7 +99,7 @@ export async function start(zcf) {
       collateralKit,
       actions: {
         add() {
-          return vault.makeAddCollateralInvitation();
+          return vault.makeAdjustBalancesInvitation();
         },
         accrueInterestAndAddToPool,
       },
@@ -108,9 +110,9 @@ export async function start(zcf) {
 
   console.log(`makeContract returning`);
 
-  const vaultAPI = harden({
-    makeAddCollateralInvitation() {
-      return vault.makeAddCollateralInvitation();
+  const vaultAPI = Far('vaultAPI', {
+    makeAdjustBalancesInvitation() {
+      return vault.makeAdjustBalancesInvitation();
     },
     mintScones(amount) {
       return paymentFromZCFMint(zcf, sconeMint, amount);

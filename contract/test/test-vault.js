@@ -1,3 +1,6 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
+import '@agoric/install-ses';
+
 // @ts-check
 /* global require */
 
@@ -14,7 +17,6 @@ import { makeZoe } from '@agoric/zoe';
 import bundleSource from '@agoric/bundle-source';
 
 import { makeIssuerKit } from '@agoric/ertp';
-import { whenAllProps } from '../src/burn';
 
 import { makeTracer } from '../src/makeTracer';
 
@@ -99,11 +101,10 @@ test('first', async t => {
 
   // Add more collateral to an existing loan. We get nothing back but a warm
   // fuzzy feeling.
-  trace('vault starts correct', creatorFacet);
 
   const collateralAmount = cMath.make(20n);
-  const invite = await E(creatorFacet).makeAddCollateralInvitation();
-  await E(zoe).offer(
+  const invite = await E(creatorFacet).makeAdjustBalancesInvitation();
+  const giveCollateralSeat = await E(zoe).offer(
     invite,
     harden({
       give: { Collateral: collateralAmount },
@@ -114,7 +115,8 @@ test('first', async t => {
       Collateral: cMint.mintPayment(collateralAmount),
     }),
   );
-  trace('addCollateral');
+
+  await E(giveCollateralSeat).getOfferResult();
   t.deepEqual(
     vault.getCollateralAmount(),
     cMath.make(70n),
@@ -127,23 +129,18 @@ test('first', async t => {
   const paybackAmount = sconeMath.make(3n);
   const payback = await E(creatorFacet).mintScones(paybackAmount);
   const paybackSeat = E(zoe).offer(
-    vault.makePaybackInvitation(),
+    vault.makeAdjustBalancesInvitation(),
     harden({
       give: { Scones: paybackAmount },
       want: { Collateral: collateralWanted },
     }),
     harden({ Scones: payback }),
   );
-  trace('payBack requested', paybackSeat);
-  const message = await E(paybackSeat).getOfferResult();
-  trace('result retrieved', message);
-  t.is(message, 'thank you for your payment');
+  await E(paybackSeat).getOfferResult();
 
-  trace('all payouts', await whenAllProps(E(paybackSeat).getPayouts()));
   const returnedCollateral = await E(paybackSeat).getPayout('Collateral');
   trace('returnedCollateral', returnedCollateral, cIssuer);
   const returnedAmount = await cIssuer.getAmountOf(returnedCollateral);
-  trace('returnedAmount', returnedAmount, cMath.make(1));
   t.deepEqual(
     vault.getDebtAmount(),
     sconeMath.make(70n),
@@ -187,7 +184,7 @@ test('bad collateral', async t => {
   const wrongKit = makeIssuerKit('wrong');
   const wrongAmount = wrongKit.amountMath.make(2n);
   const p = E(zoe).offer(
-    vault.makeAddCollateralInvitation(),
+    vault.makeAdjustBalancesInvitation(),
     harden({
       give: { Collateral: collateralAmount },
       want: {},
