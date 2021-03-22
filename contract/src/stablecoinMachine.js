@@ -12,9 +12,13 @@ import {
   assertProposalShape,
   offerTo,
   getAmountOut,
+  getAmountIn,
 } from '@agoric/zoe/src/contractSupport';
 
-import { multiplyBy } from '@agoric/zoe/src/contractSupport/ratio';
+import {
+  multiplyBy,
+  makeRatioFromAmounts,
+} from '@agoric/zoe/src/contractSupport/ratio';
 import { makeTracer } from './makeTracer';
 import { makeVaultManager } from './vaultManager';
 
@@ -260,7 +264,10 @@ export async function start(zcf) {
             liquidationMargin: vm.getLiquidationMargin(),
             initialMargin: vm.getInitialMargin(),
             stabilityFee: vm.getLoanFee(),
-            marketPrice: getAmountOut(quoteAmount),
+            marketPrice: makeRatioFromAmounts(
+              getAmountOut(quoteAmount),
+              getAmountIn(quoteAmount),
+            ),
           };
         }),
       ),
@@ -279,6 +286,11 @@ export async function start(zcf) {
     },
     makeLoanInvitation,
     getCollaterals,
+    // TODO this is in the terms, so could be retrieved from there.
+    // This API is here to consider for usability/discoverability
+    getSconeIssuer() {
+      return sconeIssuer;
+    },
   });
 
   /** @type {StablecoinMachine} */

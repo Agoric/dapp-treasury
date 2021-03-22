@@ -26,6 +26,7 @@ import {
   resetState,
   updateVault,
   setCollaterals,
+  setTreasury,
   setVaultCreated,
   setOutputAmount,
   setInputAmount,
@@ -153,7 +154,23 @@ export default function Provider({ children }) {
         walletP = getBootstrap();
         ammPublicFacet = getAMMPublicFacet(walletP);
 
-        const collaterals = await getCollaterals(walletP, INSTANCE_BOARD_ID);
+        const zoe = E(walletP).getZoe();
+        const board = E(walletP).getBoard();
+
+        const instance = await E(board).getValue(INSTANCE_BOARD_ID);
+        const treasuryAPI = E(zoe).getPublicFacet(instance);
+        const [terms, collaterals] = await Promise.all([
+          E(zoe).getTerms(instance),
+          getCollaterals(walletP, treasuryAPI),
+        ]);
+        const {
+          issuers: { Scones: sconeIssuer },
+          brands: { Scones: sconeBrand },
+        } = terms;
+
+        dispatch(
+          setTreasury({ instance, treasuryAPI, sconeIssuer, sconeBrand }),
+        );
         dispatch(setCollaterals(collaterals));
 
         // The moral equivalent of walletGetPurses()

@@ -4,7 +4,7 @@ import '@agoric/zoe/exported';
 import { E } from '@agoric/eventual-send';
 import { Nat } from '@agoric/nat';
 import { assertProposalShape } from '@agoric/zoe/src/contractSupport';
-import { observeIteration } from '@agoric/notifier';
+import { observeNotifier } from '@agoric/notifier';
 import { makeVaultKit } from './vault';
 
 // Each VaultManager manages a single collateralType. It owns an autoswap
@@ -55,12 +55,13 @@ export function makeVaultManager(
     zcf.reallocate(poolStage, poolSeatStaging);
   }
 
-  const periodNotifier = timerService.makeNotifier(
+  // TODO activate after https://github.com/Agoric/agoric-sdk/issues/2588
+  const periodNotifier = E(timerService).makeNotifier(
     0n,
     loanParams.recordingPeriod,
   );
   const { zcfSeat: poolIncrementSeat } = zcf.makeEmptySeatKit();
-  observeIteration(periodNotifier, {
+  observeNotifier(periodNotifier, {
     updateState: updateTime => chargeAllVaults(updateTime, poolIncrementSeat),
   });
 

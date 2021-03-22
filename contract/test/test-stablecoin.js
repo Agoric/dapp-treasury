@@ -679,7 +679,7 @@ test('stablecoin display collateral', async t => {
     liquidationMargin: makeRatio(105n, sconeBrand),
     initialMargin: makeRatio(120n, sconeBrand),
     stabilityFee: makeRatio(530n, sconeBrand, BASIS_POINTS),
-    marketPrice: sconeMath.make(5n),
+    marketPrice: makeRatio(5n, sconeBrand, 1n, aethBrand),
   });
 });
 

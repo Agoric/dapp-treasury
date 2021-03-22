@@ -33,6 +33,7 @@
     "@agoric/assert": "*",
     "@agoric/ertp": "*",
     "@agoric/eventual-send": "*",
+    "@agoric/marshal": "*",
     "@agoric/zoe": "*",
     "@agoric/deploy-script-support": "*",
     "@agoric/bundle-source": "*",

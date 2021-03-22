@@ -1,3 +1,4 @@
+/* global process */
 import dappConstants from './constants';
 
 const { API_URL, BRIDGE_URL, CONTRACT_NAME } = dappConstants;

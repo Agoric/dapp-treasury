@@ -9,7 +9,7 @@ import {
 } from '@material-ui/core';
 
 import { toPrintedPercent } from '../utils/helper';
-import { stringifyValue } from './display';
+import { stringifyAmount } from './display';
 
 export function VaultSummary({ vault }) {
   const {
@@ -39,14 +39,14 @@ export function VaultSummary({ vault }) {
           <TableRow>
             <TableCell>Deposited</TableCell>
             <TableCell align="right">
-              {stringifyValue(locked, lockedDisplayInfo)}{' '}
+              {stringifyAmount(locked, lockedDisplayInfo)}{' '}
               {lockedBrandPetname[1]}
             </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Borrowed</TableCell>
             <TableCell align="right">
-              {stringifyValue(debt, debtDisplayInfo)} {debtBrandPetname[1]}
+              {stringifyAmount(debt, debtDisplayInfo)} {debtBrandPetname[1]}
             </TableCell>
           </TableRow>
           <TableRow>

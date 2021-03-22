@@ -75,6 +75,19 @@ export function parseValue(str, displayInfo, strict = false) {
 
 /**
  *
+ * @param {string} str
+ * @param {Brand} brand
+ * @param {AmountDisplayInfo} displayInfo
+ * @param {boolean} strict
+ * @returns {Amount}
+ */
+export function parseAmount(str, brand, displayInfo, strict = false) {
+  const value = parseValue(str, displayInfo, strict);
+  return { brand, value };
+}
+
+/**
+ *
  * @param {any} value
  * @param {AmountDisplayInfo} [displayInfo]
  * @returns {string}
@@ -127,3 +140,13 @@ export const stringifyPurseValue = purse => {
   }
   return stringifyValue(purse.value, purse.displayInfo);
 };
+
+/**
+ *
+ * @param {Amount} amount
+ * @param {AmountDisplayInfo} [displayInfo]
+ * @returns {string}
+ */
+export function stringifyAmount(amount, displayInfo = undefined) {
+  return amount ? stringifyValue(amount.value, displayInfo) : '0';
+}

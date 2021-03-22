@@ -29,6 +29,7 @@
     ]
   },
   "dependencies": {
+    "@agoric/install-ses": "*",
     "@agoric/assert": "*",
     "@agoric/captp": "*",
     "@agoric/ertp": "*",

@@ -306,22 +306,27 @@ export default async function deployApi(homePromise, endowments) {
   };
 
   const priceAuthoritiesHandler = async () => {
-    const priceAuthoritiesBundle = await bundleSource(
-      helpers.resolvePathForLocalContract('./src/priceAuthorities.js'),
+    const priceAuthoritiesPath = helpers.resolvePathForLocalContract(
+      './src/priceAuthorities.js',
     );
-
-    // Install it on the spawner
-    const priceAuthoritiesInstall = E(spawner).install(priceAuthoritiesBundle);
-
-    // Spawn the installed code to create priceAuthorities on the ag-solo
-    const priceAuthorities = await E(priceAuthoritiesInstall).spawn(
-      harden({
+    const PA_NAME = 'PriceAuthorities';
+    const { installation } = await helpers.install(
+      priceAuthoritiesPath,
+      PA_NAME,
+    );
+    const paInstanceConfig = {
+      instancePetname: PA_NAME,
+      installation,
+      terms: {
         sconesIssuer: moeIssuer,
         issuerToTrades,
         timer: localTimerService,
-      }),
-    );
-
+      },
+      issuerKeywordRecord: {},
+    };
+    // Install the priceAuthorities as a Zoe contract on the ag-solo
+    const { creatorFacet: pa } = await helpers.startInstance(paInstanceConfig);
+    const priceAuthorities = await E(pa).getPriceAuthorities();
     await Promise.all(priceAuthorities.map(registerPriceAuthority));
   };
 

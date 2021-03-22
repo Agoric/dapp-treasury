@@ -1,3 +1,5 @@
+import { makeRatio } from '@agoric/zoe/src/contractSupport/ratio';
+
 import { doFetch } from '../utils/fetch-websocket';
 
 import { resetVault, createVault, setVaultCreated } from '../store';
@@ -30,13 +32,13 @@ export const makeLoanOffer = (
         Collateral: {
           // The pursePetname identifies which purse we want to use
           pursePetname: fundPurse.pursePetname,
-          value: parseInt(toLock, 10),
+          value: toLock.value,
         },
       },
       want: {
         Scones: {
           pursePetname: dstPurse.pursePetname,
-          value: parseInt(toBorrow, 10),
+          value: toBorrow.value,
         },
       },
       exit: { onDemand: null },
@@ -73,7 +75,7 @@ export const makeLoanOffer = (
     locked: toLock,
     stabilityFee,
     status: 'Pending Wallet Acceptance',
-    liquidationPenalty: 3,
+    liquidationPenalty: makeRatio(3n, toBorrow.brand),
   };
   dispatch(createVault({ id, vault }));
   dispatch(setVaultCreated(true));

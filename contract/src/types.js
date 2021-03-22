@@ -11,7 +11,7 @@
  * @property {Ratio} initialMargin
  * @property {Ratio} liquidationMargin
  * @property {Ratio} stabilityFee
- * @property {Amount} marketPrice
+ * @property {Ratio} marketPrice
  * @property {Brand} brand
  */
 

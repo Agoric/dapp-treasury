@@ -1,3 +1,4 @@
+/* global process */
 // Taken from window.DAPP_CONSTANTS_JSON in index.html, defaulting to .env.local.
 import defaults from '../generated/defaults';
 

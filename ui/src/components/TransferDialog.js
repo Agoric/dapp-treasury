@@ -1,3 +1,4 @@
+/* global process globalThis */
 import React, { useCallback, useEffect, useState } from 'react';
 
 import { ethers } from 'ethers';
@@ -10,7 +11,7 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import { Button } from '@material-ui/core';
 
-import { parseValue, stringifyValue } from './display';
+import { parseValue, stringifyAmount } from './display';
 import PeggyContract from '../Peggy.json';
 import TransferStepper from './TransferStepper';
 
@@ -35,7 +36,8 @@ const bi = (n, places) => {
 };
 
 const norm = (n, extant = 0) => bi(n, NORMALIZE_PLACES - extant);
-const denorm = n => stringifyValue(n, { decimalPlaces: NORMALIZE_PLACES });
+// TODO this is almost certainly not consistently applied to amounts.
+const denorm = n => stringifyAmount(n, { decimalPlaces: NORMALIZE_PLACES });
 // const denorm = (n, wanted = 0) => bi(n, wanted - NORMALIZE_TRANSFER_PLACES);
 
 const INITIAL_BALANCES = REALLY_PEGGY
@@ -76,7 +78,7 @@ export default function TransferDialog({
   requiredSymbol,
 }) {
   const [fundPurse, setFundPurse] = useState();
-  const requiredDisplay = stringifyValue(required, requiredDisplayInfo);
+  const requiredDisplay = stringifyAmount(required, requiredDisplayInfo);
   const [transferring, setTransferring] = useState(false);
   const [stateChange, setStateChange] = useState(0);
   const [provider, setEthProvider] = useState();
@@ -359,6 +361,7 @@ export default function TransferDialog({
     if (targetNeeded < balances[TRANSFER_PATH[targetIndex]].value) {
       // Done!
       setTransferring(undefined);
+      // eslint-disable-next-line
       alert('done transfer');
       return;
     }
@@ -392,6 +395,7 @@ export default function TransferDialog({
     if (!sourcePath) {
       if (balances[targetPath].value < difference) {
         // We can't get more!
+        // eslint-disable-next-line
         alert(
           `Transfer source ${targetPath} needs ${difference -
             balances[targetPath].value} more!`,
@@ -447,7 +451,7 @@ export default function TransferDialog({
             required
             label={`Target funds`}
             type="number"
-            value={stringifyValue(toTransfer, requiredDisplayInfo)}
+            value={stringifyAmount(toTransfer, requiredDisplayInfo)}
             error={toTransfer < required}
             helperText={
               toTransfer < required && `Needs at least ${requiredDisplay}`
@@ -466,7 +470,7 @@ export default function TransferDialog({
             agoric={
               REALLY_PEGGY
                 ? fundPurse &&
-                  stringifyValue(fundPurse.value, fundPurse.displayInfo)
+                  stringifyAmount(fundPurse.value, fundPurse.displayInfo)
                 : denorm(balances.agoric.value)
             }
           ></TransferStepper>

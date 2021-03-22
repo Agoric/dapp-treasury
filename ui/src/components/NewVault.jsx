@@ -25,6 +25,11 @@ import {
 import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
 import NumberFormat from 'react-number-format';
 import { multiplyBy } from '@agoric/zoe/src/contractSupport';
+import {
+  divideBy,
+  makeRatio,
+  makeRatioFromAmounts,
+} from '@agoric/zoe/src/contractSupport/ratio';
 import { toPrintedPercent } from '../utils/helper';
 
 import TransferDialog from './TransferDialog';
@@ -34,7 +39,13 @@ import { useApplicationContext } from '../contexts/Application';
 
 import dappConstants from '../generated/defaults.js';
 
-import { stringifyPurseValue, stringifyValue, parseValue } from './display';
+import {
+  stringifyPurseValue,
+  stringifyValue,
+  stringifyAmount,
+  // parseValue,
+  parseAmount,
+} from './display';
 
 import {
   setVaultCollateral,
@@ -96,7 +107,7 @@ export function NumberFormatPercent(props) {
   );
 }
 
-function VaultCollateral({ collaterals, dispatch, vaultParams }) {
+function VaultCollateral({ collaterals, dispatch, vaultParams, treasury }) {
   const headCells = [
     { id: 'petname', label: 'Asset' },
     { id: 'marketPrice', label: 'Market Price' },
@@ -128,9 +139,16 @@ function VaultCollateral({ collaterals, dispatch, vaultParams }) {
                         dispatch(
                           setVaultParams({
                             ...vaultParams,
-                            marketPrice: row.marketPrice,
+                            // HACK we know the denominator is 1 unit of collateral
+                            marketPrice: row.marketPrice.numerator,
                             liquidationMargin: row.liquidationMargin,
                             stabilityFee: row.stabilityFee,
+                            collateralPercent: row.initialMargin,
+                            toLock: { brand: row.brand, value: 0n },
+                            toBorrow: {
+                              brand: treasury.sconeBrand,
+                              value: 0n,
+                            },
                           }),
                         );
                       }}
@@ -141,7 +159,7 @@ function VaultCollateral({ collaterals, dispatch, vaultParams }) {
                   </TableCell>
                   <TableCell align="right">
                     $
-                    {stringifyValue(row.marketPrice.value, {
+                    {stringifyValue(row.marketPrice.numerator.value, {
                       decimalPlaces: 3,
                     })}
                   </TableCell>
@@ -188,6 +206,21 @@ const useConfigStyles = makeStyles(theme => ({
     },
   },
 }));
+
+function computeToBorrow(priceRate, toLock, collateralPercent) {
+  const lockPrice = multiplyBy(toLock, priceRate);
+  return divideBy(lockPrice, collateralPercent);
+}
+
+function computeCollateralRatio(priceRate, toBorrow, toLock) {
+  const lockPrice = multiplyBy(toLock, priceRate);
+  return makeRatioFromAmounts(lockPrice, toBorrow);
+}
+
+function computeToLock(priceRate, toBorrow, collateralPercent) {
+  const borrowWithMargin = multiplyBy(toBorrow, collateralPercent);
+  return divideBy(borrowWithMargin, priceRate);
+}
 
 function VaultConfigure({
   dispatch,
@@ -242,48 +275,74 @@ function VaultConfigure({
   // Assume that toBorrow = 5000
   // don't change collateralPercent
   // don't change toLock manually (should change automatically once)
-
   const adaptBorrowParams = useCallback(
     changes => {
       if (!vaultCollateral) {
         return;
       }
+      console.log('UPDATE collateralRato', collateralPercent);
+      console.log('UPDATE vault', vaultParams);
+      console.log('UPDATE changes PRE', { ...changes });
       // const decimalPlaces = (toLockDI && toLockDI.decimalPlaces) || 0;
-      const price = vaultCollateral.marketPrice;
+      // compute a ratio from scones to collateral, so it includes
+      // the price and the collataraliztaion ratio
+      // TODO this will overestimate the collateral value if there's slippage
+      const priceRate = vaultCollateral.marketPrice;
+      console.log('UPDATE PRICE', priceRate);
+
       if ('toBorrow' in changes) {
         if ('collateralPercent' in vaultParams) {
-          changes.toLock = multiplyBy(price, collateralPercent);
-          // } else if ('toLock' in vaultParams) {
-          //   changes.collateralPercent = Math.floor(
-          //     (Number(toLock) * price) / Number(changes.toBorrow),
-          //   );
+          console.log(1);
+          changes.toLock = computeToLock(
+            priceRate,
+            changes.toBorrow,
+            collateralPercent,
+          );
+        } else if ('toLock' in vaultParams) {
+          console.log(2);
+          changes.collateralPercent = computeCollateralRatio(
+            priceRate,
+            changes.toBorrow,
+            toLock,
+          );
         }
       } else if ('toLock' in changes) {
-        // if ('collateralPercent' in vaultParams) {
-        //   changes.toBorrow = Math.floor(
-        //     (Number(changes.toLock) * price) / Number(collateralPercent),
-        //   );
-        // } else if ('toBorrow' in vaultParams) {
-        //   changes.collateralPercent = Math.floor(
-        //     (Number(changes.toLock) * price) / Number(toBorrow),
-        //   );
-        // }
+        if ('collateralPercent' in vaultParams) {
+          console.log(3);
+          changes.toBorrow = computeToBorrow(
+            priceRate,
+            changes.toLock,
+            collateralPercent,
+          );
+        } else if ('toBorrow' in vaultParams) {
+          console.log(4);
+          changes.collateralPercent = computeCollateralRatio(
+            priceRate,
+            toBorrow,
+            changes.toLock,
+          );
+        }
       } else if ('collateralPercent' in changes) {
-        // if ('toLock' in vaultParams) {
-        //   changes.toBorrow = Math.floor(
-        //     (Number(toLock) * price) / Number(changes.collateralPercent),
-        //   );
-        // } else if ('toBorrow' in vaultParams) {
-        //   changes.toLock = Math.floor(
-        //     (Number(toBorrow) * Number(changes.collateralPercent)) /
-        //       price /
-        //       100,
-        //   );
-        // }
+        if ('toLock' in vaultParams) {
+          console.log(5);
+          changes.toBorrow = computeToBorrow(
+            priceRate,
+            toLock,
+            changes.collateralPercent,
+          );
+        } else if ('toBorrow' in vaultParams) {
+          console.log(6);
+          changes.toLock = computeToLock(
+            priceRate,
+            toBorrow,
+            changes.collateralPercent,
+          );
+        }
       } else {
         // No change.
         return;
       }
+      console.log('UPDATE changes POST', changes);
       dispatch(setVaultParams({ ...vaultParams, ...changes }));
     },
     [vaultCollateral, toLock, toBorrow, collateralPercent],
@@ -336,11 +395,15 @@ function VaultConfigure({
             error={balanceExceeded}
             helperText={balanceExceeded && 'Need to obtain more funds'}
             label={`${vaultCollateral.petname[1]} to lock up`}
-            value={stringifyValue(toLock, toLockDI)}
+            value={stringifyAmount(toLock, toLockDI)}
             type="number"
             onChange={ev =>
               adaptBorrowParams({
-                toLock: parseValue(ev.target.value, toLockDI),
+                toLock: parseAmount(
+                  ev.target.value || '0',
+                  toLock.brand,
+                  toLockDI,
+                ),
               })
             }
             InputProps={{
@@ -367,10 +430,13 @@ function VaultConfigure({
             InputProps={{
               inputComponent: NumberFormatPercent,
             }}
-            value={collateralPercent}
+            value={toPrintedPercent(collateralPercent)}
             onChange={ev =>
               adaptBorrowParams({
-                collateralPercent: ev.target.value,
+                collateralPercent: makeRatio(
+                  BigInt(ev.target.value || 0),
+                  collateralPercent.numerator.brand,
+                ),
               })
             }
           />
@@ -381,11 +447,12 @@ function VaultConfigure({
             required
             label="$MOE to receive"
             type="number"
-            value={stringifyValue(toBorrow, dstPurse && dstPurse.displayInfo)}
+            value={stringifyAmount(toBorrow, dstPurse && dstPurse.displayInfo)}
             onChange={ev =>
               adaptBorrowParams({
-                toBorrow: parseValue(
-                  ev.target.value,
+                toBorrow: parseAmount(
+                  ev.target.value || '0',
+                  toBorrow.brand,
                   dstPurse && dstPurse.displayInfo,
                 ),
               })
@@ -420,7 +487,7 @@ function VaultConfigure({
           <Button
             onClick={() => {
               if (balanceExceeded) {
-                setToTransfer(parseFloat(toLock));
+                setToTransfer(toLock);
               } else {
                 dispatch(setVaultConfigured(true));
               }
@@ -464,7 +531,7 @@ export function VaultConfirmation({ vaultParams }) {
           <TableRow>
             <TableCell>Depositing</TableCell>
             <TableCell align="right">
-              {stringifyValue(toLock, fundPurse && fundPurse.displayInfo)}{' '}
+              {stringifyAmount(toLock, fundPurse && fundPurse.displayInfo)}{' '}
               {fundPurse && fundPurse.brandPetname[1]} from Purse:{' '}
               {fundPurse && fundPurse.pursePetname[1]}
             </TableCell>
@@ -473,7 +540,7 @@ export function VaultConfirmation({ vaultParams }) {
           <TableRow>
             <TableCell>Borrowing</TableCell>
             <TableCell align="right">
-              {dstPurse && stringifyValue(toBorrow, dstPurse.displayInfo)}{' '}
+              {dstPurse && stringifyAmount(toBorrow, dstPurse.displayInfo)}{' '}
               {dstPurse && dstPurse.brandPetname} to Purse:{' '}
               {dstPurse && dstPurse.pursePetname}
             </TableCell>
@@ -534,6 +601,7 @@ export default function NewVault() {
       connected,
       vaultCollateral,
       vaultParams,
+      treasury,
       collaterals,
       purses,
       vaultConfigured,
@@ -558,6 +626,7 @@ export default function NewVault() {
           dispatch={dispatch}
           collaterals={collaterals}
           vaultParams={vaultParams}
+          treasury={treasury}
         />
       )}
       {connected && vaultCollateral && !vaultConfigured && (

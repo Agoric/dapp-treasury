@@ -21,6 +21,7 @@ export const {
     swapInputs,
     createOffer,
     resetState,
+    setTreasury,
     setVaultCollateral,
     setVaultParams,
     setVaultConfigured,
@@ -45,13 +46,14 @@ export const {
     inputChanged: false,
     outputChanged: false,
     // Vault state
+    treasury: null,
     vaultCollateral: null,
     vaultParams: {
       fundPurse: null,
       dstPurse: null,
-      toBorrow: 0,
-      collateralPercent: 150,
-      toLock: 0,
+      toBorrow: null,
+      toLock: null,
+      collateralPercent: null,
     },
     vaultConfigured: false,
     vaultCreated: false,
@@ -82,9 +84,9 @@ export const {
       vaultParams: {
         fundPurse: null,
         dstPurse: null,
-        toBorrow: 0,
-        collateralPercent: 150,
-        toLock: 0,
+        toBorrow: null,
+        toLock: null,
+        collateralPercent: null,
       },
     }),
     swapInputs(state) {

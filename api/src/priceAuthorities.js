@@ -1,9 +1,11 @@
 import { E } from '@agoric/eventual-send';
+import { Far } from '@agoric/marshal';
 import { makeFakePriceAuthority } from '@agoric/zoe/tools/fakePriceAuthority';
 import { makeIssuerKit, makeLocalAmountMath, MathKind } from '@agoric/ertp';
 import { allComparable } from '@agoric/same-structure';
 
-export default harden(async ({ sconesIssuer, issuerToTrades, timer }) => {
+export async function start(zcf) {
+  const { sconesIssuer, issuerToTrades, timer } = zcf.getTerms();
   const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
   const sconesMath = await makeLocalAmountMath(sconesIssuer);
   const sconesBrand = sconesMath.getBrand();
@@ -57,5 +59,11 @@ export default harden(async ({ sconesIssuer, issuerToTrades, timer }) => {
     },
   );
 
-  return harden(priceAuthorities);
-});
+  const creatorFacet = Far('PriceAuthorities', {
+    getPriceAuthorities() {
+      return priceAuthorities;
+    },
+  });
+
+  return harden({ creatorFacet });
+}

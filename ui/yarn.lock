@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@agoric/acorn-eventual-send@^2.1.2":
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/@agoric/acorn-eventual-send/-/acorn-eventual-send-2.1.2.tgz#dd9f524f4ec747da5ec4ee277b8b68197b8b5aa0"
-  integrity sha512-hR3e3boP78IffEU1gPScYqSoVNzSS1dhvlgIGV3EwXbUm31da5vUCAL4fD+HPVcgjymWoqTGCNT05wrKqQFaNA==
+"@agoric/acorn-eventual-send@^2.1.3":
+  version "2.1.3"
+  resolved "https://registry.yarnpkg.com/@agoric/acorn-eventual-send/-/acorn-eventual-send-2.1.3.tgz#cbec25608200cf19728f20033415d6220a308d9d"
+  integrity sha512-Iry9/MKY3mRw+fjjupPr44/IPeiY8VXDjw4/ZO1o6S8ClJtipfg+++Cw0qxaOaF1AGVYbpGH+8+3KBm2DSyAKA==
 
 "@agoric/assert@*", "@agoric/assert@^0.2.0":
   version "0.2.0"
@@ -14,12 +14,12 @@
   dependencies:
     ses "^0.11.0"
 
-"@agoric/assert@^0.2.2":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@agoric/assert/-/assert-0.2.2.tgz#f042567459c03df2bd26f1ff1211efd91a2ed3c9"
-  integrity sha512-v0chZ1rSeZaagVfindRyMoFZv0dW8ctcrkx1/qrhA2gb/ep9p0yUuwBMQV5vAOMbJAJI+VYd2wDShVr3EBkl3g==
+"@agoric/assert@^0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@agoric/assert/-/assert-0.2.3.tgz#1882aa2b9d4086988a98180e9a169bacac70f5c8"
+  integrity sha512-JB2bOJSU9EY/McFQ9vVUw5LxifD3l8dJBPhwXcdHXqXuagEZ9eOI3GFFOx3aN/ggBTNHTWm6PgYgjxsUtAD/sQ==
   dependencies:
-    ses "^0.12.2"
+    ses "^0.12.3"
 
 "@agoric/babel-parser@^7.6.4":
   version "7.9.4"
@@ -31,21 +31,21 @@
   resolved "https://registry.yarnpkg.com/@agoric/babel-standalone/-/babel-standalone-7.9.5.tgz#1ca0c17844924199d31e49d6b67e8b2a629b8599"
   integrity sha512-1Aa23oPuRi4kywUyZODo8zey9Gq2NpD2xUnNvgJLoT8orMQRlVOtvbG3JeHq5sjJERlF/q6csg4/P8t8/5IABA==
 
-"@agoric/base64@^0.1.2":
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/@agoric/base64/-/base64-0.1.2.tgz#ff4c70d07dcb9ca255b003929330565a8f41fdfd"
-  integrity sha512-1JA563jqy01lPY5fTB6mIcDWlBUSvtEagewV1ciMRczWtxyTPSRENSsXIqXxdxEozEbksKX8rw5AbQWCW8LKEw==
+"@agoric/base64@^0.1.3":
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/@agoric/base64/-/base64-0.1.3.tgz#9ba62b18c1099a68ab595e74606952fb58a209fe"
+  integrity sha512-Ou4Tng08JYrumLaENLbezy83N4gOY+b8CBNBq2An7BHZ+TguIpCkmc/uBaRC3hgisq77pSlP2ZfhETsh48lbwQ==
 
-"@agoric/bundle-source@^1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@agoric/bundle-source/-/bundle-source-1.2.2.tgz#405e8f916f052fd2b841d2fe617aa788f567402d"
-  integrity sha512-JgSk4qsHlPUsEBy8069EXTGHKaVMqKs7Pv3dFD1zcbtGJ3fnvqXiNNsBPDPII+IAeskN2qK5BhAGrvtzBVKfcA==
+"@agoric/bundle-source@^1.2.3":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@agoric/bundle-source/-/bundle-source-1.2.3.tgz#c48c6a1423e996c5e42f7b56022c3719ec4e5c0f"
+  integrity sha512-+QDOBHiu6A4JRHjR2nSZ/l/yAqcLmUVKHI+8x50mcl59A4BWcdUkFDmnpHTtaWnv/bwTn6qlN9Ko6QnDj3FMgA==
   dependencies:
-    "@agoric/acorn-eventual-send" "^2.1.2"
+    "@agoric/acorn-eventual-send" "^2.1.3"
     "@agoric/babel-parser" "^7.6.4"
-    "@agoric/base64" "^0.1.2"
+    "@agoric/base64" "^0.1.3"
     "@agoric/compartment-mapper" "^0.2.3"
-    "@agoric/transform-eventual-send" "^1.4.2"
+    "@agoric/transform-eventual-send" "^1.4.3"
     "@babel/generator" "^7.6.4"
     "@babel/traverse" "^7.8.3"
     "@rollup/plugin-commonjs" "~11.0.2"
@@ -53,7 +53,7 @@
     acorn "^7.1.0"
     esm "^3.2.5"
     rollup "^1.32.0"
-    ses "^0.12.2"
+    ses "^0.12.3"
     source-map "^0.7.3"
 
 "@agoric/captp@*":
@@ -67,15 +67,15 @@
     "@agoric/promise-kit" "^0.2.0"
     esm "^3.2.5"
 
-"@agoric/captp@^1.7.2":
-  version "1.7.2"
-  resolved "https://registry.yarnpkg.com/@agoric/captp/-/captp-1.7.2.tgz#31316960e58a156aa3908d4f05905173a2658259"
-  integrity sha512-4B6h3vdGK8VsfOo7BIy0MCPAvGjUw6mceGlJiSHPa/KTPWHJ1G24ios2+adCQaTT28M0/s191CJrSyFEZKXFwQ==
+"@agoric/captp@^1.7.3":
+  version "1.7.3"
+  resolved "https://registry.yarnpkg.com/@agoric/captp/-/captp-1.7.3.tgz#f9e9ecfda513b0f8f65cd10d3045a4cb36d9f168"
+  integrity sha512-kaCeplFRa1PvpxBmFlZu0PCdnRrrN8gjhoGpUV5ASmgBQvpIg7ukE7tjvGOBj+70J/e32MmKOGOjCe/UoGHnYw==
   dependencies:
-    "@agoric/eventual-send" "^0.13.2"
-    "@agoric/marshal" "^0.3.2"
-    "@agoric/nat" "^2.0.1"
-    "@agoric/promise-kit" "^0.2.2"
+    "@agoric/eventual-send" "^0.13.3"
+    "@agoric/marshal" "^0.4.0"
+    "@agoric/nat" "^4.0.0"
+    "@agoric/promise-kit" "^0.2.3"
     esm "^3.2.5"
 
 "@agoric/compartment-mapper@^0.2.3":
@@ -100,38 +100,38 @@
     "@agoric/same-structure" "^0.1.0"
     "@agoric/store" "^0.4.0"
 
-"@agoric/ertp@^0.9.2":
-  version "0.9.2"
-  resolved "https://registry.yarnpkg.com/@agoric/ertp/-/ertp-0.9.2.tgz#bfb3dea533ce1f44cd81496140c1148cd3d435b1"
-  integrity sha512-v4Tg9qKHTRNyXxZz0jsK1YnCHm7lZWDXyiMW7CVkWRS9tvZt3vz9RrIRo809avR9YYNRh+RVOovvCNnUDcSDkg==
+"@agoric/ertp@^0.10.0":
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/@agoric/ertp/-/ertp-0.10.0.tgz#fd3c5a312e2feb975d0200bd6f7f3024f272d9c8"
+  integrity sha512-2GRwGdaH8taET4KAzjT4c01SOdHOYSsOM7p8f4zdaJSfuvIlyOx/UsUIFg5uIMBd2kq4VBq6g7QIKtbbAPyeXg==
   dependencies:
-    "@agoric/assert" "^0.2.2"
-    "@agoric/eventual-send" "^0.13.2"
-    "@agoric/import-manager" "^0.2.2"
-    "@agoric/marshal" "^0.3.2"
-    "@agoric/nat" "^2.0.1"
-    "@agoric/notifier" "^0.3.2"
-    "@agoric/promise-kit" "^0.2.2"
-    "@agoric/same-structure" "^0.1.2"
-    "@agoric/store" "^0.4.2"
+    "@agoric/assert" "^0.2.3"
+    "@agoric/eventual-send" "^0.13.3"
+    "@agoric/import-manager" "^0.2.3"
+    "@agoric/marshal" "^0.4.0"
+    "@agoric/nat" "^4.0.0"
+    "@agoric/notifier" "^0.3.3"
+    "@agoric/promise-kit" "^0.2.3"
+    "@agoric/same-structure" "^0.1.3"
+    "@agoric/store" "^0.4.3"
 
 "@agoric/eventual-send@*", "@agoric/eventual-send@^0.13.0":
   version "0.13.0"
   resolved "https://registry.yarnpkg.com/@agoric/eventual-send/-/eventual-send-0.13.0.tgz#78b8bb4f799555df76f068a57efbba670cd71aed"
   integrity sha512-E2KgJloaSnHuhHtWKkOQunG4p7vgFrYvwCOFnIrqg28sCl4gwTmpdT+IJt0rNySt2nL/BpFz1Iwxu71mgUNG9Q==
 
-"@agoric/eventual-send@^0.13.2":
-  version "0.13.2"
-  resolved "https://registry.yarnpkg.com/@agoric/eventual-send/-/eventual-send-0.13.2.tgz#3a844d20059b4ff07c5b7a359fcf05bac4517ee8"
-  integrity sha512-VjwfvVFwTn+5iL0FZwifSVyIoZgLGnX8UsvGnELkONAWMwJfACyGjNu8j6lv/G1lR4GBIWSqHcjTbZSmD7sDrA==
+"@agoric/eventual-send@^0.13.3":
+  version "0.13.3"
+  resolved "https://registry.yarnpkg.com/@agoric/eventual-send/-/eventual-send-0.13.3.tgz#ca86cbfdb7a98d3a3704da4f7d1b4e144535ef36"
+  integrity sha512-/cdySA0Kg5NLTPvWASIfmgJPBg9mZqXakcJVBEOerIZu4uvcmw7dA/kfCW4QZmWZt3+1CZJtmJd9UJVBfF8uXQ==
 
-"@agoric/import-bundle@^0.2.2":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@agoric/import-bundle/-/import-bundle-0.2.2.tgz#1470dbfb06895444f94778c9f33d7f0b91545a5a"
-  integrity sha512-Yqdl65Bu9+C4vYzw32tuo8gfygXrw7pbgSAVVvQbHwur1py1+3a+fkEzOaLI6EG3whEmtHKFrdtT+MYnpjzF0g==
+"@agoric/import-bundle@^0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@agoric/import-bundle/-/import-bundle-0.2.3.tgz#5b05b5191b0b228220e75d7405bb1f83ff3da0d8"
+  integrity sha512-n79LwN8m6Sw1JrVABapPRtI/SxNg7llnoyZP1+kbm6+Y85Wl29C6ApKP2odPcyy3VdC6aKSQ7AdiK/gYoCpyXg==
   dependencies:
-    "@agoric/assert" "^0.2.2"
-    "@agoric/base64" "^0.1.2"
+    "@agoric/assert" "^0.2.3"
+    "@agoric/base64" "^0.1.3"
     "@agoric/compartment-mapper" "^0.2.3"
 
 "@agoric/import-manager@^0.2.0":
@@ -139,18 +139,18 @@
   resolved "https://registry.yarnpkg.com/@agoric/import-manager/-/import-manager-0.2.0.tgz#ab3cde1ebea132f742f5cc65b496445ba412cbaf"
   integrity sha512-yzaYRMgDt3Mts8b4SiX1mVufzPbhbiWS+jhIcOrXok+Msiu2Nl4yf2luz2wWW5zP2PMss64BBriucZniBLrGgQ==
 
-"@agoric/import-manager@^0.2.2":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@agoric/import-manager/-/import-manager-0.2.2.tgz#7619accd0c9b97e4068f0a278ffb9358ee216eec"
-  integrity sha512-UA3pqECiEzj9RX8uo/QrvWqIY5B238MRG8DxcFiZrCIBxmCieLhsYhfhrYBw4HaYnQJaI6Q+dPQoJHOCAEFC8g==
+"@agoric/import-manager@^0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@agoric/import-manager/-/import-manager-0.2.3.tgz#2da7aa72150f48e563b5432d6f729a1d1bb2c43c"
+  integrity sha512-/OVbnHSEHmro9L4fEmR4pfZ2bfbuiSCEuvZsRYztw1CpchFjERaoFudbAMbl7tyA/kWiGs17KTaIGMpLSetNwg==
 
-"@agoric/install-ses@^0.5.2":
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/@agoric/install-ses/-/install-ses-0.5.2.tgz#2018ce2819ef30e54312824babfbc1abe83ab2b8"
-  integrity sha512-zJvO2JSIqk7s22qh2/j5QEd5QHf4zdFdPn70yq3serdbFoRrO9mmNaI+2LkNwWyYmRSAWYrKWG4ERHy2J9eItw==
+"@agoric/install-ses@*", "@agoric/install-ses@^0.5.3":
+  version "0.5.3"
+  resolved "https://registry.yarnpkg.com/@agoric/install-ses/-/install-ses-0.5.3.tgz#7a169f6ebfa45a35e0f1ba0b70a89963a3ed6ef0"
+  integrity sha512-KTkx2fpUj1MIQ6+ORJU85PiALavGKANVWHQgEQ2ttd/bfCONsWiCK9iQcvKV8Ir4IsJeq9B1ip4gW+VmBBcEzQ==
   dependencies:
-    "@agoric/eventual-send" "^0.13.2"
-    ses "^0.12.2"
+    "@agoric/eventual-send" "^0.13.3"
+    ses "^0.12.3"
 
 "@agoric/make-hardener@^0.1.0":
   version "0.1.1"
@@ -172,15 +172,15 @@
     "@agoric/nat" "^2.0.1"
     "@agoric/promise-kit" "^0.2.0"
 
-"@agoric/marshal@^0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@agoric/marshal/-/marshal-0.3.2.tgz#721cc35d5a4f5c9f13d36aee4dfcc302bb182955"
-  integrity sha512-DICow5HO929m9RqzXnmBZzCr4e9rMgRIV2YOmB8rYYF1IEMFsSjf6ag9ot8a70qzWt7qVjH45Ds3Z+Y+B0yY0A==
+"@agoric/marshal@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@agoric/marshal/-/marshal-0.4.0.tgz#83bde011493f15e2090b2c512b6ea0e046d19716"
+  integrity sha512-4M22/q6gtBrJUO4OYq596rpaGoHYRFDK4l+BNt8Mjw89bGH5RDaCgXkdFzThAaTEj9UDTcTdUS4VpWIm75WKaA==
   dependencies:
-    "@agoric/assert" "^0.2.2"
-    "@agoric/eventual-send" "^0.13.2"
-    "@agoric/nat" "^2.0.1"
-    "@agoric/promise-kit" "^0.2.2"
+    "@agoric/assert" "^0.2.3"
+    "@agoric/eventual-send" "^0.13.3"
+    "@agoric/nat" "^4.0.0"
+    "@agoric/promise-kit" "^0.2.3"
 
 "@agoric/nat@^2.0.1":
   version "2.0.1"
@@ -201,14 +201,15 @@
     "@agoric/eventual-send" "^0.13.0"
     "@agoric/promise-kit" "^0.2.0"
 
-"@agoric/notifier@^0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@agoric/notifier/-/notifier-0.3.2.tgz#d0409d96685560eaaa48ae3c2c0f422b870e7ca4"
-  integrity sha512-lNANUhHQf3q/wnebNTGkACMV61Zfu/MfM7rNBOOKZk2PEneeV97dOxh/ViyLpaPGkGMXmXk90MM/k0Xhc3P4Gw==
+"@agoric/notifier@^0.3.3":
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/@agoric/notifier/-/notifier-0.3.3.tgz#abf5b752bff11ce5d54645661ccb5035464d4248"
+  integrity sha512-6/MHn9/hxCZEB8uE/ff6Xfxj3PAx8++wPtCPvJGdgEgABBfZ5UfOkfwAyO+jPdcWOzksFtfZ57GHE5FU4e0utw==
   dependencies:
-    "@agoric/assert" "^0.2.2"
-    "@agoric/eventual-send" "^0.13.2"
-    "@agoric/promise-kit" "^0.2.2"
+    "@agoric/assert" "^0.2.3"
+    "@agoric/eventual-send" "^0.13.3"
+    "@agoric/marshal" "^0.4.0"
+    "@agoric/promise-kit" "^0.2.3"
 
 "@agoric/promise-kit@^0.2.0":
   version "0.2.0"
@@ -217,12 +218,12 @@
   dependencies:
     "@agoric/eventual-send" "^0.13.0"
 
-"@agoric/promise-kit@^0.2.2":
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/@agoric/promise-kit/-/promise-kit-0.2.2.tgz#a45eae2f12c5bd41f503a3a527ef988e0470e093"
-  integrity sha512-PUWomQy2RAWIfHn42bqHB63hhrh96LdeNQ2Np8xe4ccdlFsiOtm9T0W1/OzIVHOjFSqSkTSYDwHVBNqqJxuLQQ==
+"@agoric/promise-kit@^0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@agoric/promise-kit/-/promise-kit-0.2.3.tgz#6276a3aaf483017f6aba7ea2bc818acd59dc1511"
+  integrity sha512-jDFRSwq9IIe0sG7kvDvgqJWzQMQwevKXPqoD/6BbgdaoeYDHtf4dqz/jPH0L5C5ZUizaW+t46OVEUFOI/uCa8A==
   dependencies:
-    "@agoric/eventual-send" "^0.13.2"
+    "@agoric/eventual-send" "^0.13.3"
 
 "@agoric/same-structure@^0.1.0":
   version "0.1.0"
@@ -232,13 +233,13 @@
     "@agoric/assert" "^0.2.0"
     "@agoric/marshal" "^0.3.0"
 
-"@agoric/same-structure@^0.1.2":
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/@agoric/same-structure/-/same-structure-0.1.2.tgz#7969db41ca2bb49e74f3db9e992aec0ff7d30c55"
-  integrity sha512-DRY3rAU4zqsZz9Cl+fokaqQ2J2p+RWI9924hpgtV4Ed0XGVvpyo7Pf/TrVCLPAII2M6MyqEq84maOAKaucEzOQ==
+"@agoric/same-structure@^0.1.3":
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/@agoric/same-structure/-/same-structure-0.1.3.tgz#cc08bf84083157ee0a3d9bb6a19124862bb66cbb"
+  integrity sha512-Gw784RQLLEhlKmp5sljYCIsC5VGaRbySI+qbCjsst3dEHIdOrn9neh/Pkdv5aEFciwSUMLyqW3+d25l6T8rBkQ==
   dependencies:
-    "@agoric/assert" "^0.2.2"
-    "@agoric/marshal" "^0.3.2"
+    "@agoric/assert" "^0.2.3"
+    "@agoric/marshal" "^0.4.0"
 
 "@agoric/store@^0.4.0":
   version "0.4.0"
@@ -247,43 +248,44 @@
   dependencies:
     "@agoric/assert" "^0.2.0"
 
-"@agoric/store@^0.4.2":
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/@agoric/store/-/store-0.4.2.tgz#5fb6ea99781713a773da655e119af248a5de8d4e"
-  integrity sha512-cYVJ/ktYOYULzEFu0bf7JOF6XFZEVVwYjHRwY/vxrRP0jEAJqc7/FlAI5uny+R2KeGfuruCRhQaP8bPTRE4JKA==
+"@agoric/store@^0.4.3":
+  version "0.4.3"
+  resolved "https://registry.yarnpkg.com/@agoric/store/-/store-0.4.3.tgz#31430392d574bd2610b71e7661028c68f823acee"
+  integrity sha512-qU1Ol1S440LHNbx0GpJinbifmGb4FDpwWD3qT5Av0cIIvkLBVDFptV7eN1JrOqDuiKZikRYCyDpIcst4yz5aqw==
   dependencies:
-    "@agoric/assert" "^0.2.2"
+    "@agoric/assert" "^0.2.3"
+    "@agoric/marshal" "^0.4.0"
 
-"@agoric/swing-store-simple@^0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@agoric/swing-store-simple/-/swing-store-simple-0.3.2.tgz#a2d5e2bc3dfd611491285e158a6b2dc973f4ae70"
-  integrity sha512-vUJc1oYbNWs8iEQbZ++AtdbOMeWiYxlm1i/6IHPJxxUA5QVUrt0GUsrPSuG2JQ7nT9AIDt14P2wStlKXyd3eYg==
+"@agoric/swing-store-simple@^0.3.3":
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/@agoric/swing-store-simple/-/swing-store-simple-0.3.3.tgz#1e4f91346d2bf5a08fbdb37a0e441db244630992"
+  integrity sha512-zVk/Qz7peO4pZR803xkvilVjgAMssPj4QN3Df/ZxyhbhfI9z47RqpqHRmn2YjIN9o3AH96NR9PpKKN55t1dY+A==
   dependencies:
     n-readlines "^1.0.0"
 
-"@agoric/swingset-vat@^0.12.1":
-  version "0.12.1"
-  resolved "https://registry.yarnpkg.com/@agoric/swingset-vat/-/swingset-vat-0.12.1.tgz#1c7dd204b49445cb84826f915c932fe31cd975b0"
-  integrity sha512-GZPky0Xd/wgvP+jXV0L4qZ6Ul+UlNCx/xjcDze/89uaWK/3cdP7vEa6OO6aLF/11y/aTMlCAg17NudFongoBOA==
+"@agoric/swingset-vat@^0.13.0":
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/@agoric/swingset-vat/-/swingset-vat-0.13.0.tgz#52a0772bbdd985fa00db235bfcda0a8d656323b7"
+  integrity sha512-j4Nym81VQkalSx1ejryiB69Z66Xv9izC0zUes0UQ86D7/YWkupQ4nbpEGxDNq2rRL7TC9AYvyYZCstjp6NFKXw==
   dependencies:
-    "@agoric/assert" "^0.2.2"
+    "@agoric/assert" "^0.2.3"
     "@agoric/babel-parser" "^7.6.4"
-    "@agoric/base64" "^0.1.2"
-    "@agoric/bundle-source" "^1.2.2"
-    "@agoric/captp" "^1.7.2"
-    "@agoric/eventual-send" "^0.13.2"
-    "@agoric/import-bundle" "^0.2.2"
-    "@agoric/install-ses" "^0.5.2"
-    "@agoric/marshal" "^0.3.2"
+    "@agoric/base64" "^0.1.3"
+    "@agoric/bundle-source" "^1.2.3"
+    "@agoric/captp" "^1.7.3"
+    "@agoric/eventual-send" "^0.13.3"
+    "@agoric/import-bundle" "^0.2.3"
+    "@agoric/install-ses" "^0.5.3"
+    "@agoric/marshal" "^0.4.0"
     "@agoric/nat" "^4.0.0"
-    "@agoric/notifier" "^0.3.2"
-    "@agoric/promise-kit" "^0.2.2"
-    "@agoric/store" "^0.4.2"
-    "@agoric/swing-store-simple" "^0.3.2"
-    "@agoric/tame-metering" "^1.3.2"
-    "@agoric/transform-eventual-send" "^1.4.2"
-    "@agoric/transform-metering" "^1.4.2"
-    "@agoric/xsnap" "^0.2.1"
+    "@agoric/notifier" "^0.3.3"
+    "@agoric/promise-kit" "^0.2.3"
+    "@agoric/store" "^0.4.3"
+    "@agoric/swing-store-simple" "^0.3.3"
+    "@agoric/tame-metering" "^1.3.3"
+    "@agoric/transform-eventual-send" "^1.4.3"
+    "@agoric/transform-metering" "^1.4.3"
+    "@agoric/xsnap" "^0.3.0"
     "@babel/core" "^7.5.0"
     "@babel/generator" "^7.6.4"
     anylogger "^0.21.0"
@@ -294,25 +296,25 @@
     semver "^6.3.0"
     yargs "^14.2.0"
 
-"@agoric/tame-metering@^1.3.2":
-  version "1.3.2"
-  resolved "https://registry.yarnpkg.com/@agoric/tame-metering/-/tame-metering-1.3.2.tgz#7b9feda8970b15e20fbe0d098c3ca44857ac27c3"
-  integrity sha512-21uxNtAO7ssi5jPEFIWTBHdywK5xcf6DDKUVtmGreGc+NMEJJ2AW/1BhVT0dtMtxXATGKbv4E8OPAlygBVhONA==
+"@agoric/tame-metering@^1.3.3":
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/@agoric/tame-metering/-/tame-metering-1.3.3.tgz#c0fd7a3718367b97f52162360a4a3d96c04e6e0e"
+  integrity sha512-hy+rtqmv2AuZ02A1RIAF6BIQiicSv6aySwa48vzxIaofNrlEiX4oKTPaf7qBa3hXkwmjZDD+sVDfekX6fYK4BQ==
   dependencies:
     esm "^3.2.5"
 
-"@agoric/transform-eventual-send@^1.4.2":
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/@agoric/transform-eventual-send/-/transform-eventual-send-1.4.2.tgz#ff1e0f42555b64906b95d043fff134f366b6533e"
-  integrity sha512-P8+LbcqXWKUfrGebQuAhbnB08Dx6NMZRkSxQ0Ehwmxe8+u+jpwA1eTotTrTWBFi6IXSJs03FyQNjclsn20UJWA==
+"@agoric/transform-eventual-send@^1.4.3":
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/@agoric/transform-eventual-send/-/transform-eventual-send-1.4.3.tgz#80122a5d9e5ef6c912df697d98c00abb73241b1e"
+  integrity sha512-LP/N6fNseMIFRNxdNY08rW19/hnV24XQfgyMZoD0IsArot1yYPIOgzim+KISeepJVqphbWRkggAOwtCZYMLv3Q==
 
-"@agoric/transform-metering@^1.4.2":
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/@agoric/transform-metering/-/transform-metering-1.4.2.tgz#64797933ae75ba96463a3c1df55060041666ed14"
-  integrity sha512-f0a74pee2cvFBE8N8Jb8JIIA45YzTvT227+4I7x56VSDreIEAP1VYUF7QWiYgSPcYV78ALK9A5dhGIr+JNauDA==
+"@agoric/transform-metering@^1.4.3":
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/@agoric/transform-metering/-/transform-metering-1.4.3.tgz#e67e0aac2ace49be033840e1e44e88e5835bf17c"
+  integrity sha512-ZlGfgPHetmZLqSxiMsE2jEZ1oUzdGCHxNWSeaAJeR8Cg9O4QYPyQ7r1HWW5eEQ2ZaqVetvdsl12EHqWy8TgpxQ==
   dependencies:
-    "@agoric/nat" "^2.0.1"
-    "@agoric/tame-metering" "^1.3.2"
+    "@agoric/nat" "^4.0.0"
+    "@agoric/tame-metering" "^1.3.3"
     re2 "^1.10.5"
 
 "@agoric/transform-module@^0.4.1":
@@ -320,33 +322,37 @@
   resolved "https://registry.yarnpkg.com/@agoric/transform-module/-/transform-module-0.4.1.tgz#9fb152364faf372e1bda535cb4ef89717724f57c"
   integrity sha512-4TJJHXeXAWu1FCA7yXCAZmhBNoGTB/BEAe2pv+J2X8W/mJTr9b395OkDCSRMpzvmSshLfBx6wT0D7dqWIWEC1w==
 
-"@agoric/xsnap@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@agoric/xsnap/-/xsnap-0.2.1.tgz#23413bd30e861867ea6ea8232dee1b13e964bf2c"
-  integrity sha512-oqGYh7cUXqYlPfkQXOGFBnI3y41mOtW22pthWvwBfvCbty7jsMaXlcMc1YY1M9MHckPQjeeoczH1qK1owjBGGA==
+"@agoric/xsnap@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@agoric/xsnap/-/xsnap-0.3.0.tgz#3470aac287a1fa1b05ce319f7efbc0fce0e3ff87"
+  integrity sha512-WDf738tuO6f6yDGKJdFIyjxQsIEvjhUT0X5AdvS0aRHGPvutDznlPneyxC5ueaLjTy6AJj95/42EFdPGJZBDwQ==
   dependencies:
-    "@agoric/eventual-send" "^0.13.2"
+    "@agoric/assert" "^0.2.3"
+    "@agoric/bundle-source" "^1.2.3"
+    "@agoric/eventual-send" "^0.13.3"
+    "@agoric/install-ses" "^0.5.3"
     esm "^3.2.5"
-    ses "^0.12.2"
+    glob "^7.1.6"
+    ses "^0.12.3"
 
 "@agoric/zoe@*":
-  version "0.12.1"
-  resolved "https://registry.yarnpkg.com/@agoric/zoe/-/zoe-0.12.1.tgz#c917ffb9c0c7ab7458ba6ee52568499383042b1a"
-  integrity sha512-ZW029/bLEMhHJaAYr+WpICpnanfhJVZnHroaZWkscWHf+Te0aCYcKNGM/Zgvx3Xa+/odhc1wrvZJgC86E0XtTQ==
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/@agoric/zoe/-/zoe-0.13.0.tgz#0c9b404ea632ce695a566b9b0cb423a59169e947"
+  integrity sha512-fKWfNbGiSfTRfH2YtQFy8HBmRv55hAYMvoaoa5bTIrzgWpM2jHmPzvpdno14CbJb8tcPAQ18S6Dyy9f4KDGOAg==
   dependencies:
-    "@agoric/assert" "^0.2.2"
-    "@agoric/bundle-source" "^1.2.2"
-    "@agoric/ertp" "^0.9.2"
-    "@agoric/eventual-send" "^0.13.2"
-    "@agoric/import-bundle" "^0.2.2"
-    "@agoric/marshal" "^0.3.2"
-    "@agoric/nat" "^2.0.1"
-    "@agoric/notifier" "^0.3.2"
-    "@agoric/promise-kit" "^0.2.2"
-    "@agoric/same-structure" "^0.1.2"
-    "@agoric/store" "^0.4.2"
-    "@agoric/swingset-vat" "^0.12.1"
-    "@agoric/transform-metering" "^1.4.2"
+    "@agoric/assert" "^0.2.3"
+    "@agoric/bundle-source" "^1.2.3"
+    "@agoric/ertp" "^0.10.0"
+    "@agoric/eventual-send" "^0.13.3"
+    "@agoric/import-bundle" "^0.2.3"
+    "@agoric/marshal" "^0.4.0"
+    "@agoric/nat" "^4.0.0"
+    "@agoric/notifier" "^0.3.3"
+    "@agoric/promise-kit" "^0.2.3"
+    "@agoric/same-structure" "^0.1.3"
+    "@agoric/store" "^0.4.3"
+    "@agoric/swingset-vat" "^0.13.0"
+    "@agoric/transform-metering" "^1.4.3"
 
 "@babel/code-frame@7.10.4", "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.10.4":
   version "7.10.4"
@@ -375,9 +381,9 @@
   integrity sha512-YaxPMGs/XIWtYqrdEOZOCPsVWfEoriXopnsz3/i7apYPXQ3698UFhS6dVT1KN5qOsWmVgw/FOrmQgpRaZayGsw==
 
 "@babel/compat-data@^7.13.8":
-  version "7.13.8"
-  resolved "https://registry.yarnpkg.com/@babel/compat-data/-/compat-data-7.13.8.tgz#5b783b9808f15cef71547f1b691f34f8ff6003a6"
-  integrity sha512-EaI33z19T4qN3xLXsGf48M2cDqa6ei9tPZlfLdb2HC+e/cFtREiRd8hdSqDbwdLB0/+gLwqJmCYASH0z2bUdog==
+  version "7.13.11"
+  resolved "https://registry.yarnpkg.com/@babel/compat-data/-/compat-data-7.13.11.tgz#9c8fe523c206979c9a81b1e12fe50c1254f1aa35"
+  integrity sha512-BwKEkO+2a67DcFeS3RLl0Z3Gs2OvdXewuWjc1Hfokhb5eQWP9YRYH1/+VrVZvql2CfjOiNGqSAFOYt4lsqTHzg==
 
 "@babel/core@7.12.3":
   version "7.12.3"
@@ -935,9 +941,9 @@
   integrity sha512-N3UxG+uuF4CMYoNj8AhnbAcJF0PiuJ9KHuy1lQmkYsxTer/MAH9UBNHsBoAX/4s6NvlDD047No8mYVGGzLL4hg==
 
 "@babel/parser@^7.12.13", "@babel/parser@^7.13.0", "@babel/parser@^7.13.10":
-  version "7.13.10"
-  resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.13.10.tgz#8f8f9bf7b3afa3eabd061f7a5bcdf4fec3c48409"
-  integrity sha512-0s7Mlrw9uTWkYua7xWr99Wpk2bnGa0ANleKfksYAES8LpWH4gW1OUr42vqKNf0us5UQNfru2wPqMqRITzq/SIQ==
+  version "7.13.11"
+  resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.13.11.tgz#f93ebfc99d21c1772afbbaa153f47e7ce2f50b88"
+  integrity sha512-PhuoqeHoO9fc4ffMEVk4qb/w/s2iOSWohvbHxLtxui0eBg3Lg5gN1U8wp1V1u61hOWkPQJJyJzGH6Y+grwkq8Q==
 
 "@babel/plugin-proposal-async-generator-functions@^7.12.1":
   version "7.12.12"
@@ -11454,7 +11460,7 @@ ses@^0.11.0:
     "@agoric/make-hardener" "^0.1.0"
     "@agoric/transform-module" "^0.4.1"
 
-ses@^0.12.2:
+ses@^0.12.3:
   version "0.12.3"
   resolved "https://registry.yarnpkg.com/ses/-/ses-0.12.3.tgz#9092a1f54374d08571a62837954e3fa24fe31d0f"
   integrity sha512-uDAUbVECNcgbl90ZwKCsmp5II/rgS1hiiB6KQMBU+GDvsUA+NFXdH76o3bTIk3ftPHqc4Vyk7vAU75pd+3Jy2Q==
