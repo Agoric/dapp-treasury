@@ -12,8 +12,11 @@ import {
 import PurseIcon from '@material-ui/icons/BusinessCenter';
 import { MathKind } from '@agoric/ertp';
 import { stringifyValue } from '@agoric/ui-components/src/display';
+import { makeNatAmountInput } from '@agoric/ui-components';
 
-import { getPurseMathKind, getPurseDecimalPlaces } from './helpers';
+import { getPurseDecimalPlaces } from './helpers';
+
+const NatAmountInput = makeNatAmountInput(React, TextField);
 
 const useStyles = makeStyles(theme => ({
   select: {
@@ -55,35 +58,12 @@ export default function AssetInput({
         alignItems="flex-end"
         justify="flex-end"
       >
-        <TextField
+        <NatAmountInput
           label={title}
-          type="number"
-          variant="outlined"
-          fullWidth
-          InputProps={{
-            inputProps: {
-              min: 0,
-            },
-          }}
           onChange={onAmountChange}
-          onKeyPress={e => {
-            const charCode = e.which ? e.which : e.keyCode;
-
-            // Prevent 'minus' character
-            if (charCode === 45) {
-              e.preventDefault();
-              e.stopPropagation();
-            }
-          }}
-          value={
-            amount === null
-              ? '0'
-              : stringifyValue(
-                  amount,
-                  getPurseMathKind(purse),
-                  getPurseDecimalPlaces(purse),
-                )
-          }
+          value={amount}
+          decimalPlaces={getPurseDecimalPlaces(purse)}
+          placesToShow={2}
           disabled={disabled}
           error={amountError}
         />
