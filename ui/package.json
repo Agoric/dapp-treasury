@@ -29,6 +29,7 @@
     ]
   },
   "dependencies": {
+    "@agoric/ui-components": "*",
     "@agoric/install-ses": "*",
     "@agoric/assert": "*",
     "@agoric/captp": "*",

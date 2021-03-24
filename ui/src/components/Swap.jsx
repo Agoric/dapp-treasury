@@ -12,8 +12,10 @@ import {
 } from '@material-ui/core';
 import ArrowDownIcon from '@material-ui/icons/ArrowDownward';
 
+import { parseAsValue } from '@agoric/ui-components/src/display';
 import AssetInput from './AssetInput';
 import Steps from './Steps';
+import { getPurseMathKind, getPurseDecimalPlaces } from './helpers';
 
 import { useApplicationContext } from '../contexts/Application';
 import {
@@ -26,7 +28,6 @@ import {
   setOutputChanged,
 } from '../store';
 
-import { parseValue } from './display';
 import { makeSwapOffer } from '../contexts/makeSwapOffer';
 
 const useStyles = makeStyles(theme => ({
@@ -115,13 +116,21 @@ export default function Swap(walletP) {
   }
 
   function handleChangeInputAmount(event) {
-    const amount = parseValue(event.target.value, inputPurse.displayInfo);
+    const amount = parseAsValue(
+      event.target.value,
+      getPurseMathKind(inputPurse),
+      getPurseDecimalPlaces(inputPurse),
+    );
     dispatch(setInputAmount(amount));
     dispatch(setInputChanged(true));
   }
 
   function handleChangeOutputAmount(event) {
-    const amount = parseValue(event.target.value, outputPurse.displayInfo);
+    const amount = parseAsValue(
+      event.target.value,
+      getPurseMathKind(outputPurse),
+      getPurseDecimalPlaces(outputPurse),
+    );
     dispatch(setOutputAmount(amount));
     dispatch(setOutputChanged(true));
   }

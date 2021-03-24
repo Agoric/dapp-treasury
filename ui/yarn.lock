@@ -322,6 +322,13 @@
   resolved "https://registry.yarnpkg.com/@agoric/transform-module/-/transform-module-0.4.1.tgz#9fb152364faf372e1bda535cb4ef89717724f57c"
   integrity sha512-4TJJHXeXAWu1FCA7yXCAZmhBNoGTB/BEAe2pv+J2X8W/mJTr9b395OkDCSRMpzvmSshLfBx6wT0D7dqWIWEC1w==
 
+"@agoric/ui-components@*":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@agoric/ui-components/-/ui-components-0.0.1.tgz#2591a602ed39897ac2cb3b778ae6b557bfa912d0"
+  integrity sha512-YKcBNwH5KP3JNs3acN/5aKb3a3od+AqLmpK0R8M6zfrowKhz/pV+wtI6WoqpP/h7EmvUDoTj8dZMRhcvoCrmaA==
+  dependencies:
+    "@agoric/nat" "^4.0.0"
+
 "@agoric/xsnap@^0.3.0":
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@agoric/xsnap/-/xsnap-0.3.0.tgz#3470aac287a1fa1b05ce319f7efbc0fce0e3ff87"

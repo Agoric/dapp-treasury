@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -7,8 +7,6 @@ import {
   Button,
   FormControl,
   FormLabel,
-  IconButton,
-  InputAdornment,
   MenuItem,
   Paper,
   Radio,
@@ -22,30 +20,29 @@ import {
   Typography,
   Grid,
 } from '@material-ui/core';
-import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
 import NumberFormat from 'react-number-format';
-import { multiplyBy } from '@agoric/zoe/src/contractSupport';
 import {
+  multiplyBy,
   divideBy,
   makeRatio,
   makeRatioFromAmounts,
-} from '@agoric/zoe/src/contractSupport/ratio';
+} from '@agoric/zoe/src/contractSupport';
+
+import {
+  stringifyPurseValue,
+  stringifyValue,
+  stringifyAmountValue,
+  parseAsAmount,
+} from '@agoric/ui-components/src/display';
+
 import { toPrintedPercent } from '../utils/helper';
 
-import TransferDialog from './TransferDialog';
 import VaultSteps from './VaultSteps';
 
 import { useApplicationContext } from '../contexts/Application';
 
 import dappConstants from '../generated/defaults.js';
-
-import {
-  stringifyPurseValue,
-  stringifyValue,
-  stringifyAmount,
-  // parseValue,
-  parseAmount,
-} from './display';
+import { getPurseMathKind, getPurseDecimalPlaces } from './helpers';
 
 import {
   setVaultCollateral,
@@ -115,6 +112,8 @@ function VaultCollateral({ collaterals, dispatch, vaultParams, treasury }) {
     { id: 'liqMargin', label: 'Liquidation Ratio' },
     { id: 'stabilityFee', label: 'Interest Rate' },
   ];
+
+  // TODO: get decimalPlaces for row.marketPrice.numerator.value
   return Array.isArray(collaterals) && collaterals.length > 0 ? (
     <div>
       <FormControl component="fieldset">
@@ -158,10 +157,7 @@ function VaultCollateral({ collaterals, dispatch, vaultParams, treasury }) {
                     {Array.isArray(row.petname) ? row.petname[1] : row.petname}
                   </TableCell>
                   <TableCell align="right">
-                    $
-                    {stringifyValue(row.marketPrice.numerator.value, {
-                      decimalPlaces: 3,
-                    })}
+                    ${stringifyValue(row.marketPrice.numerator.value)}
                   </TableCell>
                   <TableCell align="right">
                     {toPrintedPercent(row.initialMargin)}%
@@ -233,8 +229,6 @@ function VaultConfigure({ dispatch, vaultCollateral, purses, vaultParams }) {
     toLock,
   } = vaultParams;
 
-  const [toTransfer, setToTransfer] = useState(undefined);
-
   // Purses with the same brand as the collateral symbol that was
   // selected in the previous step.
   const fundPurses = purses.filter(
@@ -264,7 +258,8 @@ function VaultConfigure({ dispatch, vaultCollateral, purses, vaultParams }) {
   fundPurses.sort(doSort);
   dstPurses.sort(doSort);
 
-  const toLockDI = fundPurse && fundPurse.displayInfo;
+  const toLockMathKind = getPurseMathKind(fundPurse);
+  const toLockDecimalPlaces = getPurseDecimalPlaces(fundPurse);
 
   // Assume that toBorrow = 5000
   // don't change collateralPercent
@@ -277,9 +272,8 @@ function VaultConfigure({ dispatch, vaultCollateral, purses, vaultParams }) {
       console.log('UPDATE collateralRato', collateralPercent);
       console.log('UPDATE vault', vaultParams);
       console.log('UPDATE changes PRE', { ...changes });
-      // const decimalPlaces = (toLockDI && toLockDI.decimalPlaces) || 0;
       // compute a ratio from scones to collateral, so it includes
-      // the price and the collataraliztaion ratio
+      // the price and the collateralization ratio
       // TODO this will overestimate the collateral value if there's slippage
       const priceRate = vaultCollateral.marketPrice;
       console.log('UPDATE PRICE', priceRate);
@@ -344,7 +338,7 @@ function VaultConfigure({ dispatch, vaultCollateral, purses, vaultParams }) {
 
   const fundPurseBalance = (fundPurse && fundPurse.value) || 0;
   const balanceExceeded = fundPurseBalance < toLock;
-  const fundPurseBalanceDisplay = Number(stringifyPurseValue(fundPurse));
+  const fundPurseBalanceDisplay = stringifyPurseValue(fundPurse);
 
   return (
     <div className={classes.root}>
@@ -389,33 +383,22 @@ function VaultConfigure({ dispatch, vaultCollateral, purses, vaultParams }) {
             error={balanceExceeded}
             helperText={balanceExceeded && 'Need to obtain more funds'}
             label={`${vaultCollateral.petname[1]} to lock up`}
-            value={stringifyAmount(toLock, toLockDI)}
+            value={stringifyAmountValue(
+              toLock,
+              toLockMathKind,
+              toLockDecimalPlaces,
+            )}
             type="number"
             onChange={ev =>
               adaptBorrowParams({
-                toLock: parseAmount(
+                toLock: parseAsAmount(
                   ev.target.value || '0',
                   toLock.brand,
-                  toLockDI,
+                  toLockMathKind,
+                  toLockDecimalPlaces,
                 ),
               })
             }
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <IconButton
-                    onClick={() => {
-                      setToTransfer(toLock);
-                    }}
-                    edge="start"
-                  >
-                    <FlightTakeoffIcon
-                      className={balanceExceeded ? classes.pulse : null}
-                    />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
           />
           <TextField
             variant="outlined"
@@ -441,13 +424,18 @@ function VaultConfigure({ dispatch, vaultCollateral, purses, vaultParams }) {
             required
             label="$MOE to receive"
             type="number"
-            value={stringifyAmount(toBorrow, dstPurse && dstPurse.displayInfo)}
+            value={stringifyAmountValue(
+              toBorrow,
+              getPurseMathKind(dstPurse),
+              getPurseDecimalPlaces(dstPurse),
+            )}
             onChange={ev =>
               adaptBorrowParams({
-                toBorrow: parseAmount(
+                toBorrow: parseAsAmount(
                   ev.target.value || '0',
                   toBorrow.brand,
-                  dstPurse && dstPurse.displayInfo,
+                  getPurseMathKind(dstPurse),
+                  getPurseDecimalPlaces(dstPurse),
                 ),
               })
             }
@@ -481,7 +469,7 @@ function VaultConfigure({ dispatch, vaultCollateral, purses, vaultParams }) {
           <Button
             onClick={() => {
               if (balanceExceeded) {
-                setToTransfer(toLock);
+                // TODO: handle correctly
               } else {
                 dispatch(setVaultConfigured(true));
               }
@@ -492,15 +480,6 @@ function VaultConfigure({ dispatch, vaultCollateral, purses, vaultParams }) {
           <Button onClick={() => dispatch(resetVault())}>Cancel</Button>
         </Grid>
       </Grid>
-      <TransferDialog
-        required={toLock}
-        requiredDisplayInfo={toLockDI}
-        requiredSymbol={vaultCollateral.petname[1]}
-        fundPursePetname={fundPurse && fundPurse.pursePetname}
-        toTransfer={toTransfer}
-        setToTransfer={setToTransfer}
-        purses={purses}
-      />
     </div>
   );
 }
@@ -524,7 +503,11 @@ export function VaultConfirmation({ vaultParams }) {
           <TableRow>
             <TableCell>Depositing</TableCell>
             <TableCell align="right">
-              {stringifyAmount(toLock, fundPurse && fundPurse.displayInfo)}{' '}
+              {stringifyAmountValue(
+                toLock,
+                getPurseMathKind(fundPurse),
+                getPurseDecimalPlaces(fundPurse),
+              )}{' '}
               {fundPurse && fundPurse.brandPetname[1]} from Purse:{' '}
               {fundPurse && fundPurse.pursePetname[1]}
             </TableCell>
@@ -533,7 +516,12 @@ export function VaultConfirmation({ vaultParams }) {
           <TableRow>
             <TableCell>Borrowing</TableCell>
             <TableCell align="right">
-              {dstPurse && stringifyAmount(toBorrow, dstPurse.displayInfo)}{' '}
+              {dstPurse &&
+                stringifyAmountValue(
+                  toBorrow,
+                  getPurseMathKind(dstPurse),
+                  getPurseDecimalPlaces(dstPurse),
+                )}{' '}
               {dstPurse && dstPurse.brandPetname} to Purse:{' '}
               {dstPurse && dstPurse.pursePetname}
             </TableCell>

@@ -8,8 +8,8 @@ import {
   TableRow,
 } from '@material-ui/core';
 
+import { stringifyAmountValue } from '@agoric/ui-components/src/display';
 import { toPrintedPercent } from '../utils/helper';
-import { stringifyAmount } from './display';
 
 export function VaultSummary({ vault }) {
   const {
@@ -39,14 +39,23 @@ export function VaultSummary({ vault }) {
           <TableRow>
             <TableCell>Deposited</TableCell>
             <TableCell align="right">
-              {stringifyAmount(locked, lockedDisplayInfo)}{' '}
+              {stringifyAmountValue(
+                locked,
+                lockedDisplayInfo && lockedDisplayInfo.amountMathKind,
+                lockedDisplayInfo && lockedDisplayInfo.decimalPlaces,
+              )}{' '}
               {lockedBrandPetname[1]}
             </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Borrowed</TableCell>
             <TableCell align="right">
-              {stringifyAmount(debt, debtDisplayInfo)} {debtBrandPetname[1]}
+              {stringifyAmountValue(
+                debt,
+                debtDisplayInfo && debtDisplayInfo.amountMathKind,
+                debtDisplayInfo && debtDisplayInfo.decimalPlaces,
+              )}{' '}
+              {debtBrandPetname[1]}
             </TableCell>
           </TableRow>
           <TableRow>

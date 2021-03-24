@@ -10,8 +10,10 @@ import {
   ListItemText,
 } from '@material-ui/core';
 import PurseIcon from '@material-ui/icons/BusinessCenter';
+import { MathKind } from '@agoric/ertp';
+import { stringifyValue } from '@agoric/ui-components/src/display';
 
-import { stringifyValue } from './display';
+import { getPurseMathKind, getPurseDecimalPlaces } from './helpers';
 
 const useStyles = makeStyles(theme => ({
   select: {
@@ -74,7 +76,13 @@ export default function AssetInput({
             }
           }}
           value={
-            amount === null ? '' : stringifyValue(amount, purse.displayInfo)
+            amount === null
+              ? '0'
+              : stringifyValue(
+                  amount,
+                  getPurseMathKind(purse),
+                  getPurseDecimalPlaces(purse),
+                )
           }
           disabled={disabled}
           error={amountError}
@@ -95,20 +103,29 @@ export default function AssetInput({
           error={purseError}
         >
           {Array.isArray(purses) && purses.length > 0 ? (
-            purses.map(({ pursePetname, brandPetname, value, displayInfo }) => (
-              <MenuItem key={pursePetname} value={pursePetname} divider>
-                <ListItemIcon className={classes.icon}>
-                  <PurseIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary={pursePetname}
-                  secondary={`${stringifyValue(
-                    value,
-                    displayInfo,
-                  )} ${brandPetname}`}
-                />
-              </MenuItem>
-            ))
+            purses
+              .map(({ pursePetname, brandPetname, value, displayInfo }) => {
+                if (displayInfo.amountMathKind === MathKind.NAT) {
+                  return (
+                    <MenuItem key={pursePetname} value={pursePetname} divider>
+                      <ListItemIcon className={classes.icon}>
+                        <PurseIcon />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={pursePetname}
+                        secondary={`${stringifyValue(
+                          value,
+                          displayInfo && displayInfo.amountMathKind,
+                          displayInfo && displayInfo.decimalPlaces,
+                        )} ${brandPetname}`}
+                      />
+                    </MenuItem>
+                  );
+                } else {
+                  return false;
+                }
+              })
+              .filter(Boolean)
           ) : (
             <MenuItem key={null} value={null}>
               No purses
