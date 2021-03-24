@@ -16,10 +16,10 @@
     "lint-check-jessie": "eslint -c '.eslintrc-jessie.js' '**/*.js'"
   },
   "devDependencies": {
-    "eslint": "^6.1.0",
+    "eslint": "^7.22.0",
     "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-config-jessie": "0.0.3",
-    "eslint-config-prettier": "^6.0.0",
+    "eslint-config-jessie": "0.0.6",
+    "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-prettier": "^3.1.0",
     "prettier": "^1.18.2",
@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "esm": "^3.2.5",
-    "ses": "^0.10.1",
+    "ses": "^0.12.3",
     "@agoric/assert": "*",
     "@agoric/captp": "*",
     "@agoric/ertp": "*",
