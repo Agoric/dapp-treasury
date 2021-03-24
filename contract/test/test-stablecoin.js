@@ -626,7 +626,7 @@ test('stablecoin display collateral', async t => {
   );
 
   const { stablecoin, governance, autoswap: _autoswapAPI } = testJig;
-  const { amountMath: sconeMath, brand: sconeBrand } = stablecoin;
+  const { brand: sconeBrand } = stablecoin;
   const { amountMath: govMath, brand: _govBrand } = governance;
   const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
 

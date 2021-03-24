@@ -24,6 +24,7 @@
     "eslint-plugin-prettier": "^3.1.0",
     "prettier": "^1.18.2",
     "@agoric/install-ses": "*",
+    "@agoric/marshal": "*",
     "ava": "^3.12.1"
   },
   "dependencies": {
