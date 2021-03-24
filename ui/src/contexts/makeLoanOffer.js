@@ -1,6 +1,7 @@
 import { makeRatio } from '@agoric/zoe/src/contractSupport/ratio';
 
-import { doFetch } from '../utils/fetch-websocket';
+import { E } from '@agoric/captp';
+import { getPublicFacet } from './getPublicFacet';
 
 import { resetVault, createVault, setVaultCreated } from '../store';
 
@@ -8,7 +9,7 @@ import dappConstants from '../generated/defaults.js';
 
 const { INSTALLATION_BOARD_ID, INSTANCE_BOARD_ID } = dappConstants;
 
-export const makeLoanOffer = (
+export const makeLoanOffer = async (
   dispatch,
   {
     fundPurse,
@@ -19,12 +20,16 @@ export const makeLoanOffer = (
     liquidationMargin,
     stabilityFee,
   },
-  invitationDepositId,
+  walletP,
 ) => {
   const id = `${Date.now()}`;
 
-  const offer = {
+  const loanPublicFacet = getPublicFacet(walletP, INSTANCE_BOARD_ID);
+  const invitation = E(loanPublicFacet).makeLoanInvitation();
+
+  const offerConfig = {
     id,
+    invitation,
     installationHandleBoardId: INSTALLATION_BOARD_ID,
     instanceHandleBoardId: INSTANCE_BOARD_ID,
     proposalTemplate: {
@@ -41,25 +46,10 @@ export const makeLoanOffer = (
           value: toBorrow.value,
         },
       },
-      exit: { onDemand: null },
     },
   };
 
-  console.error('-------DEPOSIT ID', invitationDepositId);
-
-  // Create an invitation for the offer and on response (in
-  // `contexts/Application.jsx`),
-  // send the proposed offer to the wallet.
-  doFetch(
-    {
-      type: 'treasury/makeLoanInvitation',
-      data: {
-        invitationDepositId,
-        offer,
-      },
-    },
-    '/api',
-  );
+  await E(walletP).addOffer(offerConfig);
 
   const vault = {
     id,

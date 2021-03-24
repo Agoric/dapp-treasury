@@ -68,8 +68,8 @@ export async function start(zcf) {
 
   const timer = buildManualTimer(console.log);
   const options = {
-    mathIn: collateralMath,
-    mathOut: sconeMath,
+    actualBrandIn: collateralBrand,
+    actualBrandOut: sconeBrand,
     priceList: [80],
     tradeList: undefined,
     timer: buildManualTimer(console.log),

@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useCallback,
-  useReducer,
-  useEffect,
-} from 'react';
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
 
 import { makeCapTP, E } from '@agoric/captp';
 import { makeAsyncIterableFromNotifier as iterateNotifier } from '@agoric/notifier';
@@ -13,21 +7,17 @@ import {
   activateWebSocket,
   deactivateWebSocket,
   getActiveSocket,
-  doFetch,
 } from '../utils/fetch-websocket';
 
 import {
   reducer,
   defaultState,
   setPurses,
-  setInvitationDepositId,
   setConnected,
-  setActive,
   resetState,
   updateVault,
   setCollaterals,
   setTreasury,
-  setVaultCreated,
   setOutputAmount,
   setInputAmount,
   setInputChanged,
@@ -35,10 +25,9 @@ import {
 } from '../store';
 import dappConstants from '../generated/defaults.js';
 import { getCollaterals } from './getCollaterals';
-import { getAMMPublicFacet } from './getAMMPublicFacet';
+import { getPublicFacet } from './getPublicFacet';
 
 const {
-  INVITATION_BRAND_BOARD_ID,
   INSTALLATION_BOARD_ID,
   INSTANCE_BOARD_ID,
   SCONE_ISSUER_BOARD_ID,
@@ -117,7 +106,6 @@ function watchOffers(dispatch) {
 export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, defaultState);
   const {
-    active,
     inputPurse,
     outputPurse,
     inputAmount,
@@ -138,7 +126,6 @@ export default function Provider({ children }) {
     activateWebSocket({
       async onConnect() {
         dispatch(setConnected(true));
-        dispatch(setActive(true));
         const socket = getActiveSocket();
         const {
           abort: ctpAbort,
@@ -152,7 +139,7 @@ export default function Provider({ children }) {
         walletAbort = ctpAbort;
         walletDispatch = ctpDispatch;
         walletP = getBootstrap();
-        ammPublicFacet = getAMMPublicFacet(walletP);
+        ammPublicFacet = getPublicFacet(walletP, AMM_INSTANCE_BOARD_ID);
 
         const zoe = E(walletP).getZoe();
         const board = E(walletP).getBoard();
@@ -183,8 +170,7 @@ export default function Provider({ children }) {
         watchPurses().catch(err =>
           console.error('FIGME: got watchPurses err', err),
         );
-        const [invitationDepositId] = await Promise.all([
-          E(walletP).getDepositFacetId(INVITATION_BRAND_BOARD_ID),
+        await Promise.all([
           E(walletP).suggestInstallation('Installation', INSTALLATION_BOARD_ID),
           E(walletP).suggestInstance('Instance', INSTANCE_BOARD_ID),
           E(walletP).suggestInstallation(
@@ -199,12 +185,9 @@ export default function Provider({ children }) {
         ]);
 
         watchOffers(dispatch);
-
-        dispatch(setInvitationDepositId(invitationDepositId));
       },
       onDisconnect() {
         dispatch(setConnected(false));
-        dispatch(setActive(false));
         walletAbort && walletAbort();
         dispatch(resetState());
       },
@@ -215,61 +198,6 @@ export default function Provider({ children }) {
     });
     return deactivateWebSocket;
   }, []);
-
-  const apiMessageHandler = useCallback(async message => {
-    if (!message) {
-      return;
-    }
-    const { type, data } = message;
-    switch (type) {
-      case 'autoswap/sendSwapInvitationResponse': {
-        // Once the invitation has been sent to the user, we update the
-        // offer to include the invitationHandleBoardId. Then we make a
-        // request to the user's wallet to send the proposed offer for
-        // acceptance/rejection.
-        const { offer } = data;
-        doFetch({
-          type: 'walletAddOffer',
-          data: offer,
-        });
-        return;
-      }
-      case 'treasury/makeLoanInvitationResponse': {
-        // Once the invitation has been sent to the user, we update the
-        // offer to include the invitationBoardId. Then we make a
-        // request to the user's wallet to send the proposed offer for
-        // acceptance/rejection.
-        const { offer } = data;
-        await E(walletP).addOffer(offer);
-        dispatch(setVaultCreated(false));
-        break;
-      }
-      default: {
-        console.log('Unexpected response', message);
-      }
-    }
-  });
-
-  useEffect(() => {
-    if (active) {
-      activateWebSocket(
-        {
-          onConnect() {
-            console.log('connected to API');
-          },
-          onDisconnect() {
-            console.log('disconnected from API');
-          },
-          onMessage(message) {
-            apiMessageHandler(JSON.parse(message));
-          },
-        },
-        '/api',
-      );
-    } else {
-      deactivateWebSocket('/api');
-    }
-  }, [active, apiMessageHandler]);
 
   useEffect(() => {
     if (inputPurse && outputPurse && inputAmount > 0 && inputChanged) {
@@ -300,7 +228,7 @@ export default function Provider({ children }) {
   }, [inputPurse, outputPurse, inputAmount, outputAmount]);
 
   return (
-    <ApplicationContext.Provider value={{ state, dispatch }}>
+    <ApplicationContext.Provider value={{ state, dispatch, walletP }}>
       {children}
     </ApplicationContext.Provider>
   );

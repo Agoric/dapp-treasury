@@ -5,7 +5,6 @@
 import fs from 'fs';
 import { E } from '@agoric/eventual-send';
 import '@agoric/zoe/exported';
-import bundleSource from '@agoric/bundle-source';
 import { makeHelpers } from '@agoric/deploy-script-support';
 import { assert } from '@agoric/assert';
 import { makeLocalAmountMath } from '@agoric/ertp';
@@ -25,13 +24,12 @@ export default async function deployApi(homePromise, endowments) {
     priceAuthority,
     zoe,
     wallet,
-    http,
-    spawner,
     scratch,
     priceAuthorityAdmin,
     localTimerService,
   } = E.G(homePromise);
   const helpers = await makeHelpers(homePromise, endowments);
+  const timer = await localTimerService;
 
   const {
     INSTALLATION_BOARD_ID,
@@ -56,7 +54,7 @@ export default async function deployApi(homePromise, endowments) {
     autoswapInstall,
     priceAuthority,
     loanParams,
-    timerService: localTimerService,
+    timerService: timer,
   });
 
   console.log('Waiting for you to approve', DEPLOY_NAME, 'in your wallet...');
@@ -71,11 +69,9 @@ export default async function deployApi(homePromise, endowments) {
     issuerKeywordRecord: {},
   };
 
-  const {
-    instance,
-    creatorFacet,
-    publicFacet: treasuryFacet,
-  } = await helpers.startInstance(startInstanceConfig);
+  const { instance, creatorFacet } = await helpers.startInstance(
+    startInstanceConfig,
+  );
 
   console.log('- SUCCESS! contract instance is running on Zoe');
 
@@ -83,11 +79,8 @@ export default async function deployApi(homePromise, endowments) {
   const invitationIssuerP = E(zoe).getInvitationIssuer();
   const invitationBrandP = E(invitationIssuerP).getBrand();
 
-  const invitationIssuer = await invitationIssuerP;
-
   const INSTANCE_BOARD_ID = await E(board).getId(instance);
   const ammInstance = await E(creatorFacet).getAMM();
-  const ammFacet = await E(zoe).getPublicFacet(ammInstance);
   const AMM_INSTANCE_BOARD_ID = await E(board).getId(ammInstance);
 
   console.log(`-- Contract Name: ${CONTRACT_NAME}`);
@@ -265,28 +258,6 @@ export default async function deployApi(homePromise, endowments) {
   // TODO: do something with the vaultManagers
   assert(vaultManagers);
 
-  const installURLHandler = async () => {
-    const handlerBundle = await bundleSource(
-      helpers.resolvePathForLocalContract('./src/handler.js'),
-    );
-
-    // Install it on the spawner
-    const handlerInstall = E(spawner).install(handlerBundle);
-
-    // Spawn the installed code to create an URL handler.
-    const handler = E(handlerInstall).spawn({
-      treasuryFacet,
-      ammFacet,
-      board,
-      http,
-      invitationIssuer,
-    });
-
-    // Have our ag-solo wait on ws://localhost:8000/api for
-    // websocket connections.
-    await E(http).registerURLHandler(handler, '/api');
-  };
-
   const issuerToTrades = trades.map((tradeSpecs, i) => {
     return {
       issuer: collateralIssuers[i].issuer,
@@ -320,7 +291,7 @@ export default async function deployApi(homePromise, endowments) {
       terms: {
         sconesIssuer: moeIssuer,
         issuerToTrades,
-        timer: localTimerService,
+        timer,
       },
       issuerKeywordRecord: {},
     };
@@ -330,7 +301,6 @@ export default async function deployApi(homePromise, endowments) {
     await Promise.all(priceAuthorities.map(registerPriceAuthority));
   };
 
-  await installURLHandler();
   await priceAuthoritiesHandler();
 
   // Add MoeIssuer to scratch for dappCardStore

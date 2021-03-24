@@ -30,10 +30,10 @@ export async function start(zcf) {
 
   const priceAuthorities = [];
   addedAmountMaths.forEach(
-    ({ brand, amountMath, fakeTradesGivenCentral, fakeTradesGivenOther }) => {
+    ({ brand, fakeTradesGivenCentral, fakeTradesGivenOther }) => {
       const sconesInPriceAuthority = makeFakePriceAuthority({
-        mathIn: sconesMath,
-        mathOut: amountMath,
+        actualBrandIn: sconesBrand,
+        actualBrandOut: brand,
         tradeList: fakeTradesGivenCentral,
         timer,
         quoteMint,
@@ -45,8 +45,8 @@ export async function start(zcf) {
       });
 
       const sconesOutPriceAuthority = makeFakePriceAuthority({
-        mathIn: amountMath,
-        mathOut: sconesMath,
+        actualBrandIn: brand,
+        actualBrandOut: sconesBrand,
         tradeList: fakeTradesGivenOther,
         timer,
         quoteMint,

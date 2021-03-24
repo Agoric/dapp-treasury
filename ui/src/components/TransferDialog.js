@@ -72,7 +72,6 @@ export default function TransferDialog({
   setToTransfer,
   fundPursePetname,
   purses,
-  depositFacetId,
   required,
   requiredDisplayInfo,
   requiredSymbol,
@@ -341,7 +340,7 @@ export default function TransferDialog({
         send({
           type: 'PEGGY_AGORIC_TRANSFER',
           payload: {
-            recipient: `board:${depositFacetId}`,
+            // recipient: `board:${depositFacetId}`,
             amount: `${amountToSend}`,
             denom: `peggy${ERC20_ADDRESS}`,
           },

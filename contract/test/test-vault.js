@@ -62,7 +62,6 @@ async function launch(zoeP, sourceRoot) {
   const proposal = harden({
     give: { Collateral: collateral50 },
     want: { Scones: sconeMath.make(70n) },
-    exit: { onDemand: null },
   });
   const payments = harden({
     Collateral: collateralKit.mint.mintPayment(collateral50),

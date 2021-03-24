@@ -22,15 +22,12 @@ import {
   setInputAmount,
   setOutputAmount,
   swapInputs,
-  createOffer,
   setInputChanged,
   setOutputChanged,
 } from '../store';
-import dappConstants from '../utils/constants';
 
 import { parseValue } from './display';
-
-const { AMM_INSTANCE_BOARD_ID, AMM_INSTALLATION_BOARD_ID } = dappConstants;
+import { makeSwapOffer } from '../contexts/makeSwapOffer';
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -60,7 +57,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 /* eslint-disable complexity */
-export default function Swap() {
+export default function Swap(walletP) {
   const classes = useStyles();
   const { state, dispatch } = useApplicationContext();
   const {
@@ -69,7 +66,6 @@ export default function Swap() {
     outputPurse = {},
     inputAmount,
     outputAmount,
-    invitationDepositId,
     connected,
   } = state;
 
@@ -148,16 +144,13 @@ export default function Swap() {
   }
 
   function handleSwap() {
-    dispatch(
-      createOffer(
-        AMM_INSTANCE_BOARD_ID,
-        AMM_INSTALLATION_BOARD_ID,
-        invitationDepositId,
-        inputAmount,
-        outputAmount,
-        inputPurse,
-        outputPurse,
-      ),
+    makeSwapOffer(
+      walletP,
+      dispatch,
+      inputPurse,
+      inputAmount,
+      outputPurse,
+      outputAmount,
     );
   }
 

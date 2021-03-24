@@ -222,13 +222,7 @@ function computeToLock(priceRate, toBorrow, collateralPercent) {
   return divideBy(borrowWithMargin, priceRate);
 }
 
-function VaultConfigure({
-  dispatch,
-  vaultCollateral,
-  depositFacetId,
-  purses,
-  vaultParams,
-}) {
+function VaultConfigure({ dispatch, vaultCollateral, purses, vaultParams }) {
   const classes = useConfigStyles();
 
   const {
@@ -505,7 +499,6 @@ function VaultConfigure({
         fundPursePetname={fundPurse && fundPurse.pursePetname}
         toTransfer={toTransfer}
         setToTransfer={setToTransfer}
-        depositFacetId={depositFacetId}
         purses={purses}
       />
     </div>
@@ -573,18 +566,14 @@ export function VaultConfirmation({ vaultParams }) {
   );
 }
 
-function VaultCreate({ dispatch, vaultParams, invitationDepositId }) {
+function VaultCreate({ dispatch, vaultParams, walletP }) {
   return (
     <div>
       <Typography variant="h6">
         Confirm details and create your vault
       </Typography>
       <VaultConfirmation vaultParams={vaultParams}></VaultConfirmation>
-      <Button
-        onClick={() =>
-          makeLoanOffer(dispatch, vaultParams, invitationDepositId)
-        }
-      >
+      <Button onClick={() => makeLoanOffer(dispatch, vaultParams, walletP)}>
         Create
       </Button>
       <Button onClick={() => dispatch(resetVault())}>Cancel</Button>
@@ -605,10 +594,10 @@ export default function NewVault() {
       collaterals,
       purses,
       vaultConfigured,
-      invitationDepositId,
       vaultCreated,
     },
     dispatch,
+    walletP,
   } = useApplicationContext();
 
   return (
@@ -634,7 +623,6 @@ export default function NewVault() {
           dispatch={dispatch}
           vaultCollateral={vaultCollateral}
           vaultParams={vaultParams}
-          depositFacetId={invitationDepositId}
           purses={purses}
         />
       )}
@@ -642,7 +630,7 @@ export default function NewVault() {
         <VaultCreate
           dispatch={dispatch}
           vaultParams={vaultParams}
-          invitationDepositId={invitationDepositId}
+          walletP={walletP}
         />
       )}
       {vaultCreated && (

@@ -81,8 +81,8 @@ function setupAssets() {
 }
 
 const makePriceAuthority = (
-  mathIn,
-  mathOut,
+  actualBrandIn,
+  actualBrandOut,
   priceList,
   tradeList,
   timer,
@@ -90,8 +90,8 @@ const makePriceAuthority = (
   unitAmountIn,
 ) => {
   const options = {
-    mathIn,
-    mathOut,
+    actualBrandIn,
+    actualBrandOut,
     priceList,
     tradeList,
     timer,
@@ -168,8 +168,8 @@ test('first', async t => {
   // priceAuthority needs sconeMath, which isn't available till the
   // stablecoinMachine has been built, so resolve priceAuthorityPromiseKit here
   const priceAuthority = makePriceAuthority(
-    aethMath,
-    sconeMath,
+    aethBrand,
+    sconeBrand,
     [500n, 15n],
     null,
     manualTimer,
@@ -335,8 +335,8 @@ test('price drop', async t => {
   const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
 
   const priceAuthority = makePriceAuthority(
-    aethMath,
-    sconeMath,
+    aethBrand,
+    sconeBrand,
     [1000n, 677n, 636n],
     null,
     manualTimer,
@@ -501,8 +501,8 @@ test('price falls precipitously', async t => {
   // priceAuthority needs sconeMath, which isn't available till the
   // stablecoinMachine has been built, so resolve priceAuthorityPromiseKit here
   const priceAuthority = makePriceAuthority(
-    aethMath,
-    sconeMath,
+    aethBrand,
+    sconeBrand,
     [2200n, 19180n, 1650n, 150n],
     null,
     manualTimer,
@@ -565,7 +565,6 @@ test('price falls precipitously', async t => {
   const proposal = {
     give: { In: aethMath.make(200n) },
     want: { Out: sconeMath.getEmpty() },
-    exit: { onDemand: null },
   };
   await E(zoe).offer(
     swapInvitation,
@@ -632,8 +631,8 @@ test('stablecoin display collateral', async t => {
   const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
 
   const priceAuthority = makePriceAuthority(
-    aethMath,
-    sconeMath,
+    aethBrand,
+    sconeBrand,
     [500n, 1500n],
     null,
     manualTimer,
@@ -718,8 +717,8 @@ test('interest on multiple vaults', async t => {
   const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
 
   const priceAuthority = makePriceAuthority(
-    aethMath,
-    sconeMath,
+    aethBrand,
+    sconeBrand,
     [500n, 1500n],
     null,
     manualTimer,
@@ -912,8 +911,8 @@ test('adjust balances', async t => {
   const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
 
   const priceAuthority = makePriceAuthority(
-    aethMath,
-    sconeMath,
+    aethBrand,
+    sconeBrand,
     [15n],
     null,
     manualTimer,
@@ -1212,8 +1211,8 @@ test('overdeposit', async t => {
   const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
 
   const priceAuthority = makePriceAuthority(
-    aethMath,
-    sconeMath,
+    aethBrand,
+    sconeBrand,
     [15n],
     null,
     manualTimer,
