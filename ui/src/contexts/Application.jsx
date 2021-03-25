@@ -9,10 +9,14 @@ import {
   getActiveSocket,
 } from '../utils/fetch-websocket';
 
+// import { makeBrands } from '../utils/helper';
+
 import {
   reducer,
   defaultState,
   setPurses,
+  // setIssuers,
+  // setBrands,
   setConnected,
   resetState,
   updateVault,
@@ -22,6 +26,7 @@ import {
   setInputAmount,
   setInputChanged,
   setOutputChanged,
+  setApproved,
 } from '../store';
 import dappConstants from '../generated/defaults.js';
 import { getCollaterals } from './getCollaterals';
@@ -117,8 +122,12 @@ export default function Provider({ children }) {
   useEffect(() => {
     // Receive callbacks from the wallet connection.
     const otherSide = harden({
-      needDappApproval(_dappOrigin, _suggestedDappPetname) {},
-      dappApproved(_dappOrigin) {},
+      needDappApproval(_dappOrigin, _suggestedDappPetname) {
+        dispatch(setApproved(false));
+      },
+      dappApproved(_dappOrigin) {
+        dispatch(setApproved(true));
+      },
     });
 
     let walletAbort;
@@ -158,6 +167,8 @@ export default function Provider({ children }) {
         dispatch(
           setTreasury({ instance, treasuryAPI, sconeIssuer, sconeBrand }),
         );
+        // await E(walletP).suggestIssuerDirect('MOE', sconeIssuer);
+        console.log('SET COLLATERALS', collaterals);
         dispatch(setCollaterals(collaterals));
 
         // The moral equivalent of walletGetPurses()
@@ -170,6 +181,18 @@ export default function Provider({ children }) {
         watchPurses().catch(err =>
           console.error('FIGME: got watchPurses err', err),
         );
+
+        // async function watchBrands() {
+        //   const issuersN = E(walletP).getIssuersNotifier();
+        //   for await (const issuers of iterateNotifier(issuersN)) {
+        //     dispatch(setIssuers(issuers));
+        //     dispatch(setBrands(makeBrands(issuers)));
+        //   }
+        // }
+        // watchBrands().catch(err => {
+        //   console.error('got watchBrands err', err);
+        //   throw err;
+        // });
         await Promise.all([
           E(walletP).suggestInstallation('Installation', INSTALLATION_BOARD_ID),
           E(walletP).suggestInstance('Instance', INSTANCE_BOARD_ID),

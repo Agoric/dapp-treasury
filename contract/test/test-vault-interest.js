@@ -1,6 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import '@agoric/install-ses';
-
 // @ts-check
 /* global require */
 

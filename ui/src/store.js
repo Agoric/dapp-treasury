@@ -6,8 +6,11 @@ export const {
   reducer,
   initial: defaultState,
   actions: {
+    setApproved,
     setConnected,
     setPurses,
+    setIssuers,
+    setBrands,
     setCollaterals,
     setInputPurse,
     setOutputPurse,
@@ -30,10 +33,12 @@ export const {
 } = autodux({
   slice: 'treasury',
   initial: {
-    active: false,
+    approved: true,
     connected: false,
     account: null,
     purses: null,
+    brands: null,
+    issuers: null,
     // Autoswap state
     inputPurse: null,
     outputPurse: null,

@@ -13,3 +13,20 @@ export function toPrintedPercent(ratio, placesToShow = 0n) {
     (ratio.numerator.value * PERCENT_BASE * power) / ratio.denominator.value;
   return `${Number(raw) / Number(power)}`;
 }
+
+export const makeBrands = issuers => {
+  const brands = issuers.map(
+    ([petname, { brand, displayInfo, issuer, issuerBoardId, mathKind }]) => [
+      brand,
+      {
+        brand,
+        petname,
+        mathKind,
+        decimalPlaces: displayInfo.decimalPlaces,
+        issuer,
+        issuerBoardId,
+      },
+    ],
+  );
+  return brands;
+};

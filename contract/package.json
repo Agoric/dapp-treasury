@@ -51,8 +51,7 @@
     "failWithoutAssertions": true,
     "verbose": true,
     "require": [
-      "esm",
-      "@agoric/install-ses"
+      "esm"
     ],
     "nodeArguments": [
       "--trace-deprecation",

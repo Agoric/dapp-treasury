@@ -12,7 +12,7 @@ import NavDrawer from '../components/NavDrawer';
 // import Shuttle from './Shuttle';
 // import Vault from './Vault';
 import Swap from '../components/Swap';
-import NewVault from '../components/NewVault';
+import NewVault from '../components/vault/NewVault';
 import Treasury from '../components/Treasury';
 
 const navigationDrawerWidth = 200;
