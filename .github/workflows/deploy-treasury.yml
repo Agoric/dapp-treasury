@@ -46,6 +46,14 @@ jobs:
     - name: yarn build in dapp
       run: yarn build
       working-directory: ./dapp
+
+    - name: Configure dapp
+      run: |
+        echo "$CONTRACT_CONFIG" >dapp/ui/src/generated/installationConstants.js
+        echo "$API_CONFIG" >dapp/ui/src/generated/defaults.js
+      env:
+        CONTRACT_CONFIG: ${{ secrets.CONTRACT_CONFIG }}
+        API_CONFIG: ${{ secrets.API_CONFIG }}
     - name: yarn build:react in dapp ui
       run: yarn build:react
       working-directory: ./dapp/ui
