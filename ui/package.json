@@ -14,14 +14,15 @@
     "start": "react-scripts start",
     "test": "exit 0",
     "build": "exit 0",
-    "build:react": "react-scripts build",
+    "build:ses": "cp ../node_modules/ses/dist/lockdown.umd.js public/",
+    "build:react": "react-scripts build; node -r esm ./ses-patch.js build/index.html",
     "eject": "react-scripts eject"
   },
   "browserslist": {
     "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
     ],
     "development": [
       "last 1 chrome version",
