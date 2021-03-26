@@ -1,5 +1,5 @@
 /* global process */
-import 'ses/lockdown';
+// import 'ses/lockdown';
 import '@agoric/eventual-send/shim';
 
 function ifDevMode(thunk) {
