@@ -3484,7 +3484,7 @@
       // (e.g. getOwnPropertyDescriptors, apply, getPrototypeOf).
       __proto__: alwaysThrowHandler,
 
-      // This flag allow us to determine if the eval call is an done by the
+      // This flag allow us to determine if the eval() call is an done by the
       // realm's code or if it is user-land invocation, so we can react differently.
       useUnsafeEvaluator: false,
 
@@ -3665,9 +3665,7 @@
     if (index < 0) {
       return -1;
     }
-    const lines = stringSplit(stringSlice(src, 0, index), '\n');
-    console.log('@@lines', lines.slice(-3).join('\n'));
-    return lines.length;
+    return stringSplit(stringSlice(src, 0, index), '\n').length;
   }
 
   // /////////////////////////////////////////////////////////////////////////////
@@ -5031,6 +5029,7 @@
    *   consoleTaming?: 'safe' | 'unsafe',
    *   overrideTaming?: 'min' | 'moderate' | 'severe',
    *   stackFiltering?: 'concise' | 'verbose',
+   *   __allowUnsafeMonkeyPatching__?: 'safe' | 'unsafe',
    * }} LockdownOptions
    */
 
@@ -5129,6 +5128,7 @@
       consoleTaming = 'safe',
       overrideTaming = 'moderate',
       stackFiltering = 'concise',
+      __allowUnsafeMonkeyPatching__ = 'safe',
 
       ...extraOptions
     } = options;
@@ -5161,6 +5161,7 @@
       consoleTaming,
       overrideTaming,
       stackFiltering,
+      __allowUnsafeMonkeyPatching__,
     };
 
     /**
@@ -5236,11 +5237,14 @@
      * 3. HARDEN to share the intrinsics.
      */
 
-    function hardenIntrinsics(kludge) {
+    function hardenIntrinsics() {
       // Circumvent the override mistake.
+      // TODO consider moving this to the end of the repair phase, and
+      // therefore before vetted shims rather than afterwards. It is not
+      // clear yet which is better.
       enablePropertyOverrides(intrinsics, overrideTaming);
 
-      if (!kludge) {
+      if (__allowUnsafeMonkeyPatching__ !== 'unsafe') {
         // Finally register and optionally freeze all the intrinsics. This
         // must be the operation that modifies the intrinsics.
         lockdownHarden(intrinsics);
@@ -5273,18 +5277,13 @@
      * @param {LockdownOptions} [options]
      */
     const lockdown = (options = {}) => {
-      const { skipHardenIntrinsics, ...restOptions } = options;
       const maybeHardenIntrinsics = repairIntrinsics(
         makeCompartmentConstructor,
         compartmentPrototype,
         getAnonymousIntrinsics,
-        restOptions,
+        options,
       );
-      if (skipHardenIntrinsics) {
-        maybeHardenIntrinsics(true);
-      } else {
-        maybeHardenIntrinsics();
-      }
+      return maybeHardenIntrinsics();
     };
     return lockdown;
   };
