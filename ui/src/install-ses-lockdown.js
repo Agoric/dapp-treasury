@@ -16,7 +16,7 @@ function ifDevMode(thunk) {
 // we call lockdown() elsewhere. See ses-patch.js.
 ifDevMode(() =>
   lockdown({
-    skipHardenIntrinsics: true,
+    __allowUnsafeMonkeyPatching__: 'unsafe',
     errorTaming: 'unsafe',
     overrideTaming: 'severe',
   }),
