@@ -8,7 +8,7 @@ import {
   TableRow,
 } from '@material-ui/core';
 
-import { stringifyAmountValue } from '@agoric/ui-components/src/display';
+import { stringifyAmountValue } from '@agoric/ui-components';
 import { toPrintedPercent } from '../utils/helper';
 
 export function VaultSummary({ vault }) {

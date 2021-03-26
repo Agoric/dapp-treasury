@@ -21,3 +21,19 @@ export const makeGetDecimalPlaces = brands => {
   };
   return getDecimalPlaces;
 };
+
+export const findPurseByPetname = (purses, petname) =>
+  purses.find(
+    ({ pursePetname }) =>
+      JSON.stringify(pursePetname) === JSON.stringify(petname),
+  );
+
+export const displayPetname = pn => (Array.isArray(pn) ? pn.join('.') : pn);
+
+export const filterPursesByBrand = (purses, desiredBrand) =>
+  purses.filter(({ brand }) => brand === desiredBrand);
+
+export const comparePurses = (a, b) =>
+  displayPetname(a.pursePetname) > displayPetname(b.pursePetname) ? 1 : -1;
+
+export const sortPurses = purses => purses.sort(comparePurses);

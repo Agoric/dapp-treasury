@@ -9,11 +9,10 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-/* eslint-disable react/prop-types */
 export default function VaultSteps({
   connected,
   vaultCollateral,
-  vaultParams,
+  vaultConfiguration,
 }) {
   const classes = useStyles();
 
@@ -21,20 +20,17 @@ export default function VaultSteps({
 
   const [activeStep, setActiveStep] = useState(0);
 
-  const hasVaultParams = ({ fundPurse, dstPurse, toBorrow, toLock }) =>
-    fundPurse && dstPurse && toBorrow && toLock;
-
   useEffect(() => {
     if (!connected) {
       setActiveStep(0);
     } else if (!vaultCollateral) {
       setActiveStep(1);
-    } else if (!hasVaultParams(vaultParams)) {
+    } else if (!vaultConfiguration) {
       setActiveStep(2);
     } else {
       setActiveStep(3);
     }
-  }, [connected, vaultCollateral, vaultParams]);
+  }, [connected, vaultCollateral, vaultConfiguration]);
 
   return (
     <Stepper
@@ -50,4 +46,3 @@ export default function VaultSteps({
     </Stepper>
   );
 }
-/* eslint-enable react/prop-types */

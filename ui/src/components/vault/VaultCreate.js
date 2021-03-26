@@ -7,14 +7,18 @@ import { resetVault } from '../../store';
 import { makeLoanOffer } from '../../contexts/makeLoanOffer';
 import VaultConfirmation from './VaultConfirmation';
 
-function VaultCreate({ dispatch, vaultParams, walletP }) {
+function VaultCreate({ dispatch, vaultConfiguration, walletP }) {
   return (
     <div>
       <Typography variant="h6">
         Confirm details and create your vault
       </Typography>
-      <VaultConfirmation vaultParams={vaultParams}></VaultConfirmation>
-      <Button onClick={() => makeLoanOffer(dispatch, vaultParams, walletP)}>
+      <VaultConfirmation
+        vaultConfiguration={vaultConfiguration}
+      ></VaultConfirmation>
+      <Button
+        onClick={() => makeLoanOffer(dispatch, vaultConfiguration, walletP)}
+      >
         Create
       </Button>
       <Button onClick={() => dispatch(resetVault())}>Cancel</Button>

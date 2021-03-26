@@ -9,7 +9,7 @@ import VaultSteps from './VaultSteps';
 
 import { useApplicationContext } from '../../contexts/Application';
 import VaultCollateral from './VaultCollateral';
-import VaultConfigure from './VaultConfigure';
+import VaultConfigure from './VaultConfigure/VaultConfigure';
 import VaultCreate from './VaultCreate';
 
 const useStyles = makeStyles(theme => ({
@@ -46,11 +46,10 @@ export default function NewVault() {
     state: {
       connected,
       vaultCollateral,
-      vaultParams,
       treasury,
       collaterals,
       purses,
-      vaultConfigured,
+      vaultConfiguration,
       vaultCreated,
       approved,
       brands,
@@ -67,6 +66,49 @@ export default function NewVault() {
     );
   }
 
+  const getCurrentVaultCreationStep = () => {
+    if (!vaultCollateral) {
+      // User needs to choose which collateral brand to use in their loan
+      return (
+        <VaultCollateral
+          dispatch={dispatch}
+          collaterals={collaterals}
+          brands={brands}
+        />
+      );
+    }
+    if (!vaultConfiguration) {
+      // User needs to configure their vault and choose the amount of
+      // debt
+      return (
+        <VaultConfigure
+          dispatch={dispatch}
+          vaultCollateral={vaultCollateral}
+          purses={purses}
+          moeBrand={treasury.sconeBrand}
+        />
+      );
+    }
+    if (!vaultCreated) {
+      // User needs to confirm the vault configuration
+      return (
+        <VaultCreate
+          dispatch={dispatch}
+          vaultConfiguration={vaultConfiguration}
+          walletP={walletP}
+        />
+      );
+    }
+    // Vault has been created, so redirect to the page showing open vaults
+    return (
+      <Redirect
+        to={{
+          pathname: '/treasury',
+        }}
+      />
+    );
+  };
+
   return (
     <Paper className={classes.paper}>
       <Typography component="h1" variant="h4" align="center">
@@ -75,39 +117,9 @@ export default function NewVault() {
       <VaultSteps
         connected={connected}
         vaultCollateral={vaultCollateral}
-        vaultParams={vaultParams}
+        vaultConfiguration={vaultConfiguration}
       />
-      {connected && !vaultCollateral && (
-        <VaultCollateral
-          dispatch={dispatch}
-          collaterals={collaterals}
-          vaultParams={vaultParams}
-          moeBrand={treasury && treasury.sconeBrand}
-          brands={brands}
-        />
-      )}
-      {connected && vaultCollateral && !vaultConfigured && (
-        <VaultConfigure
-          dispatch={dispatch}
-          vaultCollateral={vaultCollateral}
-          vaultParams={vaultParams}
-          purses={purses}
-        />
-      )}
-      {connected && vaultCollateral && vaultConfigured && (
-        <VaultCreate
-          dispatch={dispatch}
-          vaultParams={vaultParams}
-          walletP={walletP}
-        />
-      )}
-      {vaultCreated && (
-        <Redirect
-          to={{
-            pathname: '/treasury',
-          }}
-        />
-      )}
+      {getCurrentVaultCreationStep()}
     </Paper>
   );
 }

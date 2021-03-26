@@ -141,7 +141,7 @@ export function makeVaultManager(
 
     // TODO check that it's for the right type of collateral
 
-    const startTimeStamp = await timerService.getCurrentTimestamp();
+    const startTimeStamp = await E(timerService).getCurrentTimestamp();
     const vaultKit = makeVaultKit(
       zcf,
       innerFacet,

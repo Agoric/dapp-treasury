@@ -14,7 +14,7 @@ import { toPrintedPercent } from '../../utils/helper';
 
 import { getPurseMathKind, getPurseDecimalPlaces } from '../helpers';
 
-function VaultConfirmation({ vaultParams }) {
+function VaultConfirmation({ vaultConfiguration }) {
   const {
     fundPurse,
     dstPurse,
@@ -24,7 +24,7 @@ function VaultConfirmation({ vaultParams }) {
     stabilityFee,
     liquidationMargin,
     _marketPrice,
-  } = vaultParams;
+  } = vaultConfiguration;
 
   return (
     <TableContainer>

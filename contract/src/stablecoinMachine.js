@@ -258,15 +258,15 @@ export async function start(zcf) {
     return harden(
       Promise.all(
         collateralTypes.entries().map(async ([brand, vm]) => {
-          const quoteAmount = await vm.getCollateralQuote();
+          const priceQuote = await vm.getCollateralQuote();
           return {
             brand,
             liquidationMargin: vm.getLiquidationMargin(),
             initialMargin: vm.getInitialMargin(),
             stabilityFee: vm.getLoanFee(),
             marketPrice: makeRatioFromAmounts(
-              getAmountOut(quoteAmount),
-              getAmountIn(quoteAmount),
+              getAmountOut(priceQuote),
+              getAmountIn(priceQuote),
             ),
           };
         }),
