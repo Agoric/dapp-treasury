@@ -7,6 +7,7 @@ import '../src/types';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import test from 'ava';
+
 import { E } from '@agoric/eventual-send';
 import bundleSource from '@agoric/bundle-source';
 
@@ -20,6 +21,7 @@ import { makeFakePriceAuthority } from '@agoric/zoe/tools/fakePriceAuthority';
 import buildManualTimer from '@agoric/zoe/tools/manualTimer';
 import { makeRatio, multiplyBy } from '@agoric/zoe/src/contractSupport/ratio';
 import { makePromiseKit } from '@agoric/promise-kit';
+
 import { makeTracer } from '../src/makeTracer';
 
 const stablecoinRoot = '../src/stablecoinMachine.js';
@@ -81,8 +83,8 @@ function setupAssets() {
 }
 
 const makePriceAuthority = (
-  actualBrandIn,
-  actualBrandOut,
+  brandIn,
+  brandOut,
   priceList,
   tradeList,
   timer,
@@ -90,8 +92,8 @@ const makePriceAuthority = (
   unitAmountIn,
 ) => {
   const options = {
-    actualBrandIn,
-    actualBrandOut,
+    actualBrandIn: brandIn,
+    actualBrandOut: brandOut,
     priceList,
     tradeList,
     timer,
@@ -414,6 +416,7 @@ test('price drop', async t => {
 
   await manualTimer.tick();
   const notification4 = await uiNotifier.getUpdateSince(2);
+
   t.falsy(notification4.updateCount);
   t.truthy(notification4.value.liquidated);
 
@@ -581,8 +584,10 @@ test('price falls precipitously', async t => {
   await manualTimer.tick();
   t.falsy(sconeMath.isEmpty(await E(vault).getDebtAmount()));
   await manualTimer.tick();
+
   const sconesPayout = await E.G(liquidationPayout).Scones;
   const sconesAmount = await E(sconeIssuer).getAmountOf(sconesPayout);
+
   t.deepEqual(sconesAmount, sconeMath.getEmpty());
   const aethPayout = await E.G(liquidationPayout).Collateral;
   const aethPayoutAmount = await E(aethIssuer).getAmountOf(aethPayout);
@@ -844,7 +849,11 @@ test('interest on multiple vaults', async t => {
   );
 
   const aliceAddedDebt = 235n + 49n + 49n + 50n;
-  t.deepEqual(aliceUpdate.value.debt, sconeMath.make(4700n + aliceAddedDebt));
+  t.deepEqual(
+    aliceUpdate.value.debt,
+    sconeMath.make(4700n + aliceAddedDebt),
+    `should have collected ${aliceAddedDebt}`,
+  );
   t.deepEqual(
     aliceUpdate.value.interestRate,
     makeRatio(100n, sconeBrand, 10000n),

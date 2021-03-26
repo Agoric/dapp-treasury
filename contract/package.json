@@ -36,6 +36,7 @@
     "@agoric/nat": "^4.0.0",
     "@agoric/notifier": "*",
     "@agoric/promise-kit": "*",
+    "@agoric/ses-ava": "*",
     "@agoric/store": "*",
     "@agoric/zoe": "*",
     "@agoric/bundle-source": "*",

@@ -3,17 +3,22 @@ import '@agoric/zoe/exported';
 
 import { E } from '@agoric/eventual-send';
 import { Nat } from '@agoric/nat';
-import { assertProposalShape } from '@agoric/zoe/src/contractSupport';
+import {
+  assertProposalShape,
+  makeRatioFromAmounts,
+  getAmountOut,
+  getAmountIn,
+  divideBy,
+  multiplyBy,
+} from '@agoric/zoe/src/contractSupport';
 import { observeNotifier } from '@agoric/notifier';
 import { makeVaultKit } from './vault';
+import { makePrioritizedVaults } from './prioritizedVaults';
 
 // Each VaultManager manages a single collateralType. It owns an autoswap
 // instance which trades this collateralType against Scones. It also manages
 // some number of outstanding loans, each called a Vault, for which the
 // collateral is provided in exchange for borrowed Scones.
-
-// todo: two timers: one to increment fees, second (not really timer) when
-// the autoswap price changes, to check if we need to liquidate
 
 /** @type {MakeVaultManager} */
 export function makeVaultManager(
@@ -33,71 +38,6 @@ export function makeVaultManager(
   } = sconeMint.getIssuerRecord();
   const collateralMath = zcf.getAmountMath(collateralBrand);
 
-  // todo: sort by price at which we need to liquidate
-  const allVaultKits = [];
-
-  function liquidateAll() {
-    const promises = allVaultKits.map(vaultKit => E(vaultKit).liquidate());
-    return Promise.all(promises);
-  }
-
-  async function chargeAllVaults(updateTime, poolIncrementSeat) {
-    const poolIncrement = allVaultKits.reduce(
-      (total, vaultKit) =>
-        sconeMath.add(total, vaultKit.accrueInterestAndAddToPool(updateTime)),
-      sconeMath.getEmpty(),
-    );
-    sconeMint.mintGains({ Scones: poolIncrement }, poolIncrementSeat);
-    const poolStage = poolIncrementSeat.stage({
-      Scones: sconeMath.getEmpty(),
-    });
-    const poolSeatStaging = stageReward(poolIncrement);
-    zcf.reallocate(poolStage, poolSeatStaging);
-  }
-
-  // TODO activate after https://github.com/Agoric/agoric-sdk/issues/2588
-  const periodNotifier = E(timerService).makeNotifier(
-    0n,
-    loanParams.recordingPeriod,
-  );
-  const { zcfSeat: poolIncrementSeat } = zcf.makeEmptySeatKit();
-  observeNotifier(periodNotifier, {
-    updateState: updateTime => chargeAllVaults(updateTime, poolIncrementSeat),
-  });
-
-  // the SCM can call invest. This will mint Scones and buy liquidity tokens
-  // from the pool
-  /**
-   * @param {any} collateralTokens
-   */
-  // function invest(_collateralTokens) {
-  //   // -> Ownership Tokens
-  //   // we hold the liquidity tokens as an asset, and have the ownership
-  //   // tokens as a liability
-  //   // option 1: add only the collateralTokens to the autoswap's liquidity
-  //   // pool, hold
-  //   // option 2: get the current price from the autoswap, mint a matching
-  //   // number of Scones for the collateral, add both (collateral+scones) into
-  //   // the autoswap pool, hold the resulting liquidity tokens. When we redeem
-  //   // the liquidity tokens, burn those scones.
-  //   // ltokens = autoswap.addLiquidity(collateralTokens)
-  //   // otokens = ownershipMint.mintPayment(count)
-  //   // return otokens
-  //   // this VM can choose to invest in other VMs, getting back ownership
-  //   // shares in those VMs
-  // }
-
-  /**
-   * @param {any} ownershipTokens
-   */
-  // function sellOwnershipTokens(ownershipTokens) {
-  //   // -> collateralTokens
-  // }
-
-  // end users can ask the SCM for loans with some collateral, and the SCM asks
-  // us to make a new Vault
-
-  // We want an inverted version. Ratio will support that, but Percent doesn't
   const shared = {
     // loans below this margin may be liquidated
     getLiquidationMargin() {
@@ -124,6 +64,109 @@ export function makeVaultManager(
     },
     stageReward,
   };
+
+  // A Map from vaultKits to their most recent ratio of debt to
+  // collateralization. (This representation won't be optimized; when we need
+  // better performance, use virtual objects.)
+  // eslint-disable-next-line no-use-before-define
+  const sortedVaultKits = makePrioritizedVaults(reschedulePriceCheck);
+  // The hightest debt ratio for which we have a request outstanding
+  let highestDebtRatio = sortedVaultKits.highestRatio();
+
+  // When any Vault's debt ratio is higher than the current high-water level,
+  // call reschedulePriceCheck() to request a fresh notification from the
+  // priceAuthority. There will be extra outstanding requests since we can't
+  // cancel them. (https://github.com/Agoric/agoric-sdk/issues/2713). When the
+  // vault with the current highest debt ratio is removed or reduces its ratio,
+  // we won't reschedule the priceAuthority requests to reduce churn. Instead,
+  // when a priceQuote is received, we'll only reschedule if the high-water
+  // level when the request was made matches the current high-water level.
+  async function reschedulePriceCheck() {
+    const highestRatioWhenScheduled = sortedVaultKits.highestRatio();
+    if (!highestRatioWhenScheduled) {
+      // if there aren't any open vaults, we don't need an outstanding RFQ.
+      return;
+    }
+
+    highestDebtRatio = highestRatioWhenScheduled;
+    const liquidationMargin = shared.getLiquidationMargin();
+
+    // We ask to be alerted when the price level falls enough that the vault
+    // with the highest debt to collateral ratio will no longer be valued at the
+    // liquidationMargin above its debt.
+    const triggerPoint = multiplyBy(
+      highestRatioWhenScheduled.numerator,
+      liquidationMargin,
+    );
+    // Notice that this is schedueing a callback for later (possibly much later).
+    // Callers shouldn't be expecting a response from this function.
+    const quote = await E(priceAuthority).quoteWhenLT(
+      highestRatioWhenScheduled.denominator,
+      triggerPoint,
+    );
+
+    const quoteRatioPlusMargin = makeRatioFromAmounts(
+      divideBy(getAmountOut(quote), liquidationMargin),
+      getAmountIn(quote),
+    );
+
+    // Since we can't cancel outstanding quote requests when balances change,
+    // we may receive alerts that don't match the current high-water mark. When
+    // we receive a quote, we liquidate all the vaults that don't have
+    // sufficient collateral, (even if the trigger was set for a different
+    // level) because we use the actual price ratio plus margin here. We
+    // only reschedule if the high-water mark matches to prevent creating too
+    // many extra requests.
+    sortedVaultKits.forEachRatioGTE(quoteRatioPlusMargin, ({ vaultKit }) =>
+      E(vaultKit).liquidate(),
+    );
+    if (highestRatioWhenScheduled === highestDebtRatio) {
+      reschedulePriceCheck();
+    }
+  }
+
+  function liquidateAll() {
+    const promises = sortedVaultKits.map(({ vaultKit }) =>
+      E(vaultKit).liquidate(),
+    );
+    return Promise.all(promises);
+  }
+
+  async function chargeAllVaults(updateTime, poolIncrementSeat) {
+    const poolIncrement = sortedVaultKits.reduce(
+      (total, vaultPair) =>
+        sconeMath.add(
+          total,
+          vaultPair.vaultKit.accrueInterestAndAddToPool(updateTime),
+        ),
+      sconeMath.getEmpty(),
+    );
+    sconeMint.mintGains({ Scones: poolIncrement }, poolIncrementSeat);
+    const poolStage = poolIncrementSeat.stage({
+      Scones: sconeMath.getEmpty(),
+    });
+    const poolSeatStaging = stageReward(poolIncrement);
+    zcf.reallocate(poolStage, poolSeatStaging);
+  }
+
+  const periodNotifier = E(timerService).makeNotifier(
+    0n,
+    loanParams.recordingPeriod,
+  );
+  const { zcfSeat: poolIncrementSeat } = zcf.makeEmptySeatKit();
+
+  const timeObserver = {
+    updateState: updateTime =>
+      chargeAllVaults(updateTime, poolIncrementSeat).catch(_ => {}),
+    fail: reason => {
+      zcf.shutdownWithFailure(`Unable to continue without a timer: ${reason}`);
+    },
+    finish: done => {
+      zcf.shutdownWithFailure(`Unable to continue without a timer: ${done}`);
+    },
+  };
+
+  observeNotifier(periodNotifier, timeObserver);
 
   /** @type {InnerVaultManager} */
   const innerFacet = harden({
@@ -154,7 +197,7 @@ export function makeVaultManager(
 
     const { vault, openLoan } = vaultKit;
     const { notifier, collateralPayoutP } = await openLoan(seat);
-    allVaultKits.push(vaultKit);
+    sortedVaultKits.addVaultKit(vaultKit, notifier);
 
     seat.exit();
 

@@ -27,7 +27,7 @@ export default async function deployApi(homePromise, endowments) {
     scratch,
     priceAuthorityAdmin,
     localTimerService,
-  } = E.G(homePromise);
+  } = E.get(homePromise);
   const helpers = await makeHelpers(homePromise, endowments);
   const timer = await localTimerService;
 

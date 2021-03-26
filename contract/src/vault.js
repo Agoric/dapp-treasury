@@ -236,35 +236,6 @@ export function makeVaultKit(
     }
   }
 
-  // outdated requests for quotes will fire, and be ignored. When liquidation is
-  // scheduled centrally, those obsolete requests for quotes will go away.
-  async function scheduleLiquidation() {
-    assertVaultIsOpen();
-
-    const liquidationMargin = manager.getLiquidationMargin();
-    // how much collateral valuation is required to support the current debt
-    const sconesValueRequired = multiplyBy(sconeDebt, liquidationMargin);
-    const sconeDebtWhenScheduled = sconeDebt;
-
-    const quote = await E(priceAuthority).quoteWhenLT(
-      getCollateralAllocated(vaultSeat),
-      sconesValueRequired,
-    );
-
-    // If quote doesn't correspond to the current balance, ignore it, as there
-    // will have been a separate call to the priceAuthority with the new values.
-    // If the values match, the PriceAuthority says the price is below margin.
-    // TODO(hibbert): This would be defeated by changing the collateral or debt
-    // more frequently than the price quotes can be retrieved. Will be addressed
-    // in the liquidity PR.
-    if (
-      cMath.isEqual(getCollateralAllocated(vaultSeat), getAmountIn(quote)) &&
-      sconeMath.isEqual(sconeDebtWhenScheduled, sconeDebt)
-    ) {
-      liquidate();
-    }
-  }
-
   async function closeHook(seat) {
     assertVaultIsOpen();
     assertProposalShape(seat, {
@@ -474,7 +445,6 @@ export function makeVaultKit(
 
     assertVaultHoldsNoScones();
 
-    scheduleLiquidation();
     updateUiState();
     clientSeat.exit();
 
@@ -520,7 +490,6 @@ export function makeVaultKit(
     const stageReward = manager.stageReward(fee);
     zcf.reallocate(collateralSeatStaging, loanSeatStaging, stageReward);
 
-    scheduleLiquidation();
     updateUiState();
 
     return { notifier, collateralPayoutP };

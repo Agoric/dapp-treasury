@@ -259,6 +259,13 @@
     "@agoric/assert" "^0.2.3"
     "@agoric/marshal" "^0.4.0"
 
+"@agoric/ses-ava@*":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@agoric/ses-ava/-/ses-ava-0.1.0.tgz#e6e905167379b42ed6926b7f5bb9f64713c3a436"
+  integrity sha512-uQcXariKortUFD6AOb2LD5riJW2J1KLFuoIOtXgQcI4aVv33Q33WajNWr5HsY0stGvaqoDvfQ5heGjc3lovIbw==
+  dependencies:
+    ses "^0.12.3"
+
 "@agoric/sharing-service@^0.1.3":
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/@agoric/sharing-service/-/sharing-service-0.1.3.tgz#2c425a8ef5da695c85f53d4b94b45a76f77048d9"
