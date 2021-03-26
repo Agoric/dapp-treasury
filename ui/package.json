@@ -63,6 +63,9 @@
     "rimraf": "^3.0.2"
   },
   "eslintConfig": {
+    "ignorePatterns": [
+      "**/*.umd.js"
+    ],
     "parser": "babel-eslint",
     "parserOptions": {
       "ecmaFeatures": {
