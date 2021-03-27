@@ -6,6 +6,7 @@ import {
   makeRatioFromAmounts,
 } from '@agoric/zoe/src/contractSupport';
 import { assert } from '@agoric/assert';
+import { amountMath } from '@agoric/ertp';
 
 const { multiply, isGTE } = natSafeMath;
 
@@ -28,6 +29,12 @@ function ratioGTE(left, right) {
 }
 
 function calculateDebtToCollateral(debtAmount, collateralAmount) {
+  if (amountMath.isEmpty(debtAmount) && amountMath.isEmpty(collateralAmount)) {
+    return makeRatioFromAmounts(
+      debtAmount,
+      amountMath.make(1n, collateralAmount.brand),
+    );
+  }
   return makeRatioFromAmounts(debtAmount, collateralAmount);
 }
 

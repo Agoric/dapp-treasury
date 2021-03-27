@@ -98,7 +98,6 @@
 /**
  * @typedef {Object} VaultKit
  * @property {Vault} vault
- * @property {() => void} liquidate
  * @property {(ZCFSeat) => Promise<OpenLoanKit>} openLoan
  * @property {(Timestamp) => Amount} accrueInterestAndAddToPool
  */
@@ -107,6 +106,13 @@
  * @typedef {Object} LoanParams
  * @property {RelativeTime} chargingPeriod
  * @property {RelativeTime} recordingPeriod
+ */
+
+/**
+ * @typedef {Object} LiquidationStrategy
+ * @property {() => KeywordKeywordRecord} keywordMapping
+ * @property {(collateral: Amount, scones: Amount) => Proposal} makeProposal
+ * @property {() => Promise<Invitation>} makeInvitation
  */
 
 /**
@@ -120,6 +126,7 @@
  * @param {StageReward} rewardPoolStaging
  * @param {TimerService} timerService
  * @param {LoanParams} loanParams
+ * @param {LiquidationStrategy} liquidationStrategy
  * @returns {VaultManager}
  */
 

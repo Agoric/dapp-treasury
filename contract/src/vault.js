@@ -11,7 +11,6 @@ import {
   multiplyBy,
   getAmountOut,
   makeRatioFromAmounts,
-  getAmountIn,
 } from '@agoric/zoe/src/contractSupport';
 import { makeNotifierKit } from '@agoric/notifier';
 
@@ -55,6 +54,8 @@ export function makeVaultKit(
   // collateral back. If that happens, the issuer for the Scones will be dead,
   // so their loan will be worthless.
   const { zcfSeat: vaultSeat, userSeat } = zcf.makeEmptySeatKit();
+
+  trace('vaultSeat proposal', vaultSeat.getProposal());
 
   const {
     amountMath: sconeMath,
@@ -108,10 +109,6 @@ export function makeVaultKit(
 
   async function getCollateralizationRatio() {
     const collateralAmount = getCollateralAmount();
-    if (amountMath.isEmpty(getCollateralAmount())) {
-      return makeRatio(0n, sconeBrand);
-    }
-
     // TODO: allow Ratios to represent X/0.
     if (sconeMath.isEmpty(sconeDebt)) {
       return makeRatio(collateralAmount.value, sconeBrand, 1n);
@@ -149,91 +146,10 @@ export function makeVaultKit(
     }
   }
 
-  async function liquidate() {
-    assertVaultIsOpen();
-
-    const collateralBefore = getCollateralAllocated(vaultSeat);
-    const liqProposal = harden({
-      give: { In: collateralBefore },
-      want: { Out: sconeDebt },
-    });
-    const swapInvitation = E(autoswap).makeSwapOutInvitation();
-    const keywordMapping = harden({
-      Collateral: 'In',
-      Scones: 'Out',
-    });
-    const { deposited, userSeatPromise: liqSeat } = await offerTo(
-      zcf,
-      swapInvitation,
-      keywordMapping,
-      liqProposal,
-      vaultSeat,
-    );
-
-    // if swapOut failed for insufficient funds, we'll sell it all
-    async function onSwapOutFail(error) {
-      assert(
-        error.message.match(AutoswapInsufficientMsg),
-        `unable to liquidate: ${error}`,
-      );
-      const sellAllInvitation = E(autoswap).makeSwapInInvitation();
-      const sellAllProposal = harden({
-        give: { In: collateralBefore },
-        want: { Out: sconeMath.getEmpty() },
-      });
-
-      const {
-        deposited: sellAllDeposited,
-        userSeatPromise: sellAllSeat,
-      } = await offerTo(
-        zcf,
-        sellAllInvitation,
-        keywordMapping,
-        sellAllProposal,
-        vaultSeat,
-      );
-      // await sellAllDeposited, but don't need the value
-      await Promise.all([
-        E(sellAllSeat).getOfferResult(),
-        sellAllDeposited,
-      ]).catch(sellAllError => {
-        throw Error(`Unable to liquidate ${sellAllError}`);
-      });
-    }
-
-    // await deposited, but we don't need the value. We'll need it to have
-    // resolved in both branches, so can't put it in Promise.all.
-    await deposited;
-    await E(liqSeat)
-      .getOfferResult()
-      .catch(onSwapOutFail);
-
-    // Now we need to know how much was sold so we can payoff the debt
-    const sconeProceedsAmount = getSconesAllocated(vaultSeat);
-    trace('scones', sconeProceedsAmount);
-
-    // we now claim enough from sconeProceeds to cover the debt (if there's
-    // enough). They get the rest back, as well as any remaining scones.
-
-    const isUnderwater = !sconeMath.isGTE(sconeProceedsAmount, sconeDebt);
-    const sconesToBurn = isUnderwater ? sconeProceedsAmount : sconeDebt;
-    sconeMint.burnLosses({ Scones: sconesToBurn }, vaultSeat);
-    sconeDebt = sconeMath.subtract(sconeDebt, sconesToBurn);
-
-    // any remaining scones plus anything else leftover from the sale are
-    // refunded. (perhaps some collateral, who knows maybe autoswap threw in a
-    // free toaster)
-
-    vaultSeat.exit();
+  function liquidated(newDebt) {
+    sconeDebt = newDebt;
     active = false;
     updateUiState();
-
-    if (isUnderwater) {
-      trace(`underwater by`, sconeDebt);
-      // todo: fall back to next recovery layer. The vaultManager holds
-      // liquidity tokens, it will sell some to give us the needed scones.
-      // moreSconesToBurn = vaultManager.helpLiquidateFallback(underwaterBy);
-    }
   }
 
   async function closeHook(seat) {
@@ -530,9 +446,10 @@ export function makeVaultKit(
 
   return harden({
     vault,
-    liquidate,
     openLoan,
     accrueInterestAndAddToPool,
+    vaultSeat,
+    liquidated,
   });
 }
 

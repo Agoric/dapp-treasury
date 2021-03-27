@@ -14,6 +14,10 @@ import {
 import { observeNotifier } from '@agoric/notifier';
 import { makeVaultKit } from './vault';
 import { makePrioritizedVaults } from './prioritizedVaults';
+import { liquidate } from './liquidation';
+import { makeTracer } from './makeTracer';
+
+const trace = makeTracer(' VM ');
 
 // Each VaultManager manages a single collateralType. It owns an autoswap
 // instance which trades this collateralType against Scones. It also manages
@@ -31,6 +35,7 @@ export function makeVaultManager(
   stageReward,
   timerService,
   loanParams,
+  liquidationStrategy,
 ) {
   const {
     amountMath: sconeMath,
@@ -117,9 +122,18 @@ export function makeVaultManager(
     // level) because we use the actual price ratio plus margin here. We
     // only reschedule if the high-water mark matches to prevent creating too
     // many extra requests.
-    sortedVaultKits.forEachRatioGTE(quoteRatioPlusMargin, ({ vaultKit }) =>
-      E(vaultKit).liquidate(),
-    );
+
+    sortedVaultKits.forEachRatioGTE(quoteRatioPlusMargin, ({ vaultKit }) => {
+      trace('liquidating', vaultKit.vaultSeat.getProposal());
+
+      liquidate(
+        zcf,
+        vaultKit,
+        sconeMint.burnLosses,
+        liquidationStrategy,
+        collateralBrand,
+      );
+    });
     if (highestRatioWhenScheduled === highestDebtRatio) {
       reschedulePriceCheck();
     }
@@ -127,7 +141,13 @@ export function makeVaultManager(
 
   function liquidateAll() {
     const promises = sortedVaultKits.map(({ vaultKit }) =>
-      E(vaultKit).liquidate(),
+      liquidate(
+        zcf,
+        vaultKit,
+        sconeMint.burnLosses,
+        liquidationStrategy,
+        collateralBrand,
+      ),
     );
     return Promise.all(promises);
   }

@@ -25,6 +25,7 @@ import { makePromiseKit } from '@agoric/promise-kit';
 import { makeTracer } from '../src/makeTracer';
 
 const stablecoinRoot = '../src/stablecoinMachine.js';
+const liquidationRoot = '../src/liquidateMinimum.js';
 const autoswapRoot =
   '@agoric/zoe/src/contracts/multipoolAutoswap/multipoolAutoswap';
 const trace = makeTracer('TestST');
@@ -32,36 +33,33 @@ const trace = makeTracer('TestST');
 const BASIS_POINTS = 10000n;
 const PERCENT = 100n;
 
-/**
- * The properties will be asssigned by `setTestJig` in the contract.
- *
- * @typedef {Object} TestContext
- * @property {ContractFacet} zcf
- * @property {IssuerRecord} stablecoin
- * @property {IssuerRecord} governance
- * @property {ERef<MultipoolAutoswapPublicFacet>} autoswap
- */
-/*
- * @type {TestContext}
- */
-let testJig;
-const setJig = jig => {
-  testJig = jig;
-};
+function setUpZoeForTest(setJig) {
+  const { makeFar, makeNear } = makeLoopback('zoeTest');
+  let isFirst = true;
+  function makeRemote(arg) {
+    const result = isFirst ? makeNear(arg) : arg;
+    // this seems fragile. It relies on one contract being created first by Zoe
+    isFirst = !isFirst;
+    return result;
+  }
 
-const { makeFar, makeNear } = makeLoopback('zoeTest');
-let isFirst = true;
-function makeRemote(arg) {
-  const result = isFirst ? makeNear(arg) : arg;
-  isFirst = !isFirst;
-  return result;
+  /**
+   * These properties will be asssigned by `setJig` in the contract.
+   *
+   * @typedef {Object} TestContext
+   * @property {ContractFacet} zcf
+   * @property {IssuerRecord} stablecoin
+   * @property {IssuerRecord} governance
+   * @property {ERef<MultipoolAutoswapPublicFacet>} autoswap
+   */
+
+  /** @type {ERef<ZoeService>} */
+  const zoe = makeFar(makeZoe(makeFakeVatAdmin(setJig, makeRemote).admin));
+  trace('makeZoe');
+  return zoe;
 }
 
-/** @type {ERef<ZoeService>} */
-const zoe = makeFar(makeZoe(makeFakeVatAdmin(setJig, makeRemote).admin));
-trace('makeZoe');
-
-async function makeInstall(sourceRoot) {
+async function makeInstall(sourceRoot, zoe) {
   const path = require.resolve(sourceRoot);
   const contractBundle = await bundleSource(path);
   const install = E(zoe).install(contractBundle);
@@ -119,9 +117,16 @@ function makeRates(sconesBrand, aethBrand) {
 }
 
 test('first', async t => {
-  const autoswapInstall = await makeInstall(autoswapRoot);
+  /* @type {TestContext} */
+  let testJig;
+  const setJig = jig => {
+    testJig = jig;
+  };
+  const zoe = setUpZoeForTest(setJig);
 
-  const stablecoinInstall = await makeInstall(stablecoinRoot);
+  const autoswapInstall = await makeInstall(autoswapRoot, zoe);
+  const stablecoinInstall = await makeInstall(stablecoinRoot, zoe);
+  const liquidationInstall = await makeInstall(liquidationRoot, zoe);
 
   const {
     aethKit: {
@@ -149,10 +154,12 @@ test('first', async t => {
       priceAuthority: priceAuthorityPromise,
       loanParams,
       timerService: manualTimer,
+      liquidationInstall,
     },
   );
 
   const { stablecoin, governance, autoswap: _autoswapAPI } = testJig;
+
   const {
     issuer: sconeIssuer,
     amountMath: sconeMath,
@@ -283,9 +290,16 @@ test('first', async t => {
 });
 
 test('price drop', async t => {
-  const autoswapInstall = await makeInstall(autoswapRoot);
+  /* @type {TestContext} */
+  let testJig;
+  const setJig = jig => {
+    testJig = jig;
+  };
+  const zoe = setUpZoeForTest(setJig);
 
-  const stablecoinInstall = await makeInstall(stablecoinRoot);
+  const autoswapInstall = await makeInstall(autoswapRoot, zoe);
+  const stablecoinInstall = await makeInstall(stablecoinRoot, zoe);
+  const liquidationInstall = await makeInstall(liquidationRoot, zoe);
 
   const {
     aethKit: {
@@ -318,10 +332,11 @@ test('price drop', async t => {
       priceAuthority: priceAuthorityPromise,
       loanParams,
       timerService: manualTimer,
+      liquidationInstall,
     },
   );
 
-  const { stablecoin, governance, autoswap: _autoswapAPI } = testJig;
+  const { stablecoin, governance } = testJig;
 
   const {
     issuer: sconeIssuer,
@@ -432,7 +447,7 @@ test('price drop', async t => {
   t.truthy(finalNotification.value.liquidated);
   t.deepEqual(
     await finalNotification.value.collateralizationRatio,
-    makeRatio(0n, sconeBrand),
+    makeRatio(232n, sconeBrand, 1n),
   );
   t.truthy(sconeMath.isEmpty(debtAmountAfter));
 
@@ -442,8 +457,16 @@ test('price drop', async t => {
 });
 
 test('price falls precipitously', async t => {
-  const autoswapInstall = await makeInstall(autoswapRoot);
-  const stablecoinInstall = await makeInstall(stablecoinRoot);
+  /* @type {TestContext} */
+  let testJig;
+  const setJig = jig => {
+    testJig = jig;
+  };
+  const zoe = setUpZoeForTest(setJig);
+
+  const autoswapInstall = await makeInstall(autoswapRoot, zoe);
+  const stablecoinInstall = await makeInstall(stablecoinRoot, zoe);
+  const liquidationInstall = await makeInstall(liquidationRoot, zoe);
 
   const priceAuthorityPromiseKit = makePromiseKit();
   const priceAuthorityPromise = priceAuthorityPromiseKit.promise;
@@ -480,6 +503,7 @@ test('price falls precipitously', async t => {
       priceAuthority: priceAuthorityPromise,
       loanParams,
       timerService: manualTimer,
+      liquidationInstall,
     },
   );
 
@@ -600,8 +624,16 @@ test('price falls precipitously', async t => {
 });
 
 test('stablecoin display collateral', async t => {
-  const autoswapInstall = await makeInstall(autoswapRoot);
-  const stablecoinInstall = await makeInstall(stablecoinRoot);
+  /* @type {TestContext} */
+  let testJig;
+  const setJig = jig => {
+    testJig = jig;
+  };
+  const zoe = setUpZoeForTest(setJig);
+
+  const autoswapInstall = await makeInstall(autoswapRoot, zoe);
+  const stablecoinInstall = await makeInstall(stablecoinRoot, zoe);
+  const liquidationInstall = await makeInstall(liquidationRoot, zoe);
 
   const {
     aethKit: {
@@ -627,6 +659,7 @@ test('stablecoin display collateral', async t => {
       priceAuthority: priceAuthorityPromise,
       loanParams,
       timerService: manualTimer,
+      liquidationInstall,
     },
   );
 
@@ -680,8 +713,16 @@ test('stablecoin display collateral', async t => {
 });
 
 test('interest on multiple vaults', async t => {
-  const autoswapInstall = await makeInstall(autoswapRoot);
-  const stablecoinInstall = await makeInstall(stablecoinRoot);
+  /* @type {TestContext} */
+  let testJig;
+  const setJig = jig => {
+    testJig = jig;
+  };
+  const zoe = setUpZoeForTest(setJig);
+
+  const autoswapInstall = await makeInstall(autoswapRoot, zoe);
+  const stablecoinInstall = await makeInstall(stablecoinRoot, zoe);
+  const liquidationInstall = await makeInstall(liquidationRoot, zoe);
 
   const {
     aethKit: {
@@ -709,6 +750,7 @@ test('interest on multiple vaults', async t => {
       priceAuthority: priceAuthorityPromise,
       loanParams,
       timerService: manualTimer,
+      liquidationInstall,
     },
   );
 
@@ -878,8 +920,16 @@ test('interest on multiple vaults', async t => {
 });
 
 test('adjust balances', async t => {
-  const autoswapInstall = await makeInstall(autoswapRoot);
-  const stablecoinInstall = await makeInstall(stablecoinRoot);
+  /* @type {TestContext} */
+  let testJig;
+  const setJig = jig => {
+    testJig = jig;
+  };
+  const zoe = setUpZoeForTest(setJig);
+
+  const autoswapInstall = await makeInstall(autoswapRoot, zoe);
+  const stablecoinInstall = await makeInstall(stablecoinRoot, zoe);
+  const liquidationInstall = await makeInstall(liquidationRoot, zoe);
 
   const {
     aethKit: {
@@ -907,6 +957,7 @@ test('adjust balances', async t => {
       priceAuthority: priceAuthorityPromise,
       loanParams,
       timerService: manualTimer,
+      liquidationInstall,
     },
   );
 
@@ -1182,8 +1233,16 @@ test('adjust balances', async t => {
 // Alice will over repay her borrowed scones. In order to make that possible,
 // Bob will also take out a loan and will give her the proceeds.
 test('overdeposit', async t => {
-  const autoswapInstall = await makeInstall(autoswapRoot);
-  const stablecoinInstall = await makeInstall(stablecoinRoot);
+  /* @type {TestContext} */
+  let testJig;
+  const setJig = jig => {
+    testJig = jig;
+  };
+  const zoe = setUpZoeForTest(setJig);
+
+  const autoswapInstall = await makeInstall(autoswapRoot, zoe);
+  const stablecoinInstall = await makeInstall(stablecoinRoot, zoe);
+  const liquidationInstall = await makeInstall(liquidationRoot, zoe);
 
   const {
     aethKit: {
@@ -1211,6 +1270,7 @@ test('overdeposit', async t => {
       priceAuthority: priceAuthorityPromise,
       loanParams,
       timerService: manualTimer,
+      liquidationInstall,
     },
   );
 

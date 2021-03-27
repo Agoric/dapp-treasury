@@ -21,6 +21,7 @@ import {
 } from '@agoric/zoe/src/contractSupport/ratio';
 import { makeTracer } from './makeTracer';
 import { makeVaultManager } from './vaultManager';
+import { makeLiquidationStrategy } from './liquidateMinimum';
 
 const trace = makeTracer('ST');
 
@@ -32,11 +33,12 @@ export async function start(zcf) {
     priceAuthority,
     loanParams,
     timerService,
+    liquidationInstall,
   } = zcf.getTerms();
 
   const [sconeMint, govMint] = await Promise.all([
-    zcf.makeZCFMint('Scones', undefined, { decimalPlaces: 3 }),
-    zcf.makeZCFMint('Governance', undefined, { decimalPlaces: 6 }),
+    zcf.makeZCFMint('Scones', undefined, harden({ decimalPlaces: 4 })),
+    zcf.makeZCFMint('Governance', undefined, harden({ decimalPlaces: 6 })),
   ]);
   const {
     issuer: sconeIssuer,
@@ -55,7 +57,7 @@ export async function start(zcf) {
   const { zcfSeat: rewardPoolSeat } = zcf.makeEmptySeatKit();
 
   // We provide an easy way for the vaultManager and vaults to add rewards to
-  // this seat, with directly exposing the seat to them.
+  // this seat, without directly exposing the seat to them.
   function stageReward(amount) {
     const priorReward = rewardPoolSeat.getAmountAllocated('Scones', sconeBrand);
     return rewardPoolSeat.stage({ Scones: sconeMath.add(priorReward, amount) });
@@ -100,7 +102,6 @@ export async function start(zcf) {
       // TODO check that hte collateral is of the expected type
       // of restructure so that's not an issue
       // TODO assert that the collateralIn is of the right brand
-      trace('add collateral', collateralIn);
       const sconesAmount = multiplyBy(collateralIn, rates.initialPrice);
       const govAmount = govMath.make(sconesAmount.value); // TODO what's the right amount?
 
@@ -171,6 +172,16 @@ export async function start(zcf) {
       // const { payout: salesPayoutP } = await E(zoe).offer(swapInvitation, saleOffer, payout2);
       // const { Scones: sconeProceeds, ...otherProceeds } = await salesPayoutP;
 
+      const { creatorFacet: liquidationFacet } = await E(zoe).startInstance(
+        liquidationInstall,
+        {
+          Scone: sconeIssuer,
+          Collateral: collateralIssuer,
+        },
+        { autoswap: autoswapAPI },
+      );
+      const liquidationStrategy = makeLiquidationStrategy(liquidationFacet);
+
       // do something with the liquidity we just bought
       const vm = makeVaultManager(
         zcf,
@@ -182,6 +193,7 @@ export async function start(zcf) {
         stageReward,
         timerService,
         loanParams,
+        liquidationStrategy,
       );
       collateralTypes.init(collateralBrand, vm);
       return vm;
@@ -220,16 +232,6 @@ export async function start(zcf) {
 
     return zcf.makeInvitation(makeLoanHook, 'make a loan');
   }
-
-  // function recapitalizeHook(seat) {
-  //   const {
-  //     give: { Collateral: collateralIn },
-  //     want: { Governance: govOut }, // ownership of the whole stablecoin machine
-  //   } = seat.getProposal();
-  //   assert(collateralTypes.has(collateralIn.ISSUER));
-  // }
-
-  // function makeRecapitalizeInvitation() {}
 
   // this overarching SCM holds ownershipTokens in the individual per-type
   // vaultManagers
