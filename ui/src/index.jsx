@@ -1,5 +1,5 @@
 import 'json5';
-import '@agoric/install-ses';
+import './install-ses-lockdown';
 import React from 'react';
 import { render } from 'react-dom';
 

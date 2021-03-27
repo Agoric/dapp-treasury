@@ -1171,7 +1171,11 @@ test('adjust balances', async t => {
   );
 
   await t.throwsAsync(() => E(aliceReduceCollateralSeat2).getOfferResult(), {
-    message: `The requested debt {"brand":"[Alleged: Scones brand]","value":"[5829n]"} is more than the collateralization ratio allows: {"value":"[3750n]","brand":"[Alleged: Scones brand]"}`,
+    // Double-disclosure bug endojs/endo#640
+    // wildcards were:
+    // "brand":"[Alleged: Scones brand]","value":"[5829n]"
+    // "value":"[3750n]","brand":"[Alleged: Scones brand]"
+    message: /The requested debt {.*} is more than the collateralization ratio allows: {.*}/,
   });
 });
 
