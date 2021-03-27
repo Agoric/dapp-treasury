@@ -1,6 +1,6 @@
 /* global process, require, module */
 // @ts-check
-const patch = {
+const pagePatch = {
   target: '<link name="unprocessed-script" content="lockdown.umd.js"/>',
   replacement: `
     <script src="lockdown.umd.js"></script>
@@ -14,6 +14,16 @@ const patch = {
 };
 
 /**
+ * Until we upgrade to a SES release that handles
+ * double initialization, we patch away the import
+ * in a production build.
+ */
+const modulePatch = {
+  target: "import 'ses/lockdown'",
+  replacement: "// import 'ses/lockdown'",
+};
+
+/**
  *
  * @param {string[]} args
  * @param {{
@@ -23,12 +33,26 @@ const patch = {
  */
 async function main(args, { readFile, writeFile }) {
   const [filename] = args;
-  const original = await readFile(filename, 'utf-8');
-  if (original.indexOf(patch.target) < 0) {
-    throw Error('target not found');
+
+  /**
+   *
+   * @param {string} name
+   * @param {{ target: string, replacement: string}} patch
+   */
+  async function patchFile(name, { target, replacement }) {
+    const original = await readFile(name, 'utf-8');
+    if (original.indexOf(target) < 0) {
+      throw Error('target not found');
+    }
+    const patched = original.replace(target, replacement);
+    await writeFile(name, patched);
   }
-  const patched = original.replace(patch.target, patch.replacement);
-  await writeFile(filename, patched);
+
+  if (filename.match(/\.js$/)) {
+    await patchFile(filename, modulePatch);
+  } else {
+    await patchFile(filename, pagePatch);
+  }
 }
 
 if (require.main === module) {
