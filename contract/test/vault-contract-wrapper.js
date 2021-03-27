@@ -21,7 +21,7 @@ export async function start(zcf) {
   console.log(`contract started`);
 
   const collateralKit = makeIssuerKit('Collateral');
-  const { amountMath: collateralMath, brand: collateralBrand } = collateralKit;
+  const { brand: collateralBrand } = collateralKit;
   await zcf.saveIssuer(collateralKit.issuer, 'Collateral'); // todo: CollateralETH, etc
 
   const sconeMint = await zcf.makeZCFMint('Scones');
@@ -61,7 +61,6 @@ export async function start(zcf) {
     getInterestRate() {
       return makeRatio(200, sconeBrand, BASIS_POINTS);
     },
-    collateralMath,
     collateralBrand,
     stageReward,
   };

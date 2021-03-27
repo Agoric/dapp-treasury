@@ -19,6 +19,7 @@ import {
   multiplyBy,
   makeRatioFromAmounts,
 } from '@agoric/zoe/src/contractSupport/ratio';
+import { amountMath } from '@agoric/ertp';
 import { makeTracer } from './makeTracer';
 import { makeVaultManager } from './vaultManager';
 import { makeLiquidationStrategy } from './liquidateMinimum';
@@ -42,15 +43,10 @@ export async function start(zcf) {
   ]);
   const {
     issuer: sconeIssuer,
-    amountMath: sconeMath,
     brand: sconeBrand,
   } = sconeMint.getIssuerRecord();
 
-  const {
-    issuer: _govIssuer,
-    amountMath: govMath,
-    brand: _govBrand,
-  } = govMint.getIssuerRecord();
+  const { brand: govBrand } = govMint.getIssuerRecord();
 
   // This is a stand-in for a reward pool. For now, it's a place to squirrel
   // away fees so the tests show that the funds have been removed.
@@ -60,7 +56,9 @@ export async function start(zcf) {
   // this seat, without directly exposing the seat to them.
   function stageReward(amount) {
     const priorReward = rewardPoolSeat.getAmountAllocated('Scones', sconeBrand);
-    return rewardPoolSeat.stage({ Scones: sconeMath.add(priorReward, amount) });
+    return rewardPoolSeat.stage({
+      Scones: amountMath.add(priorReward, amount, sconeBrand),
+    });
   }
 
   // TODO sinclair+us: is there a scm/gov token per collateralType (joe says yes), or just one?
@@ -103,7 +101,8 @@ export async function start(zcf) {
       // of restructure so that's not an issue
       // TODO assert that the collateralIn is of the right brand
       const sconesAmount = multiplyBy(collateralIn, rates.initialPrice);
-      const govAmount = govMath.make(sconesAmount.value); // TODO what's the right amount?
+      // arbitrarily, give governance tokens equal to scones tokens
+      const govAmount = amountMath.make(sconesAmount.value, govBrand);
 
       // Create new governance tokens, trade them with the incoming offer for
       // collateral. The offer uses the keywords Collateral and Governance.
@@ -143,7 +142,7 @@ export async function start(zcf) {
         collateralIssuer,
         collateralKeyword,
       );
-      const { amountMath: liquidityMath } = await zcf.saveIssuer(
+      const { brand: liquidityBrand } = await zcf.saveIssuer(
         liquidityIssuer,
         `${collateralKeyword}_Liquidity`,
       );
@@ -151,8 +150,11 @@ export async function start(zcf) {
       // inject both the collateral and the scones into the new autoswap, to
       // provide the initial liquidity pool
       const liqProposal = harden({
-        give: { Secondary: collateralIn, Central: sconesAmount },
-        want: { Liquidity: liquidityMath.getEmpty() },
+        give: {
+          Secondary: collateralIn,
+          Central: sconesAmount,
+        },
+        want: { Liquidity: amountMath.makeEmpty(liquidityBrand) },
       });
       const liqInvitation = E(autoswapAPI).makeAddLiquidityInvitation();
 

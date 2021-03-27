@@ -7,9 +7,9 @@ import { E } from '@agoric/eventual-send';
 import '@agoric/zoe/exported';
 import { makeHelpers } from '@agoric/deploy-script-support';
 import { assert } from '@agoric/assert';
-import { makeLocalAmountMath } from '@agoric/ertp';
 
 import { makeRatio } from '@agoric/zoe/src/contractSupport/ratio';
+import { amountMath } from '@agoric/ertp';
 import installationConstants from '../ui/src/generated/installationConstants';
 import { makeAddCollateralType } from './addCollateralType';
 
@@ -102,7 +102,7 @@ export default async function deployApi(homePromise, endowments) {
 
   const {
     issuers: { Governance: governanceIssuer, Scones: moeIssuer },
-    brands: { Scones: moeBrand },
+    brands: { Governance: governanceBrand, Scones: moeBrand },
   } = await E(zoe).getTerms(instance);
   const walletAdmin = E(wallet).getAdminFacet();
   const issuerManager = E(walletAdmin).getIssuerManager();
@@ -147,9 +147,9 @@ export default async function deployApi(homePromise, endowments) {
     const resultPs = config.map(
       async ({ issuerPetname, amountValue, pursePetname, symbol }) => {
         const issuer = await E(issuerManager).get(issuerPetname);
+        const brand = await E(issuer).getBrand();
         const purseP = E(walletAdmin).getPurse(pursePetname);
-        const amountMath = await makeLocalAmountMath(issuer);
-        const amount = amountMath.make(amountValue);
+        const amount = amountMath.make(amountValue, brand);
         const payment = await E(purseP).withdraw(amount);
         return {
           issuer,
@@ -254,8 +254,7 @@ export default async function deployApi(homePromise, endowments) {
     ),
   );
 
-  const governanceAmountMath = await makeLocalAmountMath(governanceIssuer);
-  const emptyGovernanceAmount = governanceAmountMath.getEmpty();
+  const emptyGovernanceAmount = amountMath.makeEmpty(governanceBrand);
 
   const addCollateralType = makeAddCollateralType({
     stablecoinMachine: creatorFacet,
@@ -301,7 +300,7 @@ export default async function deployApi(homePromise, endowments) {
       instancePetname: PA_NAME,
       installation,
       terms: {
-        sconesIssuer: moeIssuer,
+        sconesBrand: moeBrand,
         issuerToTrades,
         timer,
       },

@@ -13,7 +13,12 @@ import { makeInterestCalculator } from '../src/interest';
 
 test('too soon', async t => {
   const { amountMath: math, brand } = makeIssuerKit('ducats');
-  const calculator = makeInterestCalculator(math, makeRatio(1n, brand), 3n, 6n);
+  const calculator = makeInterestCalculator(
+    brand,
+    makeRatio(1n, brand),
+    3n,
+    6n,
+  );
   const debtStatus = {
     currentDebt: math.make(1000n),
     latestInterestUpdate: 10n,
@@ -27,7 +32,12 @@ test('too soon', async t => {
 
 test('basic charge 1 period', async t => {
   const { amountMath: math, brand } = makeIssuerKit('ducats');
-  const calculator = makeInterestCalculator(math, makeRatio(1n, brand), 3n, 6n);
+  const calculator = makeInterestCalculator(
+    brand,
+    makeRatio(1n, brand),
+    3n,
+    6n,
+  );
   const debtStatus = {
     currentDebt: math.make(100000n),
     latestInterestUpdate: 10n,
@@ -41,7 +51,12 @@ test('basic charge 1 period', async t => {
 
 test('basic 2 charge periods', async t => {
   const { amountMath: math, brand } = makeIssuerKit('ducats');
-  const calculator = makeInterestCalculator(math, makeRatio(1n, brand), 3n, 6n);
+  const calculator = makeInterestCalculator(
+    brand,
+    makeRatio(1n, brand),
+    3n,
+    6n,
+  );
   const debtStatus = {
     currentDebt: math.make(100000n),
     latestInterestUpdate: 10n,
@@ -55,7 +70,12 @@ test('basic 2 charge periods', async t => {
 
 test('partial periods', async t => {
   const { amountMath: math, brand } = makeIssuerKit('ducats');
-  const calculator = makeInterestCalculator(math, makeRatio(1n, brand), 3n, 6n);
+  const calculator = makeInterestCalculator(
+    brand,
+    makeRatio(1n, brand),
+    3n,
+    6n,
+  );
   const debtStatus = {
     currentDebt: math.make(100000n),
     latestInterestUpdate: 10n,
@@ -70,7 +90,12 @@ test('partial periods', async t => {
 
 test('reportingPeriod: partial', async t => {
   const { amountMath: math, brand } = makeIssuerKit('ducats');
-  const calculator = makeInterestCalculator(math, makeRatio(1n, brand), 3n, 6n);
+  const calculator = makeInterestCalculator(
+    brand,
+    makeRatio(1n, brand),
+    3n,
+    6n,
+  );
   const debtStatus = {
     currentDebt: math.make(100000n),
     latestInterestUpdate: 10n,
@@ -85,7 +110,12 @@ test('reportingPeriod: partial', async t => {
 
 test('reportingPeriod: longer', async t => {
   const { amountMath: math, brand } = makeIssuerKit('ducats');
-  const calculator = makeInterestCalculator(math, makeRatio(1n, brand), 3n, 6n);
+  const calculator = makeInterestCalculator(
+    brand,
+    makeRatio(1n, brand),
+    3n,
+    6n,
+  );
   const debtStatus = {
     currentDebt: math.make(100000n),
     latestInterestUpdate: 10n,
@@ -100,7 +130,12 @@ test('reportingPeriod: longer', async t => {
 
 test('start charging later', async t => {
   const { amountMath: math, brand } = makeIssuerKit('ducats');
-  const calculator = makeInterestCalculator(math, makeRatio(1n, brand), 3n, 6n);
+  const calculator = makeInterestCalculator(
+    brand,
+    makeRatio(1n, brand),
+    3n,
+    6n,
+  );
   const debtStatus = {
     currentDebt: math.make(100000n),
     latestInterestUpdate: 16n,
@@ -120,7 +155,7 @@ test('start charging later', async t => {
 test('reportingPeriod: longer reporting', async t => {
   const { amountMath: math, brand } = makeIssuerKit('ducats');
   const calculator = makeInterestCalculator(
-    math,
+    brand,
     makeRatio(1n, brand),
     3n,
     12n,
@@ -140,7 +175,7 @@ test('reportingPeriod: longer reporting', async t => {
 test('reportingPeriod shorter than charging', async t => {
   const { amountMath: math, brand } = makeIssuerKit('ducats');
   const calculator = makeInterestCalculator(
-    math,
+    brand,
     makeRatio(1n, brand),
     10n,
     5n,
@@ -186,7 +221,7 @@ test('reportingPeriod shorter than charging', async t => {
 test('reportingPeriod shorter than charging; intermittent', async t => {
   const { amountMath: math, brand } = makeIssuerKit('ducats');
   const calculator = makeInterestCalculator(
-    math,
+    brand,
     makeRatio(1n, brand),
     10n,
     5n,

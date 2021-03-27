@@ -12,6 +12,7 @@ import {
   multiplyBy,
 } from '@agoric/zoe/src/contractSupport';
 import { observeNotifier } from '@agoric/notifier';
+import { amountMath } from '@agoric/ertp';
 import { makeVaultKit } from './vault';
 import { makePrioritizedVaults } from './prioritizedVaults';
 import { liquidate } from './liquidation';
@@ -37,11 +38,7 @@ export function makeVaultManager(
   loanParams,
   liquidationStrategy,
 ) {
-  const {
-    amountMath: sconeMath,
-    brand: sconeBrand,
-  } = sconeMint.getIssuerRecord();
-  const collateralMath = zcf.getAmountMath(collateralBrand);
+  const { brand: sconeBrand } = sconeMint.getIssuerRecord();
 
   const shared = {
     // loans below this margin may be liquidated
@@ -63,7 +60,7 @@ export function makeVaultManager(
       const displayInfo = await E(collateralBrand).getDisplayInfo();
       const decimalPlaces = (displayInfo && displayInfo.decimalPlaces) || 0n;
       return E(priceAuthority).quoteGiven(
-        collateralMath.make(10n ** Nat(decimalPlaces)),
+        amountMath.make(10n ** Nat(decimalPlaces), collateralBrand),
         sconeBrand,
       );
     },
@@ -155,15 +152,15 @@ export function makeVaultManager(
   async function chargeAllVaults(updateTime, poolIncrementSeat) {
     const poolIncrement = sortedVaultKits.reduce(
       (total, vaultPair) =>
-        sconeMath.add(
+        amountMath.add(
           total,
           vaultPair.vaultKit.accrueInterestAndAddToPool(updateTime),
         ),
-      sconeMath.getEmpty(),
+      amountMath.makeEmpty(sconeBrand),
     );
     sconeMint.mintGains({ Scones: poolIncrement }, poolIncrementSeat);
     const poolStage = poolIncrementSeat.stage({
-      Scones: sconeMath.getEmpty(),
+      Scones: amountMath.makeEmpty(sconeBrand),
     });
     const poolSeatStaging = stageReward(poolIncrement);
     zcf.reallocate(poolStage, poolSeatStaging);
@@ -192,7 +189,6 @@ export function makeVaultManager(
   const innerFacet = harden({
     ...shared,
     collateralBrand,
-    collateralMath,
   });
 
   /** @param {ZCFSeat} seat */

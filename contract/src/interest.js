@@ -3,13 +3,14 @@ import '@agoric/zoe/exported';
 import '@agoric/zoe/src/contracts/callSpread/types';
 import './types';
 import { multiplyBy } from '@agoric/zoe/src/contractSupport/ratio';
+import { amountMath } from '@agoric/ertp';
 
 function makeResult(latestInterestUpdate, interest, newDebt) {
   return { latestInterestUpdate, interest, newDebt };
 }
 
 export function makeInterestCalculator(
-  math,
+  brand,
   rate,
   chargingPeriod,
   recordingPeriod,
@@ -18,13 +19,13 @@ export function makeInterestCalculator(
   function calculate(debtStatus, currentTime) {
     const { currentDebt, latestInterestUpdate } = debtStatus;
     let newRecent = latestInterestUpdate;
-    let growingInterest = math.make(0);
+    let growingInterest = amountMath.makeEmpty(brand);
     let growingDebt = currentDebt;
     while (newRecent + chargingPeriod <= currentTime) {
       newRecent += chargingPeriod;
       const newInterest = multiplyBy(growingDebt, rate);
-      growingInterest = math.add(growingInterest, newInterest);
-      growingDebt = math.add(growingDebt, newInterest);
+      growingInterest = amountMath.add(growingInterest, newInterest);
+      growingDebt = amountMath.add(growingDebt, newInterest, brand);
     }
     return makeResult(newRecent, growingInterest, growingDebt);
   }

@@ -6,7 +6,6 @@ import { E } from '@agoric/eventual-send';
 import {
   trade,
   assertProposalShape,
-  offerTo,
   divideBy,
   multiplyBy,
   getAmountOut,
@@ -18,8 +17,6 @@ import { makeRatio } from '@agoric/zoe/src/contractSupport/ratio';
 import { amountMath } from '@agoric/ertp';
 import { makeTracer } from './makeTracer';
 import { makeInterestCalculator } from './interest';
-
-const AutoswapInsufficientMsg = / is insufficient to buy amountOut /;
 
 // a Vault is an individual loan, using some collateralType as the
 // collateral, and lending Scones to the borrower
@@ -43,7 +40,6 @@ export function makeVaultKit(
     assert(active, 'vault must still be active');
   }
 
-  const cMath = manager.collateralMath;
   const collateralBrand = manager.collateralBrand;
   // timestamp of most recent update to interest
   let latestInterestUpdate = startTimeStamp;
@@ -57,13 +53,10 @@ export function makeVaultKit(
 
   trace('vaultSeat proposal', vaultSeat.getProposal());
 
-  const {
-    amountMath: sconeMath,
-    brand: sconeBrand,
-  } = sconeMint.getIssuerRecord();
-  let sconeDebt = sconeMath.getEmpty();
+  const { brand: sconeBrand } = sconeMint.getIssuerRecord();
+  let sconeDebt = amountMath.makeEmpty(sconeBrand);
   const interestCalculator = makeInterestCalculator(
-    sconeMath,
+    sconeBrand,
     manager.getInterestRate(),
     loanParams.chargingPeriod,
     loanParams.recordingPeriod,
@@ -78,7 +71,7 @@ export function makeVaultKit(
 
   function assertVaultHoldsNoScones() {
     assert(
-      sconeMath.isEmpty(getSconesAllocated(vaultSeat)),
+      amountMath.isEmpty(getSconesAllocated(vaultSeat)),
       X`Vault should be empty of Scones`,
     );
   }
@@ -95,7 +88,7 @@ export function makeVaultKit(
   async function assertSufficientCollateral(collateralAmount, sconesWanted) {
     const maxScones = await maxDebtFor(collateralAmount);
     assert(
-      sconeMath.isGTE(maxScones, sconesWanted),
+      amountMath.isGTE(maxScones, sconesWanted, sconeBrand),
       X`Requested ${q(sconesWanted)} exceeds max ${q(maxScones)}`,
     );
   }
@@ -103,14 +96,14 @@ export function makeVaultKit(
   function getCollateralAmount() {
     // getCollateralAllocated would return final allocations
     return vaultSeat.hasExited()
-      ? cMath.getEmpty()
+      ? amountMath.makeEmpty(collateralBrand)
       : getCollateralAllocated(vaultSeat);
   }
 
   async function getCollateralizationRatio() {
     const collateralAmount = getCollateralAmount();
     // TODO: allow Ratios to represent X/0.
-    if (sconeMath.isEmpty(sconeDebt)) {
+    if (amountMath.isEmpty(sconeDebt)) {
       return makeRatio(collateralAmount.value, sconeBrand, 1n);
     }
 
@@ -169,7 +162,7 @@ export function makeVaultKit(
 
     // you must pay off the entire remainder but if you offer too much, we won't
     // take more than you owe
-    assert(sconeMath.isGTE(sconesReturned, sconeDebt));
+    assert(amountMath.isGTE(sconesReturned, sconeDebt));
 
     trade(
       zcf,
@@ -183,7 +176,7 @@ export function makeVaultKit(
       },
     );
     seat.exit();
-    sconeDebt = sconeMath.getEmpty();
+    sconeDebt = amountMath.makeEmpty(sconeBrand);
     active = false;
     updateUiState();
 
@@ -225,13 +218,16 @@ export function makeVaultKit(
     const startClientAmount = getCollateralAllocated(seat);
     if (proposal.want.Collateral) {
       return {
-        vault: cMath.subtract(startVaultAmount, proposal.want.Collateral),
-        client: cMath.add(startClientAmount, proposal.want.Collateral),
+        vault: amountMath.subtract(startVaultAmount, proposal.want.Collateral),
+        client: amountMath.add(startClientAmount, proposal.want.Collateral),
       };
     } else if (proposal.give.Collateral) {
       return {
-        vault: cMath.add(startVaultAmount, proposal.give.Collateral),
-        client: cMath.subtract(startClientAmount, proposal.give.Collateral),
+        vault: amountMath.add(startVaultAmount, proposal.give.Collateral),
+        client: amountMath.subtract(
+          startClientAmount,
+          proposal.give.Collateral,
+        ),
       };
     } else {
       return {
@@ -253,22 +249,22 @@ export function makeVaultKit(
     const proposal = seat.getProposal();
     if (proposal.want.Scones) {
       return {
-        vault: sconeMath.getEmpty(),
-        client: sconeMath.add(clientAllocation, proposal.want.Scones),
+        vault: amountMath.makeEmpty(sconeBrand),
+        client: amountMath.add(clientAllocation, proposal.want.Scones),
       };
     } else if (proposal.give.Scones) {
       // We don't allow sconeDebt to be negative, so we'll refund overpayments
-      const acceptedScones = sconeMath.isGTE(proposal.give.Scones, sconeDebt)
+      const acceptedScones = amountMath.isGTE(proposal.give.Scones, sconeDebt)
         ? sconeDebt
         : proposal.give.Scones;
 
       return {
         vault: acceptedScones,
-        client: sconeMath.subtract(clientAllocation, acceptedScones),
+        client: amountMath.subtract(clientAllocation, acceptedScones),
       };
     } else {
       return {
-        vault: sconeMath.getEmpty(),
+        vault: amountMath.makeEmpty(sconeBrand),
         client: clientAllocation,
       };
     }
@@ -277,14 +273,14 @@ export function makeVaultKit(
   // Calculate the fee, the amount to mint and the resulting debt.
   function loanFee(proposal, sconesAfter) {
     let newDebt;
-    let toMint = sconeMath.getEmpty();
-    let fee = sconeMath.getEmpty();
+    let toMint = amountMath.makeEmpty(sconeBrand);
+    let fee = amountMath.makeEmpty(sconeBrand);
     if (proposal.want.Scones) {
       fee = multiplyBy(proposal.want.Scones, manager.getLoanFee());
-      toMint = sconeMath.add(proposal.want.Scones, fee);
-      newDebt = sconeMath.add(sconeDebt, toMint);
+      toMint = amountMath.add(proposal.want.Scones, fee);
+      newDebt = amountMath.add(sconeDebt, toMint);
     } else if (proposal.give.Scones) {
-      newDebt = sconeMath.subtract(sconeDebt, sconesAfter.vault);
+      newDebt = amountMath.subtract(sconeDebt, sconesAfter.vault);
     } else {
       newDebt = sconeDebt;
     }
@@ -318,17 +314,18 @@ export function makeVaultKit(
 
     // Get new balances after calling the priceAuthority, so we can compare
     // to the debt limit based on the new values.
-    const vaultCollateral = collateralAfter.vault || cMath.getEmpty();
+    const vaultCollateral =
+      collateralAfter.vault || amountMath.makeEmpty(collateralBrand);
 
     // If the collateral decreased, we pro-rate maxDebt
-    if (cMath.isGTE(targetCollateralAmount, vaultCollateral)) {
+    if (amountMath.isGTE(targetCollateralAmount, vaultCollateral)) {
       // We can pro-rate maxDebt because the quote is either linear (price is
       // unchanging) or super-linear (meaning it's an AMM. When the volume sold
       // falls, the proceeds fall less than linearly, so this is a conservative
       // choice.)
       const maxDebtAfter = multiplyBy(vaultCollateral, sconePriceOfCollateral);
       assert(
-        sconeMath.isGTE(maxDebtAfter, newDebt),
+        amountMath.isGTE(maxDebtAfter, newDebt),
         X`The requested debt ${q(
           newDebt,
         )} is more than the collateralization ratio allows: ${q(maxDebtAfter)}`,
@@ -337,7 +334,7 @@ export function makeVaultKit(
       // When the re-checked collateral was larger than the original amount, we
       // should restart, unless the new debt is less than the original target
       // (in which case, we're fine to proceed with the reallocate)
-    } else if (!sconeMath.isGTE(maxDebtForOriginalTarget, newDebt)) {
+    } else if (!amountMath.isGTE(maxDebtForOriginalTarget, newDebt)) {
       return adjustBalancesHook(clientSeat);
     }
 
@@ -373,7 +370,7 @@ export function makeVaultKit(
   }
 
   async function openLoan(seat) {
-    assert(sconeMath.isEmpty(sconeDebt), X`vault must be empty initially`);
+    assert(amountMath.isEmpty(sconeDebt), X`vault must be empty initially`);
     // get the payout to provide access to the collateral if the
     // contract abandons
     const {
@@ -387,21 +384,21 @@ export function makeVaultKit(
     // todo trigger process() check right away, in case the price dropped while we ran
 
     const fee = multiplyBy(sconesWanted, manager.getLoanFee());
-    if (sconeMath.isEmpty(fee)) {
+    if (amountMath.isEmpty(fee)) {
       throw seat.exit('loan requested is too small; cannot accrue interest');
     }
 
-    sconeDebt = sconeMath.add(sconesWanted, fee);
+    sconeDebt = amountMath.add(sconesWanted, fee);
     sconeMint.mintGains({ Scones: sconeDebt }, vaultSeat);
     const priorCollateral = getCollateralAllocated(vaultSeat);
 
     const collateralSeatStaging = vaultSeat.stage({
-      Collateral: cMath.add(priorCollateral, collateralAmount),
-      Scones: sconeMath.getEmpty(),
+      Collateral: amountMath.add(priorCollateral, collateralAmount),
+      Scones: amountMath.makeEmpty(sconeBrand),
     });
     const loanSeatStaging = seat.stage({
       Scones: sconesWanted,
-      Collateral: cMath.getEmpty(),
+      Collateral: amountMath.makeEmpty(collateralBrand),
     });
     const stageReward = manager.stageReward(fee);
     zcf.reallocate(collateralSeatStaging, loanSeatStaging, stageReward);
@@ -418,7 +415,7 @@ export function makeVaultKit(
     );
 
     if (interestKit.latestInterestUpdate === latestInterestUpdate) {
-      return sconeMath.getEmpty();
+      return amountMath.makeEmpty(sconeBrand);
     }
 
     ({ latestInterestUpdate, newDebt: sconeDebt } = interestKit);

@@ -40,14 +40,12 @@ export async function start(zcf) {
         give: { In: amountIn },
         want: { Out: sconeDebt },
       });
-      const keywordMapping = harden({});
-
       trace(`OFFER TO DEBT: `, sconeDebt.value);
 
       const { deposited, userSeatPromise: liqSeat } = await offerTo(
         zcf,
         swapInvitation,
-        keywordMapping,
+        undefined,
         liqProposal,
         debtorSeat,
       );
