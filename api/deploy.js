@@ -34,17 +34,33 @@ export default async function deployApi(homePromise, endowments) {
   const {
     INSTALLATION_BOARD_ID,
     AMM_INSTALLATION_BOARD_ID,
+    LIQ_INSTALLATION_BOARD_ID,
     CONTRACT_NAME,
     DEPLOY_NAME,
     AMM_NAME,
   } = installationConstants;
 
+  console.log('Waiting for you to approve', DEPLOY_NAME, 'in your wallet...');
+  const walletBridge = E(wallet).getScopedBridge(DEPLOY_NAME, 'deploy');
+  const approvalP = E(walletBridge).getBoard();
+
   // use the board id to get the values, and save them to the
   // wallet.
-  const autoswapInstall = await E(board).getValue(AMM_INSTALLATION_BOARD_ID);
-  const stablecoinMachineInstallation = await E(board).getValue(
-    INSTALLATION_BOARD_ID,
-  );
+  const [
+    autoswapInstall,
+    liquidationInstall,
+    stablecoinMachineInstall,
+    _approval,
+  ] = await Promise.all([
+    E(board).getValue(AMM_INSTALLATION_BOARD_ID),
+    E(board).getValue(LIQ_INSTALLATION_BOARD_ID),
+    E(board).getValue(INSTALLATION_BOARD_ID),
+    approvalP,
+  ]);
+
+  // the walletBridge access was approved
+  console.log('Approved!');
+
   const loanParams = {
     chargingPeriod: SECONDS_PER_HOUR,
     recordingPeriod: SECONDS_PER_DAY,
@@ -52,19 +68,15 @@ export default async function deployApi(homePromise, endowments) {
 
   const terms = harden({
     autoswapInstall,
+    liquidationInstall,
     priceAuthority,
     loanParams,
     timerService: timer,
   });
 
-  console.log('Waiting for you to approve', DEPLOY_NAME, 'in your wallet...');
-  const walletBridge = E(wallet).getScopedBridge(DEPLOY_NAME, 'deploy');
-  await E(walletBridge).getBoard();
-  console.log('Approved!');
-
   const startInstanceConfig = {
     instancePetname: [DEPLOY_NAME],
-    installation: stablecoinMachineInstallation,
+    installation: stablecoinMachineInstall,
     terms,
     issuerKeywordRecord: {},
   };
@@ -320,6 +332,7 @@ export default async function deployApi(homePromise, endowments) {
     SCONE_BRAND_BOARD_ID,
     AMM_NAME,
     AMM_INSTALLATION_BOARD_ID,
+    LIQ_INSTALLATION_BOARD_ID,
     AMM_INSTANCE_BOARD_ID,
     INVITE_BRAND_BOARD_ID,
     // BRIDGE_URL: 'agoric-lookup:https://local.agoric.com?append=/bridge',

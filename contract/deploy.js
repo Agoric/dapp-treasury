@@ -37,13 +37,25 @@ export default async function deployContract(homePromise, endowments) {
   );
   const AMM_NAME = 'autoswap';
 
+  // Install LiquidateMinimum contract
+  // TODO: install this in bootstrap.js in cosmic-swingset
+  const {
+    id: LIQ_INSTALLATION_BOARD_ID,
+  } = await helpers.install(
+    helpers.resolvePathForLocalContract('./src/liquidateMinimum.js'),
+    [DEPLOY_NAME, 'liquidate'],
+  );
+  const LIQ_NAME = 'liquidate';
+
   // Save the constants somewhere where the UI and api can find it.
   const dappConstants = {
     CONTRACT_NAME,
     DEPLOY_NAME,
     AMM_NAME,
+    LIQ_NAME,
     INSTALLATION_BOARD_ID,
     AMM_INSTALLATION_BOARD_ID,
+    LIQ_INSTALLATION_BOARD_ID,
   };
   const defaultsFolder = endowments.pathResolve(`../ui/src/generated`);
   const defaultsFile = endowments.pathResolve(
