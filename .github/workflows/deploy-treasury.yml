@@ -53,24 +53,24 @@ jobs:
         path: .
         key: ${{ runner.os }}-14.x-built-${{ github.sha }}
 
-  get-deployments:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        path: dapp
-    - id: set-deployments
-      # Get only the directories present in dapp/ui/deploy
-      run: echo "::set-output name=deployments::$(ls -d dapp/ui/deploy/*/ | jq -R -s -c 'split("/\n")[:-1]')"
-    outputs:
-      deployments: ${{ steps.set-deployments.outputs.deployments }}
+#  get-deployments:
+#    runs-on: ubuntu-latest
+#    steps:
+#    - uses: actions/checkout@v2
+#      with:
+#        path: dapp
+#    - id: set-deployments
+#      # Get only the directories present in dapp/ui/deploy
+#      run: echo "::set-output name=deployments::$(ls -d dapp/ui/deploy/*/ | jq -R -s -c 'split("/\n")[:-1]')"
+#    outputs:
+#      deployments: ${{ steps.set-deployments.outputs.deployments }}
 
   deploy:
-    needs: [deps, get-deployments]
+    needs: deps # [deps, get-deployments]
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        deployment: ${{fromJson(needs.get-deployments.outputs.deployments)}}
+        deployment: [dapp/ui/deploy] # ${{fromJson(needs.get-deployments.outputs.deployments)}}
     steps:
     - uses: actions/setup-node@v1
       with:
