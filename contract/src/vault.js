@@ -453,7 +453,7 @@ export function makeVaultKit(
 
   function makeAdjustBalancesInvitation() {
     assertVaultIsOpen();
-    return zcf.makeInvitation(adjustBalancesHook, 'add collateral');
+    return zcf.makeInvitation(adjustBalancesHook, 'adjustBalances');
   }
 
   async function openLoan(seat) {

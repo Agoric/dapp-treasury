@@ -66,6 +66,8 @@ export default function NewVault() {
     );
   }
 
+  // @ts-ignore
+  // eslint-disable-next-line no-unused-vars
   const getCurrentVaultCreationStep = () => {
     if (!vaultCollateral) {
       // User needs to choose which collateral brand to use in their loan

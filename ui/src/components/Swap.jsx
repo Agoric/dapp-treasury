@@ -93,23 +93,11 @@ export default function Swap(walletP) {
     inputAmount > 0 &&
     outputAmount > 0;
 
-  const getPurse = event => {
-    const pursePetname = event.target.value;
-    const purse = purses.find(
-      p => JSON.stringify(p.pursePetname) === JSON.stringify(pursePetname),
-    );
-    return purse;
-  };
-
-  function handleChangeInputPurse(event) {
-    if (!purses) return;
-    const purse = getPurse(event);
+  function handleChangeInputPurse(purse) {
     dispatch(setInputPurse(purse));
   }
 
-  function handleChangeOutputPurse(event) {
-    if (!purses) return;
-    const purse = getPurse(event);
+  function handleChangeOutputPurse(purse) {
     dispatch(setOutputPurse(purse));
   }
 

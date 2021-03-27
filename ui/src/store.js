@@ -26,6 +26,7 @@ export const {
     setVaultConfiguration,
     setVaultCreated,
     createVault,
+    setVaultToManageId,
     updateVault,
     resetVault,
   },
@@ -52,6 +53,7 @@ export const {
     vaultCreated: false,
     vaults: {},
     collaterals: null,
+    vaultToManageId: null,
   },
   actions: {
     createVault: (state, { id, vault }) => {

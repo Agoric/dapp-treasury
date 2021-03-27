@@ -14,6 +14,7 @@ import NavDrawer from '../components/NavDrawer';
 import Swap from '../components/Swap';
 import NewVault from '../components/vault/NewVault';
 import Treasury from '../components/Treasury';
+import VaultManagement from '../components/vault/VaultManagement/VaultManagement';
 
 const navigationDrawerWidth = 200;
 
@@ -68,6 +69,9 @@ function Top() {
               <Route path="/gov">Governance</Route>
               <Route path="/swap">
                 <Swap />
+              </Route>
+              <Route path="/manageVault">
+                <VaultManagement />
               </Route>
               <Route path="/">
                 <NewVault />
