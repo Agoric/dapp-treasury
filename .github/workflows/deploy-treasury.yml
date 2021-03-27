@@ -12,13 +12,13 @@ on:
   pull_request:
 
 jobs:
-  deploy:
+  # Build everything we can and share in a cache.
+  deps:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: ['14.x']
-
     steps:
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 14.x
     - name: Checkout agoric-sdk
       uses: actions/checkout@v2
       with:
@@ -47,33 +47,53 @@ jobs:
       run: yarn build
       working-directory: ./dapp
 
+    - name: cache build outputs
+      uses: actions/cache@v1
+      with:
+        path: .
+        key: ${{ runner.os }}-14.x-built-${{ github.sha }}
+
+#  get-deployments:
+#    runs-on: ubuntu-latest
+#    steps:
+#    - uses: actions/checkout@v2
+#      with:
+#        path: dapp
+#    - id: set-deployments
+#      # Get only the directories present in dapp/ui/deploy
+#      run: echo "::set-output name=deployments::$(ls -d dapp/ui/deploy/*/ | jq -R -s -c 'split("/\n")[:-1]')"
+#    outputs:
+#      deployments: ${{ steps.set-deployments.outputs.deployments }}
+
+  deploy:
+    needs: deps # [deps, get-deployments]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        deployment: [dapp/ui/deploy] # ${{fromJson(needs.get-deployments.outputs.deployments)}}
+    steps:
+    - uses: actions/setup-node@v1
+      with:
+        node-version: 14.x
+    - name: restore built files
+      uses: actions/cache@v1
+      with:
+        path: .
+        key: ${{ runner.os }}-14.x-built-${{ github.sha }}
     - name: Configure dapp
       run: |
-        echo "$CONTRACT_CONFIG" >dapp/ui/src/generated/installationConstants.js
-        echo "$API_CONFIG" >dapp/ui/src/generated/defaults.js
-      env:
-        CONTRACT_CONFIG: ${{ secrets.CONTRACT_CONFIG }}
-        API_CONFIG: ${{ secrets.API_CONFIG }}
+        echo "NETLIFY_SITE_ID=$(cat "${{ matrix.deployment }}/NETLIFY_SITE_ID")" >> $GITHUB_ENV
+        tar -C "${{ matrix.deployment }}" -cf - src | tar -C dapp/ui -xvf -
     - name: yarn build:react in dapp ui
       run: yarn build:react
       working-directory: ./dapp/ui
 
-    - name: Deploy preview via Netlify
-      uses: netlify/actions/cli@master
-      if: ${{ github.ref != 'refs/heads/main' }}
-      # https://github.com/netlify/actions/tree/master/cli
+    - name: Deploy via Netlify
+      uses: nwtgck/actions-netlify@v1.1
       with:
-        args: deploy --dir=dapp/ui/build
+        # Production deployment if a commit to main.
+        production-deploy: ${{ github.ref == 'refs/heads/main' }}
+        publish-dir: dapp/ui/build
+        github-token: ${{ secrets.GITHUB_TOKEN }}
       env:
-        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-
-    - name: Publish to production via Netlify
-      uses: netlify/actions/cli@master
-      if: ${{ github.ref == 'refs/heads/main' }}
-      # https://github.com/netlify/actions/tree/master/cli
-      with:
-        args: deploy --dir=dapp/ui/build --prod
-      env:
-        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
