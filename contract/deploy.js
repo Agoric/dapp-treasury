@@ -42,7 +42,9 @@ export default async function deployContract(homePromise, endowments) {
   const {
     id: LIQ_INSTALLATION_BOARD_ID,
   } = await helpers.install(
-    helpers.resolvePathForPackagedContract('@agoric/treasury/src/liquidateMinimum.js'),
+    helpers.resolvePathForPackagedContract(
+      '@agoric/treasury/src/liquidateMinimum.js',
+    ),
     [DEPLOY_NAME, 'liquidate'],
   );
   const LIQ_NAME = 'liquidate';
