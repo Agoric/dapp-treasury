@@ -38,6 +38,7 @@
     "@agoric/promise-kit": "*",
     "@agoric/ses-ava": "*",
     "@agoric/store": "*",
+    "@agoric/treasury": "*",
     "@agoric/zoe": "*",
     "@agoric/bundle-source": "*",
     "@agoric/eventual-send": "*",
