@@ -11,8 +11,8 @@ export default async function deployContract(homePromise, endowments) {
   // This installs the contract code on Zoe and adds the installation
   // to the contract developer's wallet and the board
   const helpers = await makeHelpers(homePromise, endowments);
-  const resolvedPath = helpers.resolvePathForLocalContract(
-    './src/stablecoinMachine',
+  const resolvedPath = helpers.resolvePathForPackagedContract(
+    '@agoric/treasury/src/stablecoinMachine',
   );
   const CONTRACT_NAME = 'Treasury';
 
@@ -42,7 +42,9 @@ export default async function deployContract(homePromise, endowments) {
   const {
     id: LIQ_INSTALLATION_BOARD_ID,
   } = await helpers.install(
-    helpers.resolvePathForLocalContract('./src/liquidateMinimum.js'),
+    helpers.resolvePathForPackagedContract(
+      '@agoric/treasury/src/liquidateMinimum.js',
+    ),
     [DEPLOY_NAME, 'liquidate'],
   );
   const LIQ_NAME = 'liquidate';
