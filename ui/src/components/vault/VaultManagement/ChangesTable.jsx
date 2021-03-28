@@ -26,10 +26,9 @@ function createData(name, currentValue, pendingChanges) {
 
 // TODO: use real data
 const rows = [
-  createData('Collateral Value', 159, '...'),
-  createData('Current C-Ratio', 237, '...'),
-  createData('Market Price', 262, '...'),
-  createData('Debt Value', 356, '...'),
+  createData('Collateral Locked', 159, '...'),
+  createData('Collaterization Ratio', 237, '...'),
+  createData('Debt Borrowed', 356, '...'),
 ];
 
 const ChangesTable = () => {

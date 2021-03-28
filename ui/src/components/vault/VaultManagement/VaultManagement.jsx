@@ -3,9 +3,10 @@
 import React from 'react';
 import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
+
 import { stringifyValue } from '@agoric/ui-components';
 
-import ManageVaultTabs from './ManageVaultTabs';
+import AdjustVaultForm from './AdjustVaultForm';
 import UnchangeableValues from './UnchangeableValues';
 import ChangesTable from './ChangesTable';
 import CloseVault from './CloseVault';
@@ -61,7 +62,7 @@ const VaultManagement = () => {
       <div className={classes.valuesTable}>
         <ChangesTable />
       </div>
-      <ManageVaultTabs
+      <AdjustVaultForm
         purses={purses}
         walletP={walletP}
         vaultToManageId={vaultToManageId}
