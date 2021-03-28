@@ -14,23 +14,17 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-// TODO: add confirmation modal
-const CloseVault = () => {
+const CloseVault = ({ onClick }) => {
   const classes = useStyles();
   return (
-    <Grid
-      container
-      alignItems="center"
-      justify="center"
-      className={classes.root}
-    >
+    <Grid container alignItems="center" justify="center">
       <Grid item>
         <Button
           size="large"
           variant="contained"
           color="secondary"
           startIcon={<ErrorIcon />}
-          onClick={() => {}}
+          onClick={onClick}
           className={classes.button}
         >
           Close Out Vault

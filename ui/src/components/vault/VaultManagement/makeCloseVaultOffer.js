@@ -3,17 +3,18 @@ import dappConstants from '../../../generated/defaults.js';
 
 const { INSTALLATION_BOARD_ID, INSTANCE_BOARD_ID } = dappConstants;
 
-export const makeAdjustVaultOffer = ({
+export const makeCloseVaultOffer = ({
   vaultToManageId,
   walletP,
   moePurseSelected,
   moeValue,
   collateralPurseSelected,
   collateralValue,
-  collateralAction,
-  debtAction,
 }) => {
   const id = `${Date.now()}`;
+
+  // give: { Scones: null },
+  // want: { Collateral: null },
 
   const empty = harden({});
   let want = empty;
@@ -27,13 +28,7 @@ export const makeAdjustVaultOffer = ({
         value: collateralValue,
       },
     };
-    if (collateralAction === 'deposit') {
-      give = { ...give, ...collateral };
-    }
-
-    if (collateralAction === 'withdraw') {
-      want = { ...want, ...collateral };
-    }
+    want = { ...want, ...collateral };
   }
 
   if (moePurseSelected && moeValue) {
@@ -43,14 +38,7 @@ export const makeAdjustVaultOffer = ({
         value: moeValue,
       },
     };
-
-    if (debtAction === 'borrow') {
-      want = { ...want, ...scones };
-    }
-
-    if (debtAction === 'repay') {
-      give = { ...give, ...scones };
-    }
+    give = { ...give, ...scones };
   }
 
   if (want === empty && give === empty) {
@@ -61,7 +49,7 @@ export const makeAdjustVaultOffer = ({
     id,
     continuingInvitation: {
       priorOfferId: vaultToManageId,
-      description: 'adjustBalances',
+      description: 'pay off entire loan and close Vault',
     },
     installationHandleBoardId: INSTALLATION_BOARD_ID,
     instanceHandleBoardId: INSTANCE_BOARD_ID,

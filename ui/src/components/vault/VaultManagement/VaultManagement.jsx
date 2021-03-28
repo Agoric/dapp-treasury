@@ -9,7 +9,7 @@ import { stringifyValue } from '@agoric/ui-components';
 import AdjustVaultForm from './AdjustVaultForm';
 import UnchangeableValues from './UnchangeableValues';
 import ChangesTable from './ChangesTable';
-import CloseVault from './CloseVault';
+import CloseVaultForm from './CloseVaultForm';
 
 import { useApplicationContext } from '../../../contexts/Application';
 
@@ -67,7 +67,11 @@ const VaultManagement = () => {
         walletP={walletP}
         vaultToManageId={vaultToManageId}
       />{' '}
-      <CloseVault />
+      <CloseVaultForm
+        purses={purses}
+        walletP={walletP}
+        vaultToManageId={vaultToManageId}
+      />
     </div>
   );
 };
