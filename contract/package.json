@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "esm": "^3.2.5",
-    "ses": "^0.12.3",
+    "ses": "^0.12.6",
     "@agoric/assert": "*",
     "@agoric/captp": "*",
     "@agoric/ertp": "*",
