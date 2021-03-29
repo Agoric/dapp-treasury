@@ -9,14 +9,10 @@ import {
   getActiveSocket,
 } from '../utils/fetch-websocket';
 
-// import { makeBrands } from '../utils/helper';
-
 import {
   reducer,
   defaultState,
   setPurses,
-  // setIssuers,
-  // setBrands,
   setConnected,
   resetState,
   updateVault,
@@ -31,6 +27,7 @@ import {
 import dappConstants from '../generated/defaults.js';
 import { getCollaterals } from './getCollaterals';
 import { getPublicFacet } from './getPublicFacet';
+import { updateBrandPetnames, initializeBrandToInfo } from './storeBrandInfo';
 
 const {
   INSTALLATION_BOARD_ID,
@@ -117,6 +114,7 @@ export default function Provider({ children }) {
     outputAmount,
     inputChanged,
     outputChanged,
+    brandToInfo,
   } = state;
 
   useEffect(() => {
@@ -167,7 +165,13 @@ export default function Provider({ children }) {
         dispatch(
           setTreasury({ instance, treasuryAPI, sconeIssuer, sconeBrand }),
         );
-        // await E(walletP).suggestIssuerDirect('MOE', sconeIssuer);
+
+        await initializeBrandToInfo({
+          dispatch,
+          issuerKeywordRecord: terms.issuers,
+          brandKeywordRecord: terms.brands,
+        });
+
         console.log('SET COLLATERALS', collaterals);
         dispatch(setCollaterals(collaterals));
 
@@ -182,17 +186,19 @@ export default function Provider({ children }) {
           console.error('FIGME: got watchPurses err', err),
         );
 
-        // async function watchBrands() {
-        //   const issuersN = E(walletP).getIssuersNotifier();
-        //   for await (const issuers of iterateNotifier(issuersN)) {
-        //     dispatch(setIssuers(issuers));
-        //     dispatch(setBrands(makeBrands(issuers)));
-        //   }
-        // }
-        // watchBrands().catch(err => {
-        //   console.error('got watchBrands err', err);
-        //   throw err;
-        // });
+        async function watchBrands() {
+          const issuersN = E(walletP).getIssuersNotifier();
+          for await (const issuers of iterateNotifier(issuersN)) {
+            updateBrandPetnames({
+              dispatch,
+              brandToInfo,
+              issuersFromNotifier: issuers,
+            });
+          }
+        }
+        watchBrands().catch(err => {
+          console.error('got watchBrands err', err);
+        });
         await Promise.all([
           E(walletP).suggestInstallation('Installation', INSTALLATION_BOARD_ID),
           E(walletP).suggestInstance('Instance', INSTANCE_BOARD_ID),

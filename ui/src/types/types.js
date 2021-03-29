@@ -46,3 +46,11 @@
  * @property {any} currentAmountSlots
  * @property {any} currentAmount
  */
+
+/**
+ * @typedef {object} BrandInfo
+ * @property {Issuer} issuer
+ * @property {AmountMathKind} mathKind
+ * @property {number} decimalPlaces
+ * @property {Petname} petname - the petname for the brand from the user
+ */

@@ -17,8 +17,8 @@ import { stringifyValue } from '@agoric/ui-components';
 import '../../types/types';
 
 import { setVaultCollateral } from '../../store';
+import { getInfoForBrand } from '../helpers';
 import { toPrintedPercent } from '../../utils/helper';
-import { makeGetDecimalPlaces } from '../helpers';
 
 const displayPetname = petname =>
   Array.isArray(petname) ? petname[1] : petname;
@@ -48,31 +48,31 @@ const percentCell = x => (
  * Display a row per brand of potential collateral
  *
  * @param {(collateralInfo) => () => void} makeOnClick
- * @param {(brand: Brand) => number} getDecimalPlaces
  * @param {CollateralInfo} row
+ * @param {Array<Array<Brand, BrandInfo>>} brandToInfo
  * @returns {import('react').ReactComponentElement}
  */
-const makeCollateralRow = (makeOnClick, getDecimalPlaces, row) => {
-  // const marketPriceDisplayOptions = {
-  //   numDecimalPlaces: getDecimalPlaces(row.marketPrice.numerator.brand),
-  //   denomDecimalPlaces: getDecimalPlaces(row.marketPrice.denominator.brand),
-  //   numPlacesToShow: 2,
-  // };
+const makeCollateralRow = (makeOnClick, row, brandToInfo) => {
+  const collateralInfo = getInfoForBrand(brandToInfo, row.brand);
+  const collateralPetname = collateralInfo.petname;
 
-  // TODO: fix instead of hard-coding
-  // const marketPriceDisplayOptions = {
-  //   numDecimalPlaces: 0,
-  //   denomDecimalPlaces: 0,
-  //   numPlacesToShow: 2,
-  // };
+  const moeBrandInfo = getInfoForBrand(
+    brandToInfo,
+    row.marketPrice.numerator.brand,
+  );
   return (
-    <TableRow key={JSON.stringify(row.petname)}>
+    <TableRow key={JSON.stringify(collateralPetname)}>
       <TableCell padding="checkbox">
         <Radio onClick={makeOnClick(row)} />
       </TableCell>
-      <TableCell>{displayPetname(row.petname)}</TableCell>
+      <TableCell>{displayPetname(collateralPetname)}</TableCell>
       <TableCell align="right">
-        ${stringifyValue(row.marketPrice.numerator.value)}
+        $
+        {stringifyValue(
+          row.marketPrice.numerator.value,
+          moeBrandInfo.mathKind,
+          moeBrandInfo.decimalPlaces,
+        )}
       </TableCell>
       {percentCell(row.initialMargin)}
       {percentCell(row.liquidationMargin)}
@@ -86,11 +86,11 @@ const makeCollateralRow = (makeOnClick, getDecimalPlaces, row) => {
  *
  * @param {Collaterals} collaterals
  * @param {(CollateralInfo) => () => void} makeOnClick
- * @param {(brand: Brand) => number} getDecimalPlaces
+ * @param {Array<Array<Brand, BrandInfo>>} brandToInfo
  * @returns {import('react').ReactComponentElement}
  */
-const makeCollateralTable = (collaterals, makeOnClick, getDecimalPlaces) => {
-  const makeRow = row => makeCollateralRow(makeOnClick, getDecimalPlaces, row);
+const makeCollateralTable = (collaterals, makeOnClick, brandToInfo) => {
+  const makeRow = row => makeCollateralRow(makeOnClick, row, brandToInfo);
   return (
     <div>
       <FormControl component="fieldset">
@@ -111,19 +111,16 @@ const makeCollateralTable = (collaterals, makeOnClick, getDecimalPlaces) => {
   );
 };
 
-// TODO: get decimalPlaces for row.marketPrice.numerator.value
-function VaultCollateral({ dispatch, collaterals, brands }) {
+function VaultCollateral({ dispatch, collaterals, brandToInfo }) {
   const makeOnClick = row => _ev => {
     dispatch(setVaultCollateral(row));
   };
-
-  const getDecimalPlaces = makeGetDecimalPlaces(brands);
 
   if (!collateralAvailable(collaterals)) {
     return noCollateralAvailableDiv;
   }
 
-  return makeCollateralTable(collaterals, makeOnClick, getDecimalPlaces);
+  return makeCollateralTable(collaterals, makeOnClick, brandToInfo);
 }
 
 export default VaultCollateral;

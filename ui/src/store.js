@@ -9,8 +9,8 @@ export const {
     setApproved,
     setConnected,
     setPurses,
-    setIssuers,
-    setBrands,
+    setBrandToInfo,
+    setInfoForBrand,
     setCollaterals,
     setInputPurse,
     setOutputPurse,
@@ -37,8 +37,7 @@ export const {
     connected: false,
     account: null,
     purses: null,
-    brands: null,
-    issuers: null,
+    brandToInfo: [], // [[brand, infoObj] ...]
     // Autoswap state
     inputPurse: null,
     outputPurse: null,
@@ -104,5 +103,31 @@ export const {
       inputAmount: null,
       outputAmount: null,
     }),
+    setInfoForBrand: (state, { brand, brandInfo }) => {
+      // Make a copy of brandToInfo
+      const newBrandToInfo = [...state.brandToInfo];
+
+      // Check if the brand is already present, and if so get the
+      // array index.
+      const brandIndex = state.brandToInfo.findIndex(
+        ([storedBrand, _storedInfo]) => storedBrand === brand,
+      );
+      // The brand is already present
+      if (brandIndex > 0) {
+        const [_brand, oldInfo] = state.brandToInfo[brandIndex];
+        const newInfo = {
+          ...oldInfo,
+          ...brandInfo,
+        };
+        newBrandToInfo[brandIndex] = [brand, newInfo];
+      } else {
+        newBrandToInfo.push([brand, brandInfo]);
+      }
+
+      return {
+        ...state,
+        brandToInfo: newBrandToInfo,
+      };
+    },
   },
 });
