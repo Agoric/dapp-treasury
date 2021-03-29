@@ -136,10 +136,10 @@ export default async function deployApi(homePromise, endowments) {
       symbol: 'Simolean',
     },
     {
-      issuerPetname: 'Testnet.$USD',
+      issuerPetname: '$LINK',
       amountValue: 19000,
-      pursePetname: 'Local currency',
-      symbol: 'TestnetUSD',
+      pursePetname: 'Oracle fee',
+      symbol: 'LINK',
     },
   ];
 
