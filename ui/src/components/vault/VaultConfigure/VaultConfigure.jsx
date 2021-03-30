@@ -181,13 +181,13 @@ function VaultConfigure({ dispatch, vaultCollateral, purses, moeBrand }) {
           />
         </Grid>
         <Grid container justify="flex-end" alignItems="center">
+          <CancelButton dispatch={dispatch} />
           <EnterButton
             dispatch={dispatch}
             balanceExceeded={balanceExceeded}
             vaultConfig={vaultConfig}
             belowMinError={belowMinError}
           />
-          <CancelButton dispatch={dispatch} />
         </Grid>
       </Grid>
     </div>

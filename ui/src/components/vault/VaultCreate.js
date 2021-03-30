@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, Typography } from '@material-ui/core';
+import { Button, Typography, Grid } from '@material-ui/core';
 
 import { resetVault } from '../../store';
 
@@ -16,12 +16,14 @@ function VaultCreate({ dispatch, vaultConfiguration, walletP }) {
       <VaultConfirmation
         vaultConfiguration={vaultConfiguration}
       ></VaultConfirmation>
-      <Button
-        onClick={() => makeLoanOffer(dispatch, vaultConfiguration, walletP)}
-      >
-        Create
-      </Button>
-      <Button onClick={() => dispatch(resetVault())}>Cancel</Button>
+      <Grid container justify="flex-end">
+        <Button onClick={() => dispatch(resetVault())}>Cancel</Button>
+        <Button
+          onClick={() => makeLoanOffer(dispatch, vaultConfiguration, walletP)}
+        >
+          Create
+        </Button>
+      </Grid>
     </div>
   );
 }
