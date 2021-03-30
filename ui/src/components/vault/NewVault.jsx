@@ -86,6 +86,7 @@ export default function NewVault() {
           vaultCollateral={vaultCollateral}
           purses={purses}
           moeBrand={treasury.sconeBrand}
+          brandToInfo={brandToInfo}
         />
       );
     }

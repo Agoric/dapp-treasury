@@ -2,25 +2,45 @@ import React, { useState } from 'react';
 
 import { Redirect } from 'react-router-dom';
 
-import Divider from '@material-ui/core/Divider';
+import { makeStyles } from '@material-ui/core/styles';
 
+import Paper from '@material-ui/core/Paper';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
 import Grid from '@material-ui/core/Grid';
 
+import { Typography } from '@material-ui/core';
 import { useApplicationContext } from '../contexts/Application';
 
 import { VaultSummary } from './VaultSummary';
 
 import { setVaultToManageId } from '../store';
 
+const useStyles = makeStyles(theme => {
+  return {
+    card: {
+      paddingLeft: theme.spacing(2),
+    },
+    loading: {
+      padding: theme.spacing(3),
+      marginTop: theme.spacing(2),
+    },
+    grid: {
+      marginTop: theme.spacing(2),
+    },
+    button: {
+      marginRight: theme.spacing(1),
+      marginBottom: theme.spacing(1),
+    },
+  };
+});
+
 function VaultList() {
+  const classes = useStyles();
   const {
-    state: { vaults },
+    state: { vaults, brandToInfo },
     dispatch,
   } = useApplicationContext();
 
@@ -34,29 +54,47 @@ function VaultList() {
   if (redirect) {
     return <Redirect to={redirect} />;
   }
+
+  const vaultsList = Object.entries(vaults);
+
+  if (vaultsList.length <= 0) {
+    return (
+      <Paper className={classes.loading}>
+        <Typography>Loading vault information.</Typography>
+      </Paper>
+    );
+  }
+
   return (
     <div>
-      <Divider />
-      <List>
-        {Object.entries(vaults).map(([key, v]) => (
-          <ListItem key={key}>
+      <Grid container className={classes.grid}>
+        {vaultsList.map(([key, v]) => (
+          <Grid key={key} className={classes.card}>
             <Card key={key}>
               <CardContent>
-                <VaultSummary vault={v}></VaultSummary>
+                <VaultSummary
+                  vault={v}
+                  id={key}
+                  brandToInfo={brandToInfo}
+                ></VaultSummary>
               </CardContent>
               <CardActions>
                 <Grid container justify="flex-end">
-                  <Grid item>
-                    <Button size="small" onClick={() => handleOnClick(key)}>
+                  <Grid item className={classes.button}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => handleOnClick(key)}
+                    >
                       Manage Vault
                     </Button>
                   </Grid>
                 </Grid>
               </CardActions>
             </Card>
-          </ListItem>
+          </Grid>
         ))}
-      </List>
+      </Grid>
     </div>
   );
 }

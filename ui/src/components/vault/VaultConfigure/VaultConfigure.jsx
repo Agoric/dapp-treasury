@@ -15,6 +15,7 @@ import {
   displayPetname,
   filterPursesByBrand,
   sortPurses,
+  getInfoForBrand,
 } from '../../helpers';
 
 import ToLockValueInput from './ToLockValueInput';
@@ -65,9 +66,16 @@ const useConfigStyles = makeStyles(theme => ({
  * @param {CollateralInfo} props.vaultCollateral
  * @param {Array<PursesJSONState>} props.purses
  * @param {Brand} props.moeBrand
+ * @param {Array<Array<Brand, BrandInfo>>} props.brandToInfo
  * @returns {React.ReactElement}
  */
-function VaultConfigure({ dispatch, vaultCollateral, purses, moeBrand }) {
+function VaultConfigure({
+  dispatch,
+  vaultCollateral,
+  purses,
+  moeBrand,
+  brandToInfo,
+}) {
   const classes = useConfigStyles();
 
   // Purses with the same brand as the collateral brand that was
@@ -134,16 +142,18 @@ function VaultConfigure({ dispatch, vaultCollateral, purses, moeBrand }) {
     setBelowMinError(bool);
   };
 
+  const collateralInfo = getInfoForBrand(brandToInfo, vaultCollateral.brand);
+
   return (
     <div className={classes.root}>
       <Grid container spacing={1}>
         <Grid item xs={4}>
           <FormLabel component="legend" style={{ paddingTop: 20 }}>
-            Choose your {displayPetname(vaultCollateral.petname)} vault
+            Choose your {displayPetname(collateralInfo.petname)} vault
             parameters
           </FormLabel>
           <div style={{ paddingTop: 20 }}>
-            {fundPurseBalanceDisplay} {displayPetname(vaultCollateral.petname)}{' '}
+            {fundPurseBalanceDisplay} {displayPetname(collateralInfo.petname)}{' '}
             Available from Funding Purse
           </div>
         </Grid>
@@ -154,7 +164,7 @@ function VaultConfigure({ dispatch, vaultCollateral, purses, moeBrand }) {
             setFundPurse={setFundPurse}
           />
           <ToLockValueInput
-            collateralPetname={displayPetname(vaultCollateral.petname)}
+            collateralPetname={displayPetname(collateralInfo.petname)}
             balanceExceeded={balanceExceeded}
             toLock={toLock}
             toLockDecimalPlaces={toLockDecimalPlaces}

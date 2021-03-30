@@ -25,7 +25,6 @@ import {
   setApproved,
 } from '../store';
 import dappConstants from '../generated/defaults.js';
-import { getCollaterals } from './getCollaterals';
 import { getPublicFacet } from './getPublicFacet';
 import { updateBrandPetnames, initializeBrandToInfo } from './storeBrandInfo';
 
@@ -49,32 +48,13 @@ export function useApplicationContext() {
   return useContext(ApplicationContext);
 }
 
-async function getVaultPetnames(vault) {
-  const lockedBrand = vault.locked.brand;
-  const debtBrand = vault.debt.brand;
-  const [lockedBrandPetname, debtBrandPetname] = await E(
-    walletP,
-  ).getBrandPetnames(harden([lockedBrand, debtBrand]));
-  return {
-    ...vault,
-    lockedBrandPetname,
-    locked: vault.locked.value,
-    debtBrandPetname,
-    debt: vault.debt.value,
-  };
-}
-
 function watchVault(id, dispatch) {
   console.log('vaultWatched', id);
   async function vaultUpdater() {
     const uiNotifier = E(walletP).getUINotifier(id);
     for await (const value of iterateNotifier(uiNotifier)) {
       console.log('======== VAULT', id, value);
-      // TODO: replace when collateralizationRatio works
-      const vault = await getVaultPetnames({
-        ...value,
-      });
-      dispatch(updateVault({ id, vault }));
+      dispatch(updateVault({ id, vault: value }));
     }
   }
 
@@ -154,7 +134,7 @@ export default function Provider({ children }) {
         const treasuryAPI = E(zoe).getPublicFacet(instance);
         const [terms, collaterals] = await Promise.all([
           E(zoe).getTerms(instance),
-          getCollaterals(walletP, treasuryAPI),
+          E(treasuryAPI).getCollaterals(),
         ]);
         const {
           issuers: { Scones: sconeIssuer },

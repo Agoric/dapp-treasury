@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { makeStyles } from '@material-ui/core/styles';
+
 import {
   Table,
   TableBody,
@@ -9,30 +11,45 @@ import {
 } from '@material-ui/core';
 
 import { stringifyAmountValue } from '@agoric/ui-components';
-import { displayPetname } from './helpers';
 import { toPrintedPercent } from '../utils/helper';
+import { getInfoForBrand, displayPetname } from './helpers';
 
-export function VaultSummary({ vault }) {
+const useStyles = makeStyles(theme => {
+  return {
+    header: {
+      color: theme.palette.primary.main,
+      fontWeight: 'bold',
+    },
+  };
+});
+
+export function VaultSummary({ vault, brandToInfo, id }) {
+  const classes = useStyles();
+
   const {
-    collateralizationRatio,
-    debt,
-    _interestRate,
-    lockedBrandPetname,
-    debtBrandPetname,
-    _liquidated,
-    liquidationRatio,
-    locked,
-    stabilityFee,
-    status,
-    liquidationPenalty,
-    lockedDisplayInfo,
-    debtDisplayInfo,
+    collateralizationRatio, // ratio
+    debt, // amount
+    interestRate, // ratio
+    _liquidated, // boolean
+    liquidationRatio, // ratio
+    locked, // amount
+    status, // string
+    // liquidationPenalty, // not present?
   } = vault;
+
+  const lockedInfo = getInfoForBrand(brandToInfo, locked.brand);
+  const debtInfo = getInfoForBrand(brandToInfo, debt.brand);
 
   return (
     <TableContainer>
       <Table>
         <TableBody>
+          <TableRow>
+            <TableCell className={classes.header}>Id</TableCell>
+            <TableCell className={classes.header} align="right">
+              {id}
+            </TableCell>
+          </TableRow>
           <TableRow>
             <TableCell>Status</TableCell>
             <TableCell align="right">{status}</TableCell>
@@ -42,10 +59,10 @@ export function VaultSummary({ vault }) {
             <TableCell align="right">
               {stringifyAmountValue(
                 locked,
-                lockedDisplayInfo && lockedDisplayInfo.amountMathKind,
-                lockedDisplayInfo && lockedDisplayInfo.decimalPlaces,
+                lockedInfo.amountMathKind,
+                lockedInfo.decimalPlaces,
               )}{' '}
-              {displayPetname(lockedBrandPetname)}
+              {displayPetname(lockedInfo.petname)}
             </TableCell>
           </TableRow>
           <TableRow>
@@ -53,16 +70,16 @@ export function VaultSummary({ vault }) {
             <TableCell align="right">
               {stringifyAmountValue(
                 debt,
-                debtDisplayInfo && debtDisplayInfo.amountMathKind,
-                debtDisplayInfo && debtDisplayInfo.decimalPlaces,
+                debtInfo.amountMathKind,
+                debtInfo.decimalPlaces,
               )}{' '}
-              {displayPetname(debtBrandPetname)}
+              {displayPetname(debtInfo.petname)}
             </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Interest Rate</TableCell>
             <TableCell align="right">
-              {toPrintedPercent(stabilityFee, 2n)}%
+              {toPrintedPercent(interestRate, 2n)}%
             </TableCell>
           </TableRow>
           <TableRow>
@@ -77,12 +94,12 @@ export function VaultSummary({ vault }) {
               {toPrintedPercent(collateralizationRatio)}%
             </TableCell>
           </TableRow>
-          <TableRow>
+          {/* <TableRow>
             <TableCell>Liquidation Penalty</TableCell>
             <TableCell align="right">
               {toPrintedPercent(liquidationPenalty)}%
             </TableCell>
-          </TableRow>
+          </TableRow> */}
         </TableBody>
       </Table>
     </TableContainer>
