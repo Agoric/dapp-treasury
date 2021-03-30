@@ -16,6 +16,9 @@ const useStyles = makeStyles(theme => ({
     align: 'center',
     marginBottom: theme.spacing(3),
   },
+  infoText: {
+    marginBottom: theme.spacing(3),
+  },
 }));
 
 const collateralActionChoice = ({ collateralAction, setCollateralAction }) => {
@@ -26,26 +29,33 @@ const collateralActionChoice = ({ collateralAction, setCollateralAction }) => {
   return (
     <Box>
       <Grid container direction="row" alignItems="center">
-        <ToggleButtonGroup
-          value={collateralAction}
-          exclusive
-          onChange={handleCollateralAction}
-          aria-label="Deposit or withdraw collateral"
-          className={classes.buttons}
-        >
-          <ToggleButton
-            value="noaction"
-            aria-label="take no action with collateral"
+        <Grid item xs={12}>
+          <Typography className={classes.infoText}>
+            Adjust collateral:
+          </Typography>
+        </Grid>
+        <Grid item>
+          <ToggleButtonGroup
+            value={collateralAction}
+            exclusive
+            onChange={handleCollateralAction}
+            aria-label="Deposit or withdraw collateral"
+            className={classes.buttons}
           >
-            <Typography>No Action</Typography>
-          </ToggleButton>
-          <ToggleButton value="deposit" aria-label="deposit collateral">
-            <Typography>Deposit Collateral</Typography>
-          </ToggleButton>
-          <ToggleButton value="withdraw" aria-label="withdraw collateral">
-            <Typography>Withdraw Collateral</Typography>
-          </ToggleButton>
-        </ToggleButtonGroup>
+            <ToggleButton
+              value="noaction"
+              aria-label="take no action with collateral"
+            >
+              <Typography>No Action</Typography>
+            </ToggleButton>
+            <ToggleButton value="deposit" aria-label="deposit collateral">
+              <Typography>Deposit</Typography>
+            </ToggleButton>
+            <ToggleButton value="withdraw" aria-label="withdraw collateral">
+              <Typography>Withdraw</Typography>
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Grid>
       </Grid>
     </Box>
   );

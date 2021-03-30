@@ -17,6 +17,9 @@ const useStyles = makeStyles(theme => ({
     marginBottom: theme.spacing(3),
     marginTop: theme.spacing(3),
   },
+  infoText: {
+    marginTop: theme.spacing(3),
+  },
 }));
 
 const debtActionChoice = ({ debtAction, setDebtAction }) => {
@@ -27,23 +30,28 @@ const debtActionChoice = ({ debtAction, setDebtAction }) => {
   return (
     <Box>
       <Grid container direction="row" alignItems="center">
-        <ToggleButtonGroup
-          value={debtAction}
-          exclusive
-          onChange={handleDebtAction}
-          aria-label="Borrow or repay debt"
-          className={classes.buttons}
-        >
-          <ToggleButton value="noaction" aria-label="centered">
-            <Typography>No Action</Typography>
-          </ToggleButton>
-          <ToggleButton value="borrow" aria-label="left aligned">
-            <Typography>Borrow More</Typography>
-          </ToggleButton>
-          <ToggleButton value="repay" aria-label="centered">
-            <Typography>Repay Debt</Typography>
-          </ToggleButton>
-        </ToggleButtonGroup>
+        <Grid item xs={12}>
+          <Typography className={classes.infoText}>Adjust debt:</Typography>
+        </Grid>
+        <Grid item>
+          <ToggleButtonGroup
+            value={debtAction}
+            exclusive
+            onChange={handleDebtAction}
+            aria-label="Borrow or repay debt"
+            className={classes.buttons}
+          >
+            <ToggleButton value="noaction" aria-label="centered">
+              <Typography>No Action</Typography>
+            </ToggleButton>
+            <ToggleButton value="borrow" aria-label="left aligned">
+              <Typography>Borrow More</Typography>
+            </ToggleButton>
+            <ToggleButton value="repay" aria-label="centered">
+              <Typography>Repay Debt</Typography>
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Grid>
       </Grid>
     </Box>
   );
