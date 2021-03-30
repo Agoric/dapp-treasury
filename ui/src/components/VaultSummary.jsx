@@ -79,7 +79,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
           <TableRow>
             <TableCell>Interest Rate</TableCell>
             <TableCell align="right">
-              {toPrintedPercent(interestRate, 2n)}%
+              {interestRate ? toPrintedPercent(interestRate, 2n) : '--'}%
             </TableCell>
           </TableRow>
           <TableRow>
