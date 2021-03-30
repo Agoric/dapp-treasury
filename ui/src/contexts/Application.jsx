@@ -73,7 +73,6 @@ function watchVault(id, dispatch) {
       // TODO: replace when collateralizationRatio works
       const vault = await getVaultPetnames({
         ...value,
-        collateralizationRatio: 150,
       });
       dispatch(updateVault({ id, vault }));
     }
