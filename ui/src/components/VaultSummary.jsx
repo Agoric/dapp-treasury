@@ -9,6 +9,7 @@ import {
 } from '@material-ui/core';
 
 import { stringifyAmountValue } from '@agoric/ui-components';
+import { displayPetname } from './helpers';
 import { toPrintedPercent } from '../utils/helper';
 
 export function VaultSummary({ vault }) {
@@ -44,7 +45,7 @@ export function VaultSummary({ vault }) {
                 lockedDisplayInfo && lockedDisplayInfo.amountMathKind,
                 lockedDisplayInfo && lockedDisplayInfo.decimalPlaces,
               )}{' '}
-              {lockedBrandPetname[1]}
+              {displayPetname(lockedBrandPetname)}
             </TableCell>
           </TableRow>
           <TableRow>
@@ -55,7 +56,7 @@ export function VaultSummary({ vault }) {
                 debtDisplayInfo && debtDisplayInfo.amountMathKind,
                 debtDisplayInfo && debtDisplayInfo.decimalPlaces,
               )}{' '}
-              {debtBrandPetname[1]}
+              {displayPetname(debtBrandPetname)}
             </TableCell>
           </TableRow>
           <TableRow>

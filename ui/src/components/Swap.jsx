@@ -15,6 +15,8 @@ import ArrowDownIcon from '@material-ui/icons/ArrowDownward';
 import AssetInput from './AssetInput';
 import Steps from './Steps';
 
+import { displayPetname } from './helpers';
+
 import { useApplicationContext } from '../contexts/Application';
 import {
   setInputPurse,
@@ -80,9 +82,7 @@ export default function Swap(walletP) {
   const outputAmountError = outputAmount < 0;
 
   const pursesError =
-    inputPurse &&
-    outputPurse &&
-    inputPurse.brandPetname === outputPurse.brandPetname;
+    inputPurse && outputPurse && inputPurse.brand === outputPurse.brand;
 
   const hasError = pursesError || inputAmountError || outputAmountError;
 
@@ -123,7 +123,9 @@ export default function Swap(walletP) {
       const exchangeRate = ((outputAmount * scale) / inputAmount).toFixed(
         decimal,
       );
-      return `Exchange rate: 1 ${inputPurse.brandPetname} = ${exchangeRate} ${outputPurse.brandPetname}`;
+      return `Exchange rate: 1 ${displayPetname(
+        inputPurse.brandPetname,
+      )} = ${exchangeRate} ${displayPetname(outputPurse.brandPetname)}`;
     }
     return '';
   }

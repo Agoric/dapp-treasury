@@ -12,7 +12,11 @@ import { stringifyAmountValue } from '@agoric/ui-components';
 
 import { toPrintedPercent } from '../../utils/helper';
 
-import { getPurseMathKind, getPurseDecimalPlaces } from '../helpers';
+import {
+  getPurseMathKind,
+  getPurseDecimalPlaces,
+  displayPetname,
+} from '../helpers';
 
 function VaultConfirmation({ vaultConfiguration }) {
   const {
@@ -23,7 +27,6 @@ function VaultConfirmation({ vaultConfiguration }) {
     toLock,
     stabilityFee,
     liquidationMargin,
-    _marketPrice,
   } = vaultConfiguration;
 
   return (
@@ -38,8 +41,8 @@ function VaultConfirmation({ vaultConfiguration }) {
                 getPurseMathKind(fundPurse),
                 getPurseDecimalPlaces(fundPurse),
               )}{' '}
-              {fundPurse && fundPurse.brandPetname[1]} from Purse:{' '}
-              {fundPurse && fundPurse.pursePetname[1]}
+              {displayPetname(fundPurse.brandPetname)} from Purse:{' '}
+              {displayPetname(fundPurse.pursePetname)}
             </TableCell>
             <TableCell></TableCell>
           </TableRow>
@@ -52,8 +55,8 @@ function VaultConfirmation({ vaultConfiguration }) {
                   getPurseMathKind(dstPurse),
                   getPurseDecimalPlaces(dstPurse),
                 )}{' '}
-              {dstPurse && dstPurse.brandPetname} to Purse:{' '}
-              {dstPurse && dstPurse.pursePetname}
+              {displayPetname(fundPurse.brandPetname)} to Purse:{' '}
+              {displayPetname(fundPurse.pursePetname)}
             </TableCell>
           </TableRow>
           <TableRow>
