@@ -4,18 +4,24 @@ import { Button } from '@material-ui/core';
 
 import { setVaultConfiguration } from '../../../store';
 
-const EnterButton = ({ balanceExceeded, dispatch, vaultConfig }) => (
-  <Button
-    onClick={() => {
-      if (balanceExceeded) {
-        // TODO: handle correctly
-      } else {
-        dispatch(setVaultConfiguration(vaultConfig));
-      }
-    }}
-  >
-    Configure
-  </Button>
-);
+const EnterButton = ({
+  balanceExceeded,
+  dispatch,
+  vaultConfig,
+  belowMinError,
+}) => {
+  const formHasError = balanceExceeded || belowMinError;
+  return (
+    <Button
+      onClick={() => {
+        if (!formHasError) {
+          dispatch(setVaultConfiguration(vaultConfig));
+        }
+      }}
+    >
+      Configure
+    </Button>
+  );
+};
 
 export default EnterButton;

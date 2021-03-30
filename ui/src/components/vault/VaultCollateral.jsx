@@ -31,7 +31,7 @@ const noCollateralAvailableDiv = (
 const headCells = [
   { id: 'petname', label: 'Asset' },
   { id: 'marketPrice', label: 'Market Price' },
-  { id: 'initialMargin', label: 'Collateral Ratio' },
+  { id: 'initialMargin', label: 'Min Collateralization Ratio' },
   { id: 'liqMargin', label: 'Liquidation Ratio' },
   { id: 'stabilityFee', label: 'Interest Rate' },
 ];

@@ -95,6 +95,8 @@ function VaultConfigure({ dispatch, vaultCollateral, purses, moeBrand }) {
     vaultCollateral.initialMargin,
   );
 
+  const [belowMinError, setBelowMinError] = useState(false);
+
   const toLockDecimalPlaces = getPurseDecimalPlaces(fundPurse);
   const priceRate = vaultCollateral.marketPrice;
 
@@ -128,6 +130,10 @@ function VaultConfigure({ dispatch, vaultCollateral, purses, moeBrand }) {
     marketPrice: vaultCollateral.marketPrice,
   };
 
+  const handlePercentInputError = bool => {
+    setBelowMinError(bool);
+  };
+
   return (
     <div className={classes.root}>
       <Grid container spacing={1}>
@@ -157,6 +163,9 @@ function VaultConfigure({ dispatch, vaultCollateral, purses, moeBrand }) {
           <CollateralizationPercentInput
             collateralPercent={collateralPercent}
             onChange={onCollateralPercentChange}
+            initialMargin={vaultCollateral.initialMargin}
+            onError={handlePercentInputError}
+            belowMinError={belowMinError}
           />
         </Grid>
         <Grid item xs={4}>
@@ -176,6 +185,7 @@ function VaultConfigure({ dispatch, vaultCollateral, purses, moeBrand }) {
             dispatch={dispatch}
             balanceExceeded={balanceExceeded}
             vaultConfig={vaultConfig}
+            belowMinError={belowMinError}
           />
           <CancelButton dispatch={dispatch} />
         </Grid>
