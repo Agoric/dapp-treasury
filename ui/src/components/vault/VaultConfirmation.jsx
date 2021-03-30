@@ -55,8 +55,8 @@ function VaultConfirmation({ vaultConfiguration }) {
                   getPurseMathKind(dstPurse),
                   getPurseDecimalPlaces(dstPurse),
                 )}{' '}
-              {displayPetname(fundPurse.brandPetname)} to Purse:{' '}
-              {displayPetname(fundPurse.pursePetname)}
+              {displayPetname(dstPurse.brandPetname)} to Purse:{' '}
+              {displayPetname(dstPurse.pursePetname)}
             </TableCell>
           </TableRow>
           <TableRow>
