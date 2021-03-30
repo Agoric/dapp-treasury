@@ -85,8 +85,6 @@ export default async function deployApi(homePromise, endowments) {
     startInstanceConfig,
   );
 
-  console.log('- SUCCESS! contract instance is running on Zoe');
-
   console.log('Retrieving Board IDs for issuers and brands');
   const invitationIssuerP = E(zoe).getInvitationIssuer();
   const invitationBrandP = E(invitationIssuerP).getBrand();

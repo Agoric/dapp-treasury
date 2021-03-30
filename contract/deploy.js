@@ -11,9 +11,6 @@ export default async function deployContract(homePromise, endowments) {
   // This installs the contract code on Zoe and adds the installation
   // to the contract developer's wallet and the board
   const helpers = await makeHelpers(homePromise, endowments);
-  const resolvedPath = helpers.resolvePathForPackagedContract(
-    '@agoric/treasury/src/stablecoinMachine',
-  );
   const CONTRACT_NAME = 'Treasury';
 
   const DEPLOY_NAME = `${CONTRACT_NAME}Deploy`;
@@ -21,33 +18,39 @@ export default async function deployContract(homePromise, endowments) {
   await E(E(wallet).getScopedBridge(DEPLOY_NAME, 'deploy')).getBoard();
   console.log('Approved!');
 
-  const { id: INSTALLATION_BOARD_ID } = await helpers.install(resolvedPath, [
+  // Install Treasury
+  const treasuryInstallP = helpers.install(
+    helpers.resolvePathForPackagedContract(
+      '@agoric/treasury/src/stablecoinMachine',
+    ),
     DEPLOY_NAME,
-  ]);
+  );
 
   // Install Autoswap
   // TODO: install autoswap already in bootstrap.js in cosmic-swingset
-  const {
-    id: AMM_INSTALLATION_BOARD_ID,
-  } = await helpers.install(
+  const AMM_NAME = 'autoswap';
+  const ammInstallP = helpers.install(
     helpers.resolvePathForPackagedContract(
       '@agoric/zoe/src/contracts/multipoolAutoswap/multipoolAutoswap',
     ),
-    [DEPLOY_NAME, 'multipoolAutoswap'],
+    [DEPLOY_NAME, AMM_NAME],
   );
-  const AMM_NAME = 'autoswap';
 
   // Install LiquidateMinimum contract
   // TODO: install this in bootstrap.js in cosmic-swingset
-  const {
-    id: LIQ_INSTALLATION_BOARD_ID,
-  } = await helpers.install(
+  const LIQ_NAME = 'liquidate';
+  const liqInstallP = helpers.install(
     helpers.resolvePathForPackagedContract(
       '@agoric/treasury/src/liquidateMinimum.js',
     ),
-    [DEPLOY_NAME, 'liquidate'],
+    [DEPLOY_NAME, LIQ_NAME],
   );
-  const LIQ_NAME = 'liquidate';
+
+  const [
+    { id: INSTALLATION_BOARD_ID },
+    { id: AMM_INSTALLATION_BOARD_ID },
+    { id: LIQ_INSTALLATION_BOARD_ID },
+  ] = await Promise.all([treasuryInstallP, ammInstallP, liqInstallP]);
 
   // Save the constants somewhere where the UI and api can find it.
   const dappConstants = {

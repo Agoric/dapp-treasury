@@ -18,10 +18,6 @@ import {
   updateVault,
   setCollaterals,
   setTreasury,
-  setOutputAmount,
-  setInputAmount,
-  setInputChanged,
-  setOutputChanged,
   setApproved,
 } from '../store';
 import dappConstants from '../generated/defaults.js';
@@ -86,15 +82,7 @@ function watchOffers(dispatch) {
 /* eslint-disable complexity, react/prop-types */
 export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, defaultState);
-  const {
-    inputPurse,
-    outputPurse,
-    inputAmount,
-    outputAmount,
-    inputChanged,
-    outputChanged,
-    brandToInfo,
-  } = state;
+  const { brandToInfo } = state;
 
   useEffect(() => {
     // Receive callbacks from the wallet connection.
@@ -207,36 +195,10 @@ export default function Provider({ children }) {
     return deactivateWebSocket;
   }, []);
 
-  useEffect(() => {
-    if (inputPurse && outputPurse && inputAmount > 0 && inputChanged) {
-      const amountIn = { brand: inputPurse.brand, value: inputAmount };
-      const brandOut = outputPurse.brand;
-      const outputP = E(ammPublicFacet).getInputPrice(amountIn, brandOut);
-
-      outputP.then(output => {
-        dispatch(setOutputAmount(output.value));
-      });
-
-      dispatch(setOutputChanged(false));
-      dispatch(setInputChanged(false));
-    }
-
-    if (inputPurse && outputPurse && outputAmount > 0 && outputChanged) {
-      const brandIn = inputPurse.brand;
-      const amountOut = { brand: outputPurse.brand, value: outputAmount };
-      const inputP = E(ammPublicFacet).getOutputPrice(amountOut, brandIn);
-
-      inputP.then(input => {
-        dispatch(setInputAmount(input.value));
-      });
-
-      dispatch(setOutputChanged(false));
-      dispatch(setInputChanged(false));
-    }
-  }, [inputPurse, outputPurse, inputAmount, outputAmount]);
-
   return (
-    <ApplicationContext.Provider value={{ state, dispatch, walletP }}>
+    <ApplicationContext.Provider
+      value={{ state, dispatch, walletP, ammPublicFacet }}
+    >
       {children}
     </ApplicationContext.Provider>
   );

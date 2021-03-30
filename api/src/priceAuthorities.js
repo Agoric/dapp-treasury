@@ -4,6 +4,8 @@ import { makeFakePriceAuthority } from '@agoric/zoe/tools/fakePriceAuthority';
 import { makeIssuerKit, MathKind } from '@agoric/ertp';
 import { allComparable } from '@agoric/same-structure';
 
+const QUOTE_INTERVAL = 30;
+
 export async function start(zcf) {
   const { issuerToTrades, timer, sconesBrand } = zcf.getTerms();
   const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
@@ -33,6 +35,7 @@ export async function start(zcf) {
         tradeList: fakeTradesGivenCentral,
         timer,
         quoteMint,
+        quoteInterval: QUOTE_INTERVAL,
       });
       priceAuthorities.push({
         pa: sconesInPriceAuthority,

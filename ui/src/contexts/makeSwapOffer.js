@@ -2,7 +2,6 @@ import { E } from '@agoric/captp';
 import { getPublicFacet } from './getPublicFacet';
 
 import dappConstants from '../generated/defaults.js';
-import { resetAMM } from '../store';
 
 const { AMM_INSTALLATION_BOARD_ID, AMM_INSTANCE_BOARD_ID } = dappConstants;
 
@@ -42,6 +41,4 @@ export const makeSwapOffer = async (
   };
 
   await E(walletP).addOffer(offerConfig);
-
-  dispatch(resetAMM());
 };

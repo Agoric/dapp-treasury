@@ -12,14 +12,6 @@ export const {
     setBrandToInfo,
     setInfoForBrand,
     setCollaterals,
-    setInputPurse,
-    setOutputPurse,
-    setInputAmount,
-    setOutputAmount,
-    setInputChanged,
-    setOutputChanged,
-    swapInputs,
-    resetAMM,
     resetState,
     setTreasury,
     setVaultCollateral,
@@ -43,8 +35,7 @@ export const {
     outputPurse: null,
     inputAmount: null,
     outputAmount: null,
-    inputChanged: false,
-    outputChanged: false,
+    quoteRequest: null, // null | 'input' | 'output'
     // Vault state
     treasury: null,
     vaultCollateral: null,
@@ -76,23 +67,6 @@ export const {
       ...state,
       vaultCollateral: null,
       vaultConfiguration: null,
-    }),
-    swapInputs(state) {
-      const { inputPurse, outputPurse, inputAmount, outputAmount } = state;
-      return {
-        ...state,
-        inputPurse: outputPurse,
-        outputPurse: inputPurse,
-        inputAmount: outputAmount,
-        outputAmount: inputAmount,
-      };
-    },
-    resetAMM: state => ({
-      ...state,
-      inputPurse: null,
-      outputPurse: null,
-      inputAmount: null,
-      outputAmount: null,
     }),
     resetState: state => ({
       ...state,

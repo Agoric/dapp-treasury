@@ -45,6 +45,16 @@ export default function AssetInput({
 }) {
   return (
     <Grid container spacing={3}>
+      <Grid item xs={12} sm={12} md={4}>
+        <NatPurseSelector
+          label={`${title} Purse`}
+          purses={purses}
+          purseSelected={purse}
+          onChange={onPurseChange}
+          disabled={disabled}
+          error={purseError}
+        />
+      </Grid>
       <Grid
         item
         xs={12}
@@ -63,16 +73,6 @@ export default function AssetInput({
           placesToShow={2}
           disabled={disabled}
           error={amountError}
-        />
-      </Grid>
-      <Grid item xs={12} sm={12} md={4}>
-        <NatPurseSelector
-          label={`${title} Purse`}
-          purses={purses}
-          purseSelected={purse}
-          onChange={onPurseChange}
-          disabled={disabled}
-          error={purseError}
         />
       </Grid>
     </Grid>

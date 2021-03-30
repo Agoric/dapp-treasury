@@ -1,4 +1,5 @@
-import React from 'react';
+import { React, useState, useEffect } from 'react';
+import { E } from '@agoric/captp';
 
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -18,15 +19,6 @@ import Steps from './Steps';
 import { displayPetname } from './helpers';
 
 import { useApplicationContext } from '../contexts/Application';
-import {
-  setInputPurse,
-  setOutputPurse,
-  setInputAmount,
-  setOutputAmount,
-  swapInputs,
-  setInputChanged,
-  setOutputChanged,
-} from '../store';
 
 import { makeSwapOffer } from '../contexts/makeSwapOffer';
 
@@ -58,28 +50,105 @@ const useStyles = makeStyles(theme => ({
 }));
 
 /* eslint-disable complexity */
-export default function Swap(walletP) {
+export default function Swap() {
   const classes = useStyles();
-  const { state, dispatch } = useApplicationContext();
-  const {
+  const { state, dispatch, ammPublicFacet, walletP } = useApplicationContext();
+  const { purses, connected } = state;
+
+  const [inputPurse, setInputPurse] = useState(null);
+  const [outputPurse, setOutputPurse] = useState(null);
+
+  const [{ inputAmount, outputAmount }, setAmounts] = useState({
+    inputAmount: null,
+    outputAmount: null,
+  });
+
+  const [quoteRequest, setQuoteRequest] = useState(null);
+
+  console.log('ALL', {
     purses,
-    inputPurse = {},
-    outputPurse = {},
+    inputPurse,
+    outputPurse,
     inputAmount,
     outputAmount,
     connected,
-  } = state;
+  });
 
-  // const purses = [
-  //   { name: 'Marketing', value: 230, brandPetname: 'simolean' },
-  //   { name: 'Operating Account', value: 194, brandPetname: 'moola' },
-  //   { name: 'Savings', value: 3500, brandPetname: 'moola ' },
-  //   { name: 'Concert Tickets', value: 64, brandPetname: 'tickets' },
-  // ];
+  // Log the pool information for debugging purposes
+  useEffect(() => {
+    if (inputPurse && inputPurse.brand) {
+      E(ammPublicFacet)
+        .getPoolAllocation(inputPurse.brand)
+        .then(alloc => console.log('INPUT allocation', alloc))
+        .catch(_ => {});
+    }
+  }, [inputPurse]);
+  useEffect(() => {
+    if (outputPurse && outputPurse.brand) {
+      E(ammPublicFacet)
+        .getPoolAllocation(outputPurse.brand)
+        .then(alloc => console.log('OUTPUT allocation', alloc))
+        .catch(_ => {});
+    }
+  }, [outputPurse]);
+
+  // one block here triggering cannot retrigger because it only changes
+  // the amount that it does not depend on
+  useEffect(() => {
+    if (quoteRequest === 'output' && inputPurse && outputPurse) {
+      if (inputAmount === 0n) {
+        setAmounts({ inputAmount, outputAmount: null });
+        return;
+      }
+      const amountIn = { brand: inputPurse.brand, value: inputAmount };
+      const brandOut = outputPurse.brand;
+      console.log('QUOTE REQUEST input', amountIn, outputPurse, brandOut);
+      // TODO add debounce to this
+      E(ammPublicFacet)
+        .getInputPrice(amountIn, brandOut)
+        .then(output => {
+          console.log('QUOTED input', amountIn, output);
+          setAmounts(amounts =>
+            amounts.inputAmount === inputAmount
+              ? { inputAmount, outputAmount: output.value }
+              : amounts,
+          );
+        })
+        .catch(e => {
+          console.log('QUOTED input ERROR', e);
+        });
+    }
+  }, [inputPurse, outputPurse, quoteRequest]);
+
+  useEffect(() => {
+    if (quoteRequest === 'input' && inputPurse && outputPurse) {
+      if (outputAmount === 0n) {
+        setAmounts({ inputAmount: null, outputAmount });
+        return;
+      }
+      const brandIn = inputPurse.brand;
+      const amountOut = { brand: outputPurse.brand, value: outputAmount };
+      console.log('QUOTE REQUEST output', amountOut, inputPurse, brandIn);
+      // TODO add debounce to this
+      E(ammPublicFacet)
+        .getOutputPrice(amountOut, brandIn)
+        .then(input => {
+          console.log('QUOTED output', amountOut, input);
+          setAmounts(amounts =>
+            amounts.outputAmount === outputAmount
+              ? { outputAmount, inputAmount: input.value }
+              : amounts,
+          );
+        })
+        .catch(e => {
+          console.log('QUOTED input ERROR', e);
+        });
+    }
+  }, [inputPurse, outputPurse, quoteRequest]);
 
   const inputAmountError =
-    inputAmount < 0 || (inputPurse && inputAmount > inputPurse.value);
-  const outputAmountError = outputAmount < 0;
+    inputAmount < 0n || (inputPurse && inputAmount > inputPurse.value);
+  const outputAmountError = outputAmount < 0n;
 
   const pursesError =
     inputPurse && outputPurse && inputPurse.brand === outputPurse.brand;
@@ -90,29 +159,42 @@ export default function Swap(walletP) {
     !hasError &&
     inputPurse &&
     outputPurse &&
-    inputAmount > 0 &&
-    outputAmount > 0;
+    inputAmount > 0n &&
+    outputAmount > 0n;
 
   function handleChangeInputPurse(purse) {
-    dispatch(setInputPurse(purse));
+    if (inputPurse && inputPurse.brand !== purse.brand) {
+      setAmounts({ outputAmount, inputAmount: null });
+      setQuoteRequest('input');
+    }
+    setInputPurse(purse);
   }
 
   function handleChangeOutputPurse(purse) {
-    dispatch(setOutputPurse(purse));
+    if (outputPurse && outputPurse.brand !== purse.brand) {
+      setAmounts({ outputAmount: null, inputAmount });
+      setQuoteRequest('output');
+    }
+    setOutputPurse(purse);
   }
 
   function handleChangeInputAmount(amount) {
-    dispatch(setInputAmount(amount));
-    dispatch(setInputChanged(true));
+    setAmounts({ outputAmount: null, inputAmount: amount });
+    setQuoteRequest('output');
   }
 
   function handleChangeOutputAmount(amount) {
-    dispatch(setOutputAmount(amount));
-    dispatch(setOutputChanged(true));
+    setAmounts({ outputAmount: amount, inputAmount: null });
+    setQuoteRequest('input');
   }
 
   function handleswapInputs() {
-    dispatch(swapInputs());
+    setInputPurse(outputPurse);
+    setOutputPurse(inputPurse);
+    setAmounts({ outputAmount: inputAmount, inputAmount: outputAmount });
+    setQuoteRequest(
+      quoteRequest && quoteRequest === 'input' ? 'output' : 'input',
+    );
   }
 
   function getExchangeRate(decimal) {
@@ -120,9 +202,11 @@ export default function Swap(walletP) {
       const inputDecimalPlaces = inputPurse.displayInfo.decimalPlaces || 0;
       const outputDecimalPlaces = outputPurse.displayInfo.decimalPlaces || 0;
       const scale = 10 ** (inputDecimalPlaces - outputDecimalPlaces);
-      const exchangeRate = ((outputAmount * scale) / inputAmount).toFixed(
-        decimal,
-      );
+      const exchangeRate = (
+        (Number(outputAmount) * scale) /
+        Number(inputAmount)
+      ).toFixed(decimal);
+
       return `Exchange rate: 1 ${displayPetname(
         inputPurse.brandPetname,
       )} = ${exchangeRate} ${displayPetname(outputPurse.brandPetname)}`;
@@ -139,6 +223,10 @@ export default function Swap(walletP) {
       outputPurse,
       outputAmount,
     );
+    setInputPurse();
+    setOutputPurse();
+    setAmounts({ outputAmount: null, inputAmount: null });
+    setQuoteRequest(null);
   }
 
   return (
