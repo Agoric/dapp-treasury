@@ -8,7 +8,7 @@ const FundPurseSelector = ({ fundPurses, fundPurse, setFundPurse }) => (
   <TextField
     variant="outlined"
     required
-    label="Funding purse"
+    label="From collateral purse"
     select
     value={fundPurse ? JSON.stringify(fundPurse.pursePetname) : ''}
   >

@@ -157,12 +157,7 @@ function VaultConfigure({
             Available from Funding Purse
           </div>
         </Grid>
-        <Grid item xs={4}>
-          <FundPurseSelector
-            fundPurses={fundPurses}
-            fundPurse={fundPurse}
-            setFundPurse={setFundPurse}
-          />
+        <Grid item xs={8}>
           <ToLockValueInput
             collateralPetname={displayPetname(collateralInfo.petname)}
             balanceExceeded={balanceExceeded}
@@ -170,15 +165,11 @@ function VaultConfigure({
             toLockDecimalPlaces={toLockDecimalPlaces}
             onChange={onLockChange}
           />
-          <CollateralizationPercentInput
-            collateralPercent={collateralPercent}
-            onChange={onCollateralPercentChange}
-            initialMargin={vaultCollateral.initialMargin}
-            onError={handlePercentInputError}
-            belowMinError={belowMinError}
+          <FundPurseSelector
+            fundPurses={fundPurses}
+            fundPurse={fundPurse}
+            setFundPurse={setFundPurse}
           />
-        </Grid>
-        <Grid item xs={4}>
           <ToBorrowValueInput
             toBorrow={toBorrow}
             toBorrowDecimalPlaces={getPurseDecimalPlaces(dstPurse)}
@@ -188,6 +179,13 @@ function VaultConfigure({
             dstPurses={dstPurses}
             dstPurse={dstPurse}
             setDstPurse={setDstPurse}
+          />
+          <CollateralizationPercentInput
+            collateralPercent={collateralPercent}
+            onChange={onCollateralPercentChange}
+            initialMargin={vaultCollateral.initialMargin}
+            onError={handlePercentInputError}
+            belowMinError={belowMinError}
           />
         </Grid>
         <Grid container justify="flex-end" alignItems="center">

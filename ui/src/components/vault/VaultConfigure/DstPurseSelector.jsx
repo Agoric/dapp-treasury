@@ -8,7 +8,7 @@ const DstPurseSelector = ({ dstPurses, dstPurse, setDstPurse }) => (
   <TextField
     variant="outlined"
     required
-    label="Destination purse"
+    label="To purse"
     select
     value={dstPurse ? JSON.stringify(dstPurse.pursePetname) : ''}
   >
