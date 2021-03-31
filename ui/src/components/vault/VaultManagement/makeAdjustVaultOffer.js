@@ -1,7 +1,5 @@
 import { E } from '@agoric/eventual-send';
-import dappConstants from '../../../generated/defaults.js';
-
-const { INSTALLATION_BOARD_ID, INSTANCE_BOARD_ID } = dappConstants;
+import { dappConfig } from '../../../utils/config';
 
 export const makeAdjustVaultOffer = ({
   vaultToManageId,
@@ -14,6 +12,7 @@ export const makeAdjustVaultOffer = ({
   debtAction,
 }) => {
   const id = `${Date.now()}`;
+  const { INSTALLATION_BOARD_ID, INSTANCE_BOARD_ID } = dappConfig;
 
   const empty = harden({});
   let want = empty;

@@ -1,9 +1,7 @@
 import { E } from '@agoric/captp';
 import { getPublicFacet } from './getPublicFacet';
 
-import dappConstants from '../generated/defaults.js';
-
-const { AMM_INSTALLATION_BOARD_ID, AMM_INSTANCE_BOARD_ID } = dappConstants;
+import { dappConfig } from '../utils/config.js';
 
 export const makeSwapOffer = async (
   walletP,
@@ -14,6 +12,8 @@ export const makeSwapOffer = async (
   outputAmount,
 ) => {
   const id = `${Date.now()}`;
+
+  const { AMM_INSTALLATION_BOARD_ID, AMM_INSTANCE_BOARD_ID } = dappConfig;
 
   const AMMPublicFacet = getPublicFacet(walletP, AMM_INSTANCE_BOARD_ID);
   const invitation = E(AMMPublicFacet).makeSwapInvitation();

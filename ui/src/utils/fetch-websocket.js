@@ -1,7 +1,5 @@
 /* global process */
-import dappConstants from './constants';
-
-const { API_URL, BRIDGE_URL, CONTRACT_NAME } = dappConstants;
+import { dappConfig } from './config';
 
 // === WEB SOCKET
 
@@ -28,6 +26,7 @@ function logMsg(obj, direction = 'send:') {
 function getWebSocketEndpoint(endpoint) {
   // TODO proxy socket.
   let url;
+  const { API_URL, BRIDGE_URL } = dappConfig;
   if (endpoint === '/api') {
     url = new URL(endpoint, API_URL || window.origin);
   } else {
@@ -42,6 +41,7 @@ let walletLoaded = false;
 const connectSubscriptions = new Set();
 const messageSubscriptions = new Set();
 function createSocket({ onConnect, onDisconnect, onMessage }, endpoint) {
+  const { CONTRACT_NAME } = dappConfig;
   if (endpoint === '/private/wallet-bridge') {
     let ifr = document.getElementById(walletBridgeId);
     if (!ifr) {
