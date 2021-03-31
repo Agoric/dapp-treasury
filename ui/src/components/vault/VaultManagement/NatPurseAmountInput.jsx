@@ -15,7 +15,7 @@ import {
   makeNatAmountInput,
   makeNatPurseSelector,
 } from '@agoric/ui-components';
-import { getPurseDecimalPlaces } from '../../helpers';
+import { getInfoForBrand } from '../../helpers';
 
 // Because we are importing the ui-components from the locally linked
 // version of agoric-sdk, we must make sure that we are not using
@@ -41,8 +41,11 @@ const PurseAmountInput = ({
   amountValue,
   onPurseChange,
   onAmountChange,
+  brandToFilter,
+  brandToInfo,
 }) => {
-  const decimalPlaces = getPurseDecimalPlaces(purseSelected);
+  const decimalPlaces = getInfoForBrand(brandToInfo, brandToFilter)
+    .decimalPlaces;
   const placesToShow = decimalPlaces > 0 ? 2 : 0;
 
   return (
@@ -60,8 +63,7 @@ const PurseAmountInput = ({
             onAmountChange(0n);
           }}
           disabled={offerBeingMade}
-          // TODO: turn on when brand exists
-          // brandToFilter={brandToFilter}
+          brandToFilter={brandToFilter}
         />
       </Grid>
       <Grid item>

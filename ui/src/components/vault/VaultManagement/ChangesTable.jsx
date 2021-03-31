@@ -7,6 +7,10 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
+import { stringifyValue } from '@agoric/ui-components';
+import { getInfoForBrand } from '../../helpers';
+
+import { toPrintedPercent } from '../../../utils/helper';
 
 const useStyles = makeStyles(theme => ({
   table: {
@@ -24,15 +28,70 @@ function createData(name, currentValue, pendingChanges) {
   return { name, currentValue, pendingChanges };
 }
 
-// TODO: use real data
-const rows = [
-  createData('Collateral Locked', 159, '...'),
-  createData('Collaterization Ratio', 237, '...'),
-  createData('Debt Borrowed', 356, '...'),
-];
-
-const ChangesTable = () => {
+const ChangesTable = ({
+  locked,
+  lockedAfterDelta,
+  collateralizationRatio,
+  newCollateralizationRatio,
+  debt,
+  debtAfterDelta,
+  brandToInfo,
+}) => {
   const classes = useStyles();
+
+  const lockedInfo = getInfoForBrand(brandToInfo, locked.brand);
+  const debtInfo = getInfoForBrand(brandToInfo, debt.brand);
+
+  const getDeltaString = (oldV, newV, disp) => {
+    if (typeof newV !== 'bigint' || typeof oldV !== 'bigint') {
+      return '...';
+    }
+    const deltaValue = newV - oldV;
+    if (deltaValue === 0n) {
+      return '...';
+    }
+    const dispDeltaValue = disp(deltaValue);
+    const dispNewValue = disp(newV);
+    if (deltaValue > 0n) {
+      return `+${dispDeltaValue} (${dispNewValue})`;
+    }
+    if (deltaValue < 0n) {
+      return `${dispDeltaValue} (${dispNewValue})`;
+    }
+    return '...';
+  };
+
+  const stringifyLocked = value =>
+    stringifyValue(value, lockedInfo.mathKind, lockedInfo.decimalPlaces);
+  const lockedDeltaString = getDeltaString(
+    locked.value,
+    lockedAfterDelta.value,
+    stringifyLocked,
+  );
+
+  const stringifyDebt = value =>
+    stringifyValue(value, debtInfo.mathKind, debtInfo.decimalPlaces);
+  const debtDeltaString = getDeltaString(
+    debt.value,
+    debtAfterDelta.value,
+    stringifyDebt,
+  );
+
+  const rows = [
+    createData(
+      'Collateral Locked',
+      stringifyLocked(locked.value),
+      lockedDeltaString,
+    ),
+    createData(
+      'Collateralization Ratio',
+      toPrintedPercent(collateralizationRatio),
+      newCollateralizationRatio
+        ? toPrintedPercent(newCollateralizationRatio)
+        : '...',
+    ),
+    createData('Debt Borrowed', stringifyDebt(debt.value), debtDeltaString),
+  ];
 
   return (
     <TableContainer component={Paper}>

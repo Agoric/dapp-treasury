@@ -46,20 +46,25 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const AdjustVaultForm = ({ purses, walletP, vaultToManageId }) => {
+const CloseVaultForm = ({
+  purses,
+  walletP,
+  vaultToManageId,
+  locked,
+  debt,
+  brandToInfo,
+}) => {
   const offerBeingMade = false;
 
   const [collateralPurseSelected, setCollateralPurseSelected] = useState(null);
   const [moePurseSelected, setMoePurseSelected] = useState(null);
-  const [collateralValue, setCollateralValue] = useState(0n);
-  const [moeValue, setMoeValue] = useState(0n);
+  const [collateralValue, setCollateralValue] = useState(locked.value);
+  const [moeValue, setMoeValue] = useState(debt.value);
 
   const [needToAddOfferToWallet, setNeedToAddOfferToWallet] = useState(false);
   const [redirect, setRedirect] = useState(false);
 
   const classes = useStyles();
-
-  // TODO: add form to pay back Moe and want collateral
 
   useEffect(() => {
     if (needToAddOfferToWallet) {
@@ -107,7 +112,6 @@ const AdjustVaultForm = ({ purses, walletP, vaultToManageId }) => {
               <Typography className={classes.infoText}>
                 All debt must be paid.
               </Typography>
-              {/** TODO: set debt amount to current debt */}
               <NatPurseAmountInput
                 offerBeingMade={offerBeingMade}
                 purses={purses}
@@ -115,6 +119,8 @@ const AdjustVaultForm = ({ purses, walletP, vaultToManageId }) => {
                 amountValue={moeValue}
                 onPurseChange={setMoePurseSelected}
                 onAmountChange={setMoeValue}
+                brandToFilter={debt && debt.brand}
+                brandToInfo={brandToInfo}
               />
               <Typography className={classes.infoText}>
                 How much collateral would you like?
@@ -126,6 +132,8 @@ const AdjustVaultForm = ({ purses, walletP, vaultToManageId }) => {
                 amountValue={collateralValue}
                 onPurseChange={setCollateralPurseSelected}
                 onAmountChange={setCollateralValue}
+                brandToFilter={locked && locked.brand}
+                brandToInfo={brandToInfo}
               />
             </Grid>
           </div>
@@ -140,4 +148,4 @@ const AdjustVaultForm = ({ purses, walletP, vaultToManageId }) => {
   );
 };
 
-export default AdjustVaultForm;
+export default CloseVaultForm;

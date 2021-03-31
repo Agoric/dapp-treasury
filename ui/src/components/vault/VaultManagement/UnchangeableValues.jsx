@@ -7,6 +7,12 @@ import Paper from '@material-ui/core/Paper';
 
 import { makeStyles } from '@material-ui/core/styles';
 
+import { stringifyValue } from '@agoric/ui-components';
+import { multiplyBy } from '@agoric/zoe/src/contractSupport';
+
+import { toPrintedPercent } from '../../../utils/helper';
+import { getInfoForBrand } from '../../helpers';
+
 const useStyles = makeStyles(theme => ({
   root: {
     backgroundColor: theme.palette.info.main,
@@ -14,12 +20,6 @@ const useStyles = makeStyles(theme => ({
   },
   card: { backgroundColor: theme.palette.info.main },
 }));
-
-// createData('Collateral Value', 159, ''),
-// createData('Current C-Ratio', 237, ''),
-// createData('Market Price', 262, ''),
-// createData('Liquidation Penalty', 305, ''),
-// createData('Debt Value', 356, ''),
 
 const ValueCard = ({ title, text }) => {
   const classes = useStyles();
@@ -37,17 +37,55 @@ const ValueCard = ({ title, text }) => {
   );
 };
 
-// TODO: use real values
-const UnchangeableValues = () => {
+const UnchangeableValues = ({
+  marketPrice,
+  liquidationRatio,
+  interestRate,
+  // liquidationPenalty,
+  brandToInfo,
+  debt,
+}) => {
+  const moeBrandInfo = getInfoForBrand(
+    brandToInfo,
+    marketPrice.numerator.brand,
+  );
+
+  // The liquidationPrice is when the value of the collateral
+  // equals liquidationRatio (i.e. 125%) of the current debt
+  const liquidationPrice = multiplyBy(debt, liquidationRatio);
+
   const classes = useStyles();
   return (
     <Paper className={classes.root} elevation={0}>
       <Grid container spacing={1}>
-        <ValueCard title="Market Price" text="$2982" />
-        <ValueCard title="Liquidation Ratio" text="125%" />
-        <ValueCard title="Liquidation Price" text="$1092" />
-        <ValueCard title="Interest Rate" text="0.003%" />
-        <ValueCard title="Liquidation Penalty" text="0.003%" />
+        <ValueCard
+          title="Market Price"
+          text={stringifyValue(
+            marketPrice.numerator.value,
+            moeBrandInfo.mathKind,
+            moeBrandInfo.decimalPlaces,
+          )}
+        />
+        <ValueCard
+          title="Liquidation Ratio"
+          text={`${toPrintedPercent(liquidationRatio)}%`}
+        />
+        <ValueCard
+          title="Liquidation Price"
+          text={stringifyValue(
+            liquidationPrice.value,
+            moeBrandInfo.mathKind,
+            moeBrandInfo.decimalPlaces,
+          )}
+        />
+        <ValueCard
+          title="Interest Rate"
+          text={`${toPrintedPercent(interestRate)}%`}
+        />
+        {/* <ValueCard
+          title="Liquidation Penalty"
+          text={`${toPrintedPercent(liquidationPenalty)}%`}
+        /> */}
       </Grid>
     </Paper>
   );

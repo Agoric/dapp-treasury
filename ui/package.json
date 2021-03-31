@@ -38,6 +38,7 @@
     "@agoric/ertp": "*",
     "@agoric/eventual-send": "*",
     "@agoric/install-ses": "*",
+    "@agoric/nat": "^4.0.0",
     "@agoric/notifier": "*",
     "@agoric/ui-components": "*",
     "@agoric/zoe": "*",

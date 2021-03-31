@@ -15,6 +15,8 @@ import { Grid, Container } from '@material-ui/core';
 
 import { makeStyles } from '@material-ui/core/styles';
 
+import { amountMath } from '@agoric/ertp';
+
 import NatPurseAmountInput from './NatPurseAmountInput';
 import CollateralActionChoice from './CollateralActionChoice';
 import DebtActionChoice from './DebtActionChoice';
@@ -49,7 +51,16 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const AdjustVaultForm = ({ purses, walletP, vaultToManageId }) => {
+const AdjustVaultForm = ({
+  purses,
+  walletP,
+  vaultToManageId,
+  locked,
+  debt,
+  onLockedDeltaChange,
+  onDebtDeltaChange,
+  brandToInfo,
+}) => {
   const offerBeingMade = false;
 
   // deposit, withdraw, noaction
@@ -59,8 +70,11 @@ const AdjustVaultForm = ({ purses, walletP, vaultToManageId }) => {
 
   const [collateralPurseSelected, setCollateralPurseSelected] = useState(null);
   const [moePurseSelected, setMoePurseSelected] = useState(null);
-  const [collateralValue, setCollateralValue] = useState(0n);
-  const [moeValue, setMoeValue] = useState(0n);
+
+  const [lockedDelta, setLockedDelta] = useState(
+    amountMath.make(0n, locked.brand),
+  );
+  const [debtDelta, setDebtDelta] = useState(amountMath.make(0n, debt.brand));
 
   const [needToAddOfferToWallet, setNeedToAddOfferToWallet] = useState(false);
   const [redirect, setRedirect] = useState(false);
@@ -75,9 +89,9 @@ const AdjustVaultForm = ({ purses, walletP, vaultToManageId }) => {
         vaultToManageId,
         walletP,
         moePurseSelected,
-        moeValue,
+        moeValue: debtDelta && debtDelta.value,
         collateralPurseSelected,
-        collateralValue,
+        collateralValue: lockedDelta && lockedDelta.value,
         collateralAction,
         debtAction,
       });
@@ -87,9 +101,9 @@ const AdjustVaultForm = ({ purses, walletP, vaultToManageId }) => {
   }, [
     needToAddOfferToWallet,
     collateralPurseSelected,
-    collateralValue,
+    lockedDelta,
     moePurseSelected,
-    moeValue,
+    debtDelta,
     offerBeingMade,
   ]);
 
@@ -98,6 +112,32 @@ const AdjustVaultForm = ({ purses, walletP, vaultToManageId }) => {
 
     // make offer to the wallet, the react way
     setNeedToAddOfferToWallet(true);
+  };
+
+  const handleCollateralAmountChange = value => {
+    const newLockedDelta = amountMath.make(value, locked.brand);
+    setLockedDelta(newLockedDelta);
+    let newLockedAfterDelta = locked;
+    if (collateralAction === 'deposit') {
+      newLockedAfterDelta = amountMath.add(locked, newLockedDelta);
+    }
+    if (collateralAction === 'withdraw') {
+      newLockedAfterDelta = amountMath.subtract(locked, newLockedDelta);
+    }
+    onLockedDeltaChange(newLockedAfterDelta);
+  };
+
+  const handleDebtAmountChange = value => {
+    const newDebtDelta = amountMath.make(value, debt.brand);
+    setDebtDelta(newDebtDelta);
+    let newDebtAfterDelta = debt;
+    if (debtAction === 'borrow') {
+      newDebtAfterDelta = amountMath.add(debt, newDebtDelta);
+    }
+    if (debtAction === 'repay') {
+      newDebtAfterDelta = amountMath.subtract(debt, newDebtAfterDelta);
+    }
+    onDebtDeltaChange(newDebtAfterDelta);
   };
 
   if (redirect) {
@@ -124,9 +164,11 @@ const AdjustVaultForm = ({ purses, walletP, vaultToManageId }) => {
               offerBeingMade={offerBeingMade}
               purses={purses}
               purseSelected={collateralPurseSelected}
-              amountValue={collateralValue}
+              amountValue={lockedDelta && lockedDelta.value}
               onPurseChange={setCollateralPurseSelected}
-              onAmountChange={setCollateralValue}
+              onAmountChange={handleCollateralAmountChange}
+              brandToFilter={locked && locked.brand}
+              brandToInfo={brandToInfo}
             />
           </Grid>
           <DebtActionChoice
@@ -137,9 +179,11 @@ const AdjustVaultForm = ({ purses, walletP, vaultToManageId }) => {
             offerBeingMade={offerBeingMade}
             purses={purses}
             purseSelected={moePurseSelected}
-            amountValue={moeValue}
+            amountValue={debtDelta && debtDelta.value}
             onPurseChange={setMoePurseSelected}
-            onAmountChange={setMoeValue}
+            onAmountChange={handleDebtAmountChange}
+            brandToFilter={debt && debt.brand}
+            brandToInfo={brandToInfo}
           />
         </div>
         <Grid container spacing={1} className={classes.buttons}>
