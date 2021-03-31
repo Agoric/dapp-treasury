@@ -1,7 +1,5 @@
 import { E } from '@agoric/eventual-send';
-import dappConstants from '../../../generated/defaults.js';
-
-const { INSTALLATION_BOARD_ID, INSTANCE_BOARD_ID } = dappConstants;
+import { dappConfig } from '../../../utils/config';
 
 export const makeCloseVaultOffer = ({
   vaultToManageId,
@@ -12,6 +10,7 @@ export const makeCloseVaultOffer = ({
   collateralValue,
 }) => {
   const id = `${Date.now()}`;
+  const { INSTALLATION_BOARD_ID, INSTANCE_BOARD_ID } = dappConfig;
 
   // give: { Scones: null },
   // want: { Collateral: null },

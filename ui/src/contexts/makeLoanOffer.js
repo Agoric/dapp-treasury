@@ -5,9 +5,7 @@ import { getPublicFacet } from './getPublicFacet';
 
 import { resetVault, createVault, setVaultCreated } from '../store';
 
-import dappConstants from '../generated/defaults.js';
-
-const { INSTALLATION_BOARD_ID, INSTANCE_BOARD_ID } = dappConstants;
+import { dappConfig } from '../utils/config';
 
 export const makeLoanOffer = async (
   dispatch,
@@ -23,6 +21,8 @@ export const makeLoanOffer = async (
   walletP,
 ) => {
   const id = `${Date.now()}`;
+
+  const { INSTALLATION_BOARD_ID, INSTANCE_BOARD_ID } = dappConfig;
 
   const loanPublicFacet = getPublicFacet(walletP, INSTANCE_BOARD_ID);
   const invitation = E(loanPublicFacet).makeLoanInvitation();

@@ -9,6 +9,8 @@ import {
   getActiveSocket,
 } from '../utils/fetch-websocket';
 
+import { dappConfig, refreshConfigFromWallet } from '../utils/config';
+
 import {
   reducer,
   defaultState,
@@ -20,18 +22,8 @@ import {
   setTreasury,
   setApproved,
 } from '../store';
-import dappConstants from '../generated/defaults.js';
 import { getPublicFacet } from './getPublicFacet';
 import { updateBrandPetnames, initializeBrandToInfo } from './storeBrandInfo';
-
-const {
-  INSTALLATION_BOARD_ID,
-  INSTANCE_BOARD_ID,
-  SCONE_ISSUER_BOARD_ID,
-  AMM_NAME,
-  AMM_INSTALLATION_BOARD_ID,
-  AMM_INSTANCE_BOARD_ID,
-} = dappConstants;
 
 // eslint-disable-next-line import/no-mutable-exports
 let walletP;
@@ -59,7 +51,7 @@ function watchVault(id, dispatch) {
   );
 }
 
-function watchOffers(dispatch) {
+function watchOffers(dispatch, INSTANCE_BOARD_ID) {
   const watchedVaults = new Set();
   async function offersUpdater() {
     const offerNotifier = E(walletP).getOffersNotifier();
@@ -99,6 +91,8 @@ export default function Provider({ children }) {
     let walletDispatch;
     activateWebSocket({
       async onConnect() {
+        const { CONTRACT_NAME, AMM_NAME } = dappConfig;
+
         dispatch(setConnected(true));
         const socket = getActiveSocket();
         const {
@@ -106,13 +100,23 @@ export default function Provider({ children }) {
           dispatch: ctpDispatch,
           getBootstrap,
         } = makeCapTP(
-          'Treasury',
+          CONTRACT_NAME,
           obj => socket.send(JSON.stringify(obj)),
           otherSide,
         );
         walletAbort = ctpAbort;
         walletDispatch = ctpDispatch;
         walletP = getBootstrap();
+
+        await refreshConfigFromWallet(walletP);
+        const {
+          INSTALLATION_BOARD_ID,
+          INSTANCE_BOARD_ID,
+          SCONE_ISSUER_BOARD_ID,
+          AMM_INSTALLATION_BOARD_ID,
+          AMM_INSTANCE_BOARD_ID,
+        } = dappConfig;
+
         ammPublicFacet = getPublicFacet(walletP, AMM_INSTANCE_BOARD_ID);
 
         const zoe = E(walletP).getZoe();
@@ -180,7 +184,7 @@ export default function Provider({ children }) {
           E(walletP).suggestIssuer('MoE', SCONE_ISSUER_BOARD_ID),
         ]);
 
-        watchOffers(dispatch);
+        watchOffers(dispatch, INSTANCE_BOARD_ID);
       },
       onDisconnect() {
         dispatch(setConnected(false));
