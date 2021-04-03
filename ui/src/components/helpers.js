@@ -1,14 +1,17 @@
 // @ts-check
+
+import {
+  stringifyRatioAsPercent,
+  stringifyRatio,
+  stringifyValue,
+} from '@agoric/ui-components';
+
+import { MathKind } from '@agoric/ertp';
+
 export const getPurseMathKind = purse =>
   (purse && purse.displayInfo && purse.displayInfo.amountMathKind) || undefined;
 export const getPurseDecimalPlaces = purse =>
   (purse && purse.displayInfo && purse.displayInfo.decimalPlaces) || undefined;
-
-export const findPurseByPetname = (purses, petname) =>
-  purses.find(
-    ({ pursePetname }) =>
-      JSON.stringify(pursePetname) === JSON.stringify(petname),
-  );
 
 export const displayPetname = pn => (Array.isArray(pn) ? pn.join('.') : pn);
 
@@ -26,4 +29,39 @@ export const getInfoForBrand = (brandToInfo, brand) => {
     return array[1];
   }
   return undefined;
+};
+
+export const makeDisplayFunctions = brandToInfo => {
+  const brandToInfoMap = new Map(brandToInfo);
+
+  const getDecimalPlaces = brand => brandToInfoMap.get(brand).decimalPlaces;
+  const getPetname = brand => brandToInfoMap.get(brand).petname;
+
+  const displayPercent = (ratio, placesToShow) => {
+    return stringifyRatioAsPercent(ratio, getDecimalPlaces, placesToShow);
+  };
+  const displayBrandPetname = brand => {
+    return displayPetname(getPetname(brand));
+  };
+  const displayRatio = (ratio, placesToShow) => {
+    return stringifyRatio(ratio, getDecimalPlaces, placesToShow);
+  };
+
+  const displayAmount = (amount, placesToShow) => {
+    const decimalPlaces = getDecimalPlaces(amount.brand);
+    return stringifyValue(
+      amount.value,
+      MathKind.NAT,
+      decimalPlaces,
+      placesToShow,
+    );
+  };
+
+  return {
+    displayPercent,
+    displayBrandPetname,
+    displayRatio,
+    displayAmount,
+    getDecimalPlaces,
+  };
 };

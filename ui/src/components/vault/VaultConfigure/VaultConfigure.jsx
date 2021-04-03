@@ -12,10 +12,9 @@ import '../../../types/types';
 
 import {
   getPurseDecimalPlaces,
-  displayPetname,
   filterPursesByBrand,
   sortPurses,
-  getInfoForBrand,
+  makeDisplayFunctions,
 } from '../../helpers';
 
 import ToLockValueInput from './ToLockValueInput';
@@ -143,7 +142,8 @@ function VaultConfigure({
     setBelowMinError(bool);
   };
 
-  const collateralInfo = getInfoForBrand(brandToInfo, vaultCollateral.brand);
+  const { displayBrandPetname } = makeDisplayFunctions(brandToInfo);
+  const collateralPetnameDisplay = displayBrandPetname(vaultCollateral.brand);
 
   return (
     <div className={classes.root}>
@@ -151,17 +151,16 @@ function VaultConfigure({
         <Grid container spacing={1}>
           <Grid item xs={4}>
             <FormLabel component="legend" style={{ paddingTop: 20 }}>
-              Choose your {displayPetname(collateralInfo.petname)} vault
-              parameters
+              Choose your {collateralPetnameDisplay} vault parameters
             </FormLabel>
             <div style={{ paddingTop: 20 }}>
-              {fundPurseBalanceDisplay} {displayPetname(collateralInfo.petname)}{' '}
-              Available from Funding Purse
+              {fundPurseBalanceDisplay} {collateralPetnameDisplay} Available
+              from Funding Purse
             </div>
           </Grid>
           <Grid item xs={8}>
             <ToLockValueInput
-              collateralPetname={displayPetname(collateralInfo.petname)}
+              collateralPetname={collateralPetnameDisplay}
               balanceExceeded={balanceExceeded}
               toLock={toLock}
               toLockDecimalPlaces={toLockDecimalPlaces}
@@ -188,6 +187,7 @@ function VaultConfigure({
               initialMargin={vaultCollateral.initialMargin}
               onError={handlePercentInputError}
               belowMinError={belowMinError}
+              brandToInfo={brandToInfo}
             />
           </Grid>
           <Grid container justify="flex-end" alignItems="center">

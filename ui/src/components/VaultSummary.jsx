@@ -10,9 +10,7 @@ import {
   TableRow,
 } from '@material-ui/core';
 
-import { stringifyAmountValue } from '@agoric/ui-components';
-import { toPrintedPercent } from '../utils/helper';
-import { getInfoForBrand, displayPetname } from './helpers';
+import { makeDisplayFunctions } from './helpers';
 
 const useStyles = makeStyles(theme => {
   return {
@@ -37,8 +35,11 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     // liquidationPenalty, // not present?
   } = vault;
 
-  const lockedInfo = getInfoForBrand(brandToInfo, locked.brand);
-  const debtInfo = getInfoForBrand(brandToInfo, debt.brand);
+  const {
+    displayPercent,
+    displayAmount,
+    displayBrandPetname,
+  } = makeDisplayFunctions(brandToInfo);
 
   return (
     <TableContainer>
@@ -57,47 +58,37 @@ export function VaultSummary({ vault, brandToInfo, id }) {
           <TableRow>
             <TableCell>Deposited</TableCell>
             <TableCell align="right">
-              {stringifyAmountValue(
-                locked,
-                lockedInfo.amountMathKind,
-                lockedInfo.decimalPlaces,
-              )}{' '}
-              {displayPetname(lockedInfo.petname)}
+              {displayAmount(locked)} {displayBrandPetname(locked.brand)}
             </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Borrowed</TableCell>
             <TableCell align="right">
-              {stringifyAmountValue(
-                debt,
-                debtInfo.amountMathKind,
-                debtInfo.decimalPlaces,
-              )}{' '}
-              {displayPetname(debtInfo.petname)}
+              {displayAmount(debt)} {displayBrandPetname(debt.brand)}
             </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Interest Rate</TableCell>
             <TableCell align="right">
-              {interestRate ? toPrintedPercent(interestRate, 2n) : '--'}%
+              {interestRate ? displayPercent(interestRate) : '--'}%
             </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Liquidation Ratio</TableCell>
             <TableCell align="right">
-              {toPrintedPercent(liquidationRatio)}%
+              {displayPercent(liquidationRatio)}%
             </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Collateral Ratio</TableCell>
             <TableCell align="right">
-              {toPrintedPercent(collateralizationRatio)}%
+              {displayPercent(collateralizationRatio)}%
             </TableCell>
           </TableRow>
           {/* <TableRow>
             <TableCell>Liquidation Penalty</TableCell>
             <TableCell align="right">
-              {toPrintedPercent(liquidationPenalty)}%
+              {displayPercent(liquidationPenalty)}%
             </TableCell>
           </TableRow> */}
         </TableBody>

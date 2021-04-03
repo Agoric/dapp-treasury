@@ -7,10 +7,7 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
-import { stringifyValue } from '@agoric/ui-components';
-import { getInfoForBrand } from '../../helpers';
-
-import { toPrintedPercent } from '../../../utils/helper';
+import { makeDisplayFunctions } from '../../helpers';
 
 const useStyles = makeStyles(theme => ({
   table: {
@@ -39,58 +36,50 @@ const ChangesTable = ({
 }) => {
   const classes = useStyles();
 
-  const lockedInfo = getInfoForBrand(brandToInfo, locked.brand);
-  const debtInfo = getInfoForBrand(brandToInfo, debt.brand);
+  const { displayAmount, displayPercent } = makeDisplayFunctions(brandToInfo);
 
-  const getDeltaString = (oldV, newV, disp) => {
-    if (typeof newV !== 'bigint' || typeof oldV !== 'bigint') {
+  const getDeltaString = (oldAmount, newAmount) => {
+    if (
+      typeof newAmount.value !== 'bigint' ||
+      typeof oldAmount.value !== 'bigint'
+    ) {
       return '...';
     }
-    const deltaValue = newV - oldV;
+    const deltaValue = newAmount.value - oldAmount.value;
     if (deltaValue === 0n) {
       return '...';
     }
-    const dispDeltaValue = disp(deltaValue);
-    const dispNewValue = disp(newV);
+    const dispDelta = displayAmount({
+      value: deltaValue,
+      brand: oldAmount.brand,
+    });
+    const dispNew = displayAmount(newAmount);
     if (deltaValue > 0n) {
-      return `+${dispDeltaValue} (${dispNewValue})`;
+      return `+${dispDelta} (${dispNew})`;
     }
     if (deltaValue < 0n) {
-      return `${dispDeltaValue} (${dispNewValue})`;
+      return `${dispDelta} (${dispNew})`;
     }
     return '...';
   };
 
-  const stringifyLocked = value =>
-    stringifyValue(value, lockedInfo.mathKind, lockedInfo.decimalPlaces);
   const lockedDeltaString = getDeltaString(
     locked.value,
     lockedAfterDelta.value,
-    stringifyLocked,
   );
 
-  const stringifyDebt = value =>
-    stringifyValue(value, debtInfo.mathKind, debtInfo.decimalPlaces);
-  const debtDeltaString = getDeltaString(
-    debt.value,
-    debtAfterDelta.value,
-    stringifyDebt,
-  );
+  const debtDeltaString = getDeltaString(debt.value, debtAfterDelta.value);
 
   const rows = [
-    createData(
-      'Collateral Locked',
-      stringifyLocked(locked.value),
-      lockedDeltaString,
-    ),
+    createData('Collateral Locked', displayAmount(locked), lockedDeltaString),
     createData(
       'Collateralization Ratio',
-      toPrintedPercent(collateralizationRatio),
+      displayPercent(collateralizationRatio),
       newCollateralizationRatio
-        ? toPrintedPercent(newCollateralizationRatio)
+        ? displayPercent(newCollateralizationRatio)
         : '...',
     ),
-    createData('Debt Borrowed', stringifyDebt(debt.value), debtDeltaString),
+    createData('Debt Borrowed', displayAmount(debt), debtDeltaString),
   ];
 
   return (

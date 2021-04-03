@@ -3,17 +3,19 @@ import React from 'react';
 import { TextField } from '@material-ui/core';
 import { makeRatio } from '@agoric/zoe/src/contractSupport';
 
-import { toPrintedPercent } from '../../../utils/helper';
 import NumberFormatPercent from '../../NumberFormatPercent';
+import { makeDisplayFunctions } from '../../helpers';
 
 const CollateralizationPercentInput = ({
+  brandToInfo,
   collateralPercent,
   initialMargin,
   onChange,
   onError,
   belowMinError,
 }) => {
-  const minValueStr = toPrintedPercent(initialMargin);
+  const { displayPercent } = makeDisplayFunctions(brandToInfo);
+  const minValueStr = displayPercent(initialMargin);
 
   return (
     <TextField
@@ -23,7 +25,7 @@ const CollateralizationPercentInput = ({
       InputProps={{
         inputComponent: NumberFormatPercent,
       }}
-      value={toPrintedPercent(collateralPercent)}
+      value={displayPercent(collateralPercent)}
       onChange={ev => {
         const numeratorValue = BigInt(ev.target.value || 0);
         if (numeratorValue === 0n) {

@@ -7,11 +7,9 @@ import Paper from '@material-ui/core/Paper';
 
 import { makeStyles } from '@material-ui/core/styles';
 
-import { stringifyValue } from '@agoric/ui-components';
 import { multiplyBy } from '@agoric/zoe/src/contractSupport';
 
-import { toPrintedPercent } from '../../../utils/helper';
-import { getInfoForBrand } from '../../helpers';
+import { makeDisplayFunctions } from '../../helpers';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -45,9 +43,8 @@ const UnchangeableValues = ({
   brandToInfo,
   debt,
 }) => {
-  const moeBrandInfo = getInfoForBrand(
+  const { displayPercent, displayRatio, displayAmount } = makeDisplayFunctions(
     brandToInfo,
-    marketPrice.numerator.brand,
   );
 
   // The liquidationPrice is when the value of the collateral
@@ -58,33 +55,22 @@ const UnchangeableValues = ({
   return (
     <Paper className={classes.root} elevation={0}>
       <Grid container spacing={1}>
-        <ValueCard
-          title="Market Price"
-          text={stringifyValue(
-            marketPrice.numerator.value,
-            moeBrandInfo.mathKind,
-            moeBrandInfo.decimalPlaces,
-          )}
-        />
+        <ValueCard title="Market Price" text={displayRatio(marketPrice)} />
         <ValueCard
           title="Liquidation Ratio"
-          text={`${toPrintedPercent(liquidationRatio)}%`}
+          text={`${displayPercent(liquidationRatio)}%`}
         />
         <ValueCard
           title="Liquidation Price"
-          text={stringifyValue(
-            liquidationPrice.value,
-            moeBrandInfo.mathKind,
-            moeBrandInfo.decimalPlaces,
-          )}
+          text={displayAmount(liquidationPrice)}
         />
         <ValueCard
           title="Interest Rate"
-          text={`${toPrintedPercent(interestRate)}%`}
+          text={`${displayPercent(interestRate)}%`}
         />
         {/* <ValueCard
           title="Liquidation Penalty"
-          text={`${toPrintedPercent(liquidationPenalty)}%`}
+          text={`${displayPercent(liquidationPenalty)}%`}
         /> */}
       </Grid>
     </Paper>

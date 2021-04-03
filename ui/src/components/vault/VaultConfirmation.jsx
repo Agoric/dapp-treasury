@@ -8,19 +8,11 @@ import {
   TableRow,
 } from '@material-ui/core';
 
-import { stringifyAmountValue } from '@agoric/ui-components';
-
 import ErrorBoundary from '../ErrorBoundary';
 
-import { toPrintedPercent } from '../../utils/helper';
+import { displayPetname, makeDisplayFunctions } from '../helpers';
 
-import {
-  getPurseMathKind,
-  getPurseDecimalPlaces,
-  displayPetname,
-} from '../helpers';
-
-function VaultConfirmation({ vaultConfiguration }) {
+function VaultConfirmation({ vaultConfiguration, brandToInfo }) {
   const {
     fundPurse,
     dstPurse,
@@ -31,6 +23,8 @@ function VaultConfirmation({ vaultConfiguration }) {
     liquidationMargin,
   } = vaultConfiguration;
 
+  const { displayPercent, displayAmount } = makeDisplayFunctions(brandToInfo);
+
   return (
     <ErrorBoundary>
       <TableContainer>
@@ -39,25 +33,15 @@ function VaultConfirmation({ vaultConfiguration }) {
             <TableRow>
               <TableCell>Depositing</TableCell>
               <TableCell align="right">
-                {stringifyAmountValue(
-                  toLock,
-                  getPurseMathKind(fundPurse),
-                  getPurseDecimalPlaces(fundPurse),
-                )}{' '}
-                {displayPetname(fundPurse.brandPetname)} from Purse:{' '}
-                {displayPetname(fundPurse.pursePetname)}
+                {displayAmount(toLock)} {displayPetname(fundPurse.brandPetname)}{' '}
+                from Purse: {displayPetname(fundPurse.pursePetname)}
               </TableCell>
               <TableCell></TableCell>
             </TableRow>
             <TableRow>
               <TableCell>Borrowing</TableCell>
               <TableCell align="right">
-                {dstPurse &&
-                  stringifyAmountValue(
-                    toBorrow,
-                    getPurseMathKind(dstPurse),
-                    getPurseDecimalPlaces(dstPurse),
-                  )}{' '}
+                {displayAmount(toBorrow)}{' '}
                 {displayPetname(dstPurse.brandPetname)} to Purse:{' '}
                 {displayPetname(dstPurse.pursePetname)}
               </TableCell>
@@ -65,25 +49,25 @@ function VaultConfirmation({ vaultConfiguration }) {
             <TableRow>
               <TableCell>Interest Rate</TableCell>
               <TableCell align="right">
-                {toPrintedPercent(stabilityFee, 1n)}%
+                {displayPercent(stabilityFee)}%
               </TableCell>
             </TableRow>
             <TableRow>
               <TableCell>Liquidation Ratio</TableCell>
               <TableCell align="right">
-                {toPrintedPercent(liquidationMargin)}%
+                {displayPercent(liquidationMargin)}%
               </TableCell>
             </TableRow>
             <TableRow>
               <TableCell>Collateral Ratio</TableCell>
               <TableCell align="right">
-                {toPrintedPercent(collateralPercent)}%
+                {displayPercent(collateralPercent)}%
               </TableCell>
             </TableRow>
-            <TableRow>
+            {/* <TableRow>
               <TableCell>Liquidation Penalty</TableCell>
               <TableCell align="right">3%</TableCell>
-            </TableRow>
+            </TableRow> */}
           </TableBody>
         </Table>
       </TableContainer>

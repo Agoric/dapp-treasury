@@ -8,7 +8,7 @@ import { makeLoanOffer } from '../../contexts/makeLoanOffer';
 import VaultConfirmation from './VaultConfirmation';
 import ErrorBoundary from '../ErrorBoundary';
 
-function VaultCreate({ dispatch, vaultConfiguration, walletP }) {
+function VaultCreate({ dispatch, vaultConfiguration, walletP, brandToInfo }) {
   return (
     <div>
       <Typography variant="h6">
@@ -17,6 +17,7 @@ function VaultCreate({ dispatch, vaultConfiguration, walletP }) {
       <ErrorBoundary>
         <VaultConfirmation
           vaultConfiguration={vaultConfiguration}
+          brandToInfo={brandToInfo}
         ></VaultConfirmation>
         <Grid container justify="flex-end">
           <Button onClick={() => dispatch(resetVault())}>Cancel</Button>

@@ -98,6 +98,7 @@ export default function NewVault() {
           dispatch={dispatch}
           vaultConfiguration={vaultConfiguration}
           walletP={walletP}
+          brandToInfo={brandToInfo}
         />
       );
     }

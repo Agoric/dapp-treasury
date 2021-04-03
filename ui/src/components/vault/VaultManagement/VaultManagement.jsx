@@ -4,8 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
-import { stringifyValue } from '@agoric/ui-components';
-
 import {
   multiplyBy,
   makeRatioFromAmounts,
@@ -21,7 +19,7 @@ import CloseVaultForm from './CloseVaultForm';
 import ErrorBoundary from '../../ErrorBoundary';
 
 import { useApplicationContext } from '../../../contexts/Application';
-import { getInfoForBrand, displayPetname } from '../../helpers';
+import { makeDisplayFunctions } from '../../helpers';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -79,8 +77,12 @@ const VaultManagement = () => {
     return <div>Please select a vault to manage.</div>;
   }
 
-  const lockedInfo = getInfoForBrand(brandToInfo, locked.brand);
-  const lockedPetname = displayPetname(lockedInfo.petname);
+  const {
+    displayBrandPetname,
+    displayAmount,
+    getDecimalPlaces,
+  } = makeDisplayFunctions(brandToInfo);
+  const lockedPetname = displayBrandPetname(locked.brand);
 
   // Collateralization ratio is the value of collateral to debt.
   const calcRatio = (priceRate, newLock, newBorrow) => {
@@ -102,7 +104,7 @@ const VaultManagement = () => {
   // TODO: use makeQuoteNotifier
   useEffect(() => {
     console.log('getting quote for marketPrice');
-    const decimalPlaces = lockedInfo.decimalPlaces || 0n;
+    const decimalPlaces = getDecimalPlaces(locked.brand);
 
     // Make what would display as 1 unit of collateral
     const inputAmount = amountMath.make(
@@ -152,12 +154,7 @@ const VaultManagement = () => {
     <div className={classes.header}>
       <Typography>Vault {vaultToManageId}</Typography>
       <Typography variant="h3" gutterBottom>
-        {stringifyValue(
-          locked.value,
-          lockedInfo.mathKind,
-          lockedInfo.decimalPlaces,
-        )}{' '}
-        {lockedPetname} locked
+        {displayAmount(locked)} {lockedPetname} locked
       </Typography>
     </div>
   );
