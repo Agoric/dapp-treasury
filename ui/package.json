@@ -68,7 +68,8 @@
   },
   "eslintConfig": {
     "ignorePatterns": [
-      "**/*.umd.js"
+      "**/*.umd.js",
+      "**/generated/*"
     ],
     "parser": "babel-eslint",
     "parserOptions": {

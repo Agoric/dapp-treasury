@@ -1,37 +1,54 @@
 // @ts-check
 
 import { E } from '@agoric/eventual-send';
+import { assert } from 'ses/src/error/assert';
 
-import { setBrandToInfo, setInfoForBrand } from '../store';
-import { getInfoForBrand } from '../components/helpers';
+import { mergeBrandToInfo } from '../store';
 
-export const initializeBrandToInfo = async ({
+// Note: brandToInfo may be outdated by the time we want to save the
+// info for a particular brand. Therefore, we must only insert
+// information about the brand and not overwrite brandToInfo entirely.
+// brandToInfo should only be used here for saving roundtrips by not
+// re-fetching data that already exists. Since we do not delete brands
+// or change the mathKind or decimalPlaces for brands, this is mostly safe.
+// At worst, a petname will be overwritten for a few seconds, then
+// replaced by the correct petname from the user's wallet.
+
+export const storeAllBrandsFromTerms = async ({
   dispatch,
-  issuerKeywordRecord,
-  brandKeywordRecord,
+  terms,
+  brandToInfo,
 }) => {
+  const brandToInfoMap = new Map(brandToInfo);
   const mathKindPs = [];
   const displayInfoPs = [];
   const brands = [];
   const issuers = [];
   const keywords = [];
 
-  Object.entries(issuerKeywordRecord).forEach(([keyword, issuer]) => {
+  Object.entries(terms.brands).forEach(([keyword, brand]) => {
+    // If we have already stored the data, just return
+    if (brandToInfoMap.has(brand)) {
+      return;
+    }
+
+    const issuer = terms.issuers[keyword];
     const mathKindP = E(issuer).getAmountMathKind();
-    const brand = brandKeywordRecord[keyword];
     const displayInfoP = E(brand).getDisplayInfo();
 
-    issuers.push(issuers);
+    issuers.push(issuer);
     brands.push(brand);
     mathKindPs.push(mathKindP);
     displayInfoPs.push(displayInfoP);
     keywords.push(keyword);
   });
+
   const [mathKinds, displayInfos] = await Promise.all([
     Promise.all(mathKindPs),
     Promise.all(displayInfoPs),
   ]);
-  const brandToInfo = brands.map((brand, i) => {
+
+  const newBrandToInfo = brands.map((brand, i) => {
     const decimalPlaces = displayInfos[i] && displayInfos[i].decimalPlaces;
     return [
       brand,
@@ -40,21 +57,23 @@ export const initializeBrandToInfo = async ({
         decimalPlaces,
         issuer: issuers[i],
         petname: keywords[i],
+        brand,
       },
     ];
   });
-  dispatch(setBrandToInfo(brandToInfo));
+  dispatch(mergeBrandToInfo(newBrandToInfo));
 };
 
-const addIssuerAndBrand = async ({
+export const storeBrand = async ({
   dispatch,
   brandToInfo,
   issuer,
   brand,
   petname,
 }) => {
-  // O(n)
-  const info = getInfoForBrand(brandToInfo, brand);
+  assert(brandToInfo);
+  const brandToInfoMap = new Map(brandToInfo);
+  const info = brandToInfoMap.get(brand);
 
   // The info record already exists, so update the petname and return
   if (info !== undefined) {
@@ -63,16 +82,15 @@ const addIssuerAndBrand = async ({
       petname,
     };
 
-    // O(n)
-    dispatch(setInfoForBrand({ brand, brandInfo: newInfo }));
+    const newBrandToInfo = [[brand, newInfo]];
+    dispatch(mergeBrandToInfo(newBrandToInfo));
     return newInfo;
   }
 
+  // The info record does not exist, so we need to gather the information
   const mathKindP = E(issuer).getAmountMathKind();
   const displayInfoP = E(brand).getDisplayInfo();
-
   const [mathKind, displayInfo] = await Promise.all([mathKindP, displayInfoP]);
-
   const decimalPlaces = displayInfo && displayInfo.decimalPlaces;
 
   const newInfo = {
@@ -82,8 +100,8 @@ const addIssuerAndBrand = async ({
     decimalPlaces,
   };
 
-  // O(n)
-  dispatch(setInfoForBrand({ brand, brandInfo: newInfo }));
+  const newBrandToInfo = [[brand, newInfo]];
+  dispatch(mergeBrandToInfo(newBrandToInfo));
   return newInfo;
 };
 
@@ -93,7 +111,7 @@ export const updateBrandPetnames = ({
   issuersFromNotifier,
 }) => {
   const resultPs = issuersFromNotifier.map(([petname, { brand, issuer }]) => {
-    return addIssuerAndBrand({ dispatch, brandToInfo, issuer, brand, petname });
+    return storeBrand({ dispatch, brandToInfo, issuer, brand, petname });
   });
 
   return Promise.all(resultPs);

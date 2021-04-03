@@ -9,8 +9,8 @@ export const {
     setApproved,
     setConnected,
     setPurses,
-    setBrandToInfo,
-    setInfoForBrand,
+    mergeBrandToInfo,
+    addToBrandToInfo,
     setCollaterals,
     resetState,
     setTreasury,
@@ -77,30 +77,13 @@ export const {
       inputAmount: null,
       outputAmount: null,
     }),
-    setInfoForBrand: (state, { brand, brandInfo }) => {
-      // Make a copy of brandToInfo
-      const newBrandToInfo = [...state.brandToInfo];
+    mergeBrandToInfo: (state, newBrandToInfo) => {
+      const merged = new Map([...state.brandToInfo, ...newBrandToInfo]);
 
-      // Check if the brand is already present, and if so get the
-      // array index.
-      const brandIndex = state.brandToInfo.findIndex(
-        ([storedBrand, _storedInfo]) => storedBrand === brand,
-      );
-      // The brand is already present
-      if (brandIndex > 0) {
-        const [_brand, oldInfo] = state.brandToInfo[brandIndex];
-        const newInfo = {
-          ...oldInfo,
-          ...brandInfo,
-        };
-        newBrandToInfo[brandIndex] = [brand, newInfo];
-      } else {
-        newBrandToInfo.push([brand, brandInfo]);
-      }
-
+      const brandToInfo = [...merged.entries()];
       return {
         ...state,
-        brandToInfo: newBrandToInfo,
+        brandToInfo,
       };
     },
   },

@@ -23,7 +23,7 @@ import {
   setApproved,
 } from '../store';
 import { getPublicFacet } from './getPublicFacet';
-import { updateBrandPetnames, initializeBrandToInfo } from './storeBrandInfo';
+import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
 
 // eslint-disable-next-line import/no-mutable-exports
 let walletP;
@@ -137,10 +137,10 @@ export default function Provider({ children }) {
           setTreasury({ instance, treasuryAPI, sconeIssuer, sconeBrand }),
         );
 
-        await initializeBrandToInfo({
+        await storeAllBrandsFromTerms({
           dispatch,
-          issuerKeywordRecord: terms.issuers,
-          brandKeywordRecord: terms.brands,
+          terms,
+          brandToInfo,
         });
 
         console.log('SET COLLATERALS', collaterals);
