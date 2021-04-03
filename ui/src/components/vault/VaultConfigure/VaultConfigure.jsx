@@ -25,6 +25,7 @@ import DstPurseSelector from './DstPurseSelector';
 import CancelButton from './CancelButton';
 import EnterButton from './EnterButton';
 import CollateralizationPercentInput from './CollateralizationPercentInput';
+import ErrorBoundary from '../../ErrorBoundary';
 
 export function computeToBorrow(priceRate, toLock, collateralPercent) {
   const lockPrice = multiplyBy(toLock, priceRate);
@@ -146,58 +147,60 @@ function VaultConfigure({
 
   return (
     <div className={classes.root}>
-      <Grid container spacing={1}>
-        <Grid item xs={4}>
-          <FormLabel component="legend" style={{ paddingTop: 20 }}>
-            Choose your {displayPetname(collateralInfo.petname)} vault
-            parameters
-          </FormLabel>
-          <div style={{ paddingTop: 20 }}>
-            {fundPurseBalanceDisplay} {displayPetname(collateralInfo.petname)}{' '}
-            Available from Funding Purse
-          </div>
+      <ErrorBoundary>
+        <Grid container spacing={1}>
+          <Grid item xs={4}>
+            <FormLabel component="legend" style={{ paddingTop: 20 }}>
+              Choose your {displayPetname(collateralInfo.petname)} vault
+              parameters
+            </FormLabel>
+            <div style={{ paddingTop: 20 }}>
+              {fundPurseBalanceDisplay} {displayPetname(collateralInfo.petname)}{' '}
+              Available from Funding Purse
+            </div>
+          </Grid>
+          <Grid item xs={8}>
+            <ToLockValueInput
+              collateralPetname={displayPetname(collateralInfo.petname)}
+              balanceExceeded={balanceExceeded}
+              toLock={toLock}
+              toLockDecimalPlaces={toLockDecimalPlaces}
+              onChange={onLockChange}
+            />
+            <FundPurseSelector
+              fundPurses={fundPurses}
+              fundPurse={fundPurse}
+              setFundPurse={setFundPurse}
+            />
+            <ToBorrowValueInput
+              toBorrow={toBorrow}
+              toBorrowDecimalPlaces={getPurseDecimalPlaces(dstPurse)}
+              onChange={onBorrowChange}
+            />
+            <DstPurseSelector
+              dstPurses={dstPurses}
+              dstPurse={dstPurse}
+              setDstPurse={setDstPurse}
+            />
+            <CollateralizationPercentInput
+              collateralPercent={collateralPercent}
+              onChange={onCollateralPercentChange}
+              initialMargin={vaultCollateral.initialMargin}
+              onError={handlePercentInputError}
+              belowMinError={belowMinError}
+            />
+          </Grid>
+          <Grid container justify="flex-end" alignItems="center">
+            <CancelButton dispatch={dispatch} />
+            <EnterButton
+              dispatch={dispatch}
+              balanceExceeded={balanceExceeded}
+              vaultConfig={vaultConfig}
+              belowMinError={belowMinError}
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={8}>
-          <ToLockValueInput
-            collateralPetname={displayPetname(collateralInfo.petname)}
-            balanceExceeded={balanceExceeded}
-            toLock={toLock}
-            toLockDecimalPlaces={toLockDecimalPlaces}
-            onChange={onLockChange}
-          />
-          <FundPurseSelector
-            fundPurses={fundPurses}
-            fundPurse={fundPurse}
-            setFundPurse={setFundPurse}
-          />
-          <ToBorrowValueInput
-            toBorrow={toBorrow}
-            toBorrowDecimalPlaces={getPurseDecimalPlaces(dstPurse)}
-            onChange={onBorrowChange}
-          />
-          <DstPurseSelector
-            dstPurses={dstPurses}
-            dstPurse={dstPurse}
-            setDstPurse={setDstPurse}
-          />
-          <CollateralizationPercentInput
-            collateralPercent={collateralPercent}
-            onChange={onCollateralPercentChange}
-            initialMargin={vaultCollateral.initialMargin}
-            onError={handlePercentInputError}
-            belowMinError={belowMinError}
-          />
-        </Grid>
-        <Grid container justify="flex-end" alignItems="center">
-          <CancelButton dispatch={dispatch} />
-          <EnterButton
-            dispatch={dispatch}
-            balanceExceeded={balanceExceeded}
-            vaultConfig={vaultConfig}
-            belowMinError={belowMinError}
-          />
-        </Grid>
-      </Grid>
+      </ErrorBoundary>
     </div>
   );
 }

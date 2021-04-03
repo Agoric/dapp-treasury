@@ -6,6 +6,7 @@ import { resetVault } from '../../store';
 
 import { makeLoanOffer } from '../../contexts/makeLoanOffer';
 import VaultConfirmation from './VaultConfirmation';
+import ErrorBoundary from '../ErrorBoundary';
 
 function VaultCreate({ dispatch, vaultConfiguration, walletP }) {
   return (
@@ -13,17 +14,19 @@ function VaultCreate({ dispatch, vaultConfiguration, walletP }) {
       <Typography variant="h6">
         Confirm details and create your vault
       </Typography>
-      <VaultConfirmation
-        vaultConfiguration={vaultConfiguration}
-      ></VaultConfirmation>
-      <Grid container justify="flex-end">
-        <Button onClick={() => dispatch(resetVault())}>Cancel</Button>
-        <Button
-          onClick={() => makeLoanOffer(dispatch, vaultConfiguration, walletP)}
-        >
-          Create
-        </Button>
-      </Grid>
+      <ErrorBoundary>
+        <VaultConfirmation
+          vaultConfiguration={vaultConfiguration}
+        ></VaultConfirmation>
+        <Grid container justify="flex-end">
+          <Button onClick={() => dispatch(resetVault())}>Cancel</Button>
+          <Button
+            onClick={() => makeLoanOffer(dispatch, vaultConfiguration, walletP)}
+          >
+            Create
+          </Button>
+        </Grid>
+      </ErrorBoundary>
     </div>
   );
 }

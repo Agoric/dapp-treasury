@@ -11,6 +11,7 @@ import { useApplicationContext } from '../../contexts/Application';
 import VaultCollateral from './VaultCollateral';
 import VaultConfigure from './VaultConfigure/VaultConfigure';
 import VaultCreate from './VaultCreate';
+import ErrorBoundary from '../ErrorBoundary';
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -115,12 +116,14 @@ export default function NewVault() {
       <Typography component="h1" variant="h4" align="center">
         Borrow $MOE
       </Typography>
-      <VaultSteps
-        connected={connected}
-        vaultCollateral={vaultCollateral}
-        vaultConfiguration={vaultConfiguration}
-      />
-      {getCurrentVaultCreationStep()}
+      <ErrorBoundary>
+        <VaultSteps
+          connected={connected}
+          vaultCollateral={vaultCollateral}
+          vaultConfiguration={vaultConfiguration}
+        />
+        {getCurrentVaultCreationStep()}
+      </ErrorBoundary>
     </Paper>
   );
 }

@@ -15,6 +15,7 @@ import { Typography } from '@material-ui/core';
 import { useApplicationContext } from '../contexts/Application';
 
 import { VaultSummary } from './VaultSummary';
+import ErrorBoundary from './ErrorBoundary';
 
 import { setVaultToManageId } from '../store';
 
@@ -67,34 +68,36 @@ function VaultList() {
 
   return (
     <div>
-      <Grid container className={classes.grid}>
-        {vaultsList.map(([key, v]) => (
-          <Grid key={key} className={classes.card}>
-            <Card key={key}>
-              <CardContent>
-                <VaultSummary
-                  vault={v}
-                  id={key}
-                  brandToInfo={brandToInfo}
-                ></VaultSummary>
-              </CardContent>
-              <CardActions>
-                <Grid container justify="flex-end">
-                  <Grid item className={classes.button}>
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => handleOnClick(key)}
-                    >
-                      Manage Vault
-                    </Button>
+      <ErrorBoundary>
+        <Grid container className={classes.grid}>
+          {vaultsList.map(([key, v]) => (
+            <Grid key={key} className={classes.card}>
+              <Card key={key}>
+                <CardContent>
+                  <VaultSummary
+                    vault={v}
+                    id={key}
+                    brandToInfo={brandToInfo}
+                  ></VaultSummary>
+                </CardContent>
+                <CardActions>
+                  <Grid container justify="flex-end">
+                    <Grid item className={classes.button}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleOnClick(key)}
+                      >
+                        Manage Vault
+                      </Button>
+                    </Grid>
                   </Grid>
-                </Grid>
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </ErrorBoundary>
     </div>
   );
 }

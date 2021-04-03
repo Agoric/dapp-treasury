@@ -15,6 +15,7 @@ import ArrowDownIcon from '@material-ui/icons/ArrowDownward';
 
 import AssetInput from './AssetInput';
 import Steps from './Steps';
+import ErrorBoundary from './ErrorBoundary';
 
 import { displayPetname } from './helpers';
 
@@ -234,68 +235,69 @@ export default function Swap() {
       <Typography component="h1" variant="h4" align="center">
         Swap
       </Typography>
-
-      <Steps
-        connected={connected}
-        inputPurse={inputPurse}
-        outputPurse={outputPurse}
-        inputAmount={inputAmount}
-        outputAmount={outputAmount}
-      />
-
-      <Grid
-        container
-        direction="column"
-        alignItems="center"
-        spacing={3}
-        className={classes.grid}
-      >
-        <AssetInput
-          title="Input"
-          purses={purses}
-          onPurseChange={handleChangeInputPurse}
-          onAmountChange={handleChangeInputAmount}
-          purse={inputPurse}
-          amount={inputAmount}
-          disabled={!connected}
-          purseError={pursesError}
-          amountError={inputAmountError}
+      <ErrorBoundary>
+        <Steps
+          connected={connected}
+          inputPurse={inputPurse}
+          outputPurse={outputPurse}
+          inputAmount={inputAmount}
+          outputAmount={outputAmount}
         />
 
-        <IconButton
-          size="medium"
-          onClick={handleswapInputs}
-          disabled={!connected}
+        <Grid
+          container
+          direction="column"
+          alignItems="center"
+          spacing={3}
+          className={classes.grid}
         >
-          <ArrowDownIcon />
-        </IconButton>
+          <AssetInput
+            title="Input"
+            purses={purses}
+            onPurseChange={handleChangeInputPurse}
+            onAmountChange={handleChangeInputAmount}
+            purse={inputPurse}
+            amount={inputAmount}
+            disabled={!connected}
+            purseError={pursesError}
+            amountError={inputAmountError}
+          />
 
-        <AssetInput
-          title="Output"
-          purses={purses}
-          onPurseChange={handleChangeOutputPurse}
-          onAmountChange={handleChangeOutputAmount}
-          purse={outputPurse}
-          amount={outputAmount}
-          disabled={!connected}
-          purseError={pursesError}
-          amountError={outputAmountError}
-        />
-        <InputLabel className={classes.message}>
-          {connected && isValid && getExchangeRate(4)}
-        </InputLabel>
-      </Grid>
-      <div className={classes.buttons}>
-        <Button
-          variant="contained"
-          color="primary"
-          className={classes.button}
-          disabled={!connected || !isValid}
-          onClick={handleSwap}
-        >
-          Swap
-        </Button>
-      </div>
+          <IconButton
+            size="medium"
+            onClick={handleswapInputs}
+            disabled={!connected}
+          >
+            <ArrowDownIcon />
+          </IconButton>
+
+          <AssetInput
+            title="Output"
+            purses={purses}
+            onPurseChange={handleChangeOutputPurse}
+            onAmountChange={handleChangeOutputAmount}
+            purse={outputPurse}
+            amount={outputAmount}
+            disabled={!connected}
+            purseError={pursesError}
+            amountError={outputAmountError}
+          />
+          <InputLabel className={classes.message}>
+            {connected && isValid && getExchangeRate(4)}
+          </InputLabel>
+        </Grid>
+        <div className={classes.buttons}>
+          <Button
+            variant="contained"
+            color="primary"
+            className={classes.button}
+            disabled={!connected || !isValid}
+            onClick={handleSwap}
+          >
+            Swap
+          </Button>
+        </div>
+      </ErrorBoundary>
     </Paper>
   );
 }

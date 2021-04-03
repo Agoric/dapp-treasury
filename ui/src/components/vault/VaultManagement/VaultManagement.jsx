@@ -18,6 +18,7 @@ import AdjustVaultForm from './AdjustVaultForm';
 import UnchangeableValues from './UnchangeableValues';
 import ChangesTable from './ChangesTable';
 import CloseVaultForm from './CloseVaultForm';
+import ErrorBoundary from '../../ErrorBoundary';
 
 import { useApplicationContext } from '../../../contexts/Application';
 import { getInfoForBrand, displayPetname } from '../../helpers';
@@ -163,44 +164,46 @@ const VaultManagement = () => {
 
   return (
     <div className={classes.root}>
-      {header}{' '}
-      <UnchangeableValues
-        marketPrice={marketPrice}
-        liquidationRatio={liquidationRatio}
-        interestRate={interestRate}
-        // liquidationPenalty={liquidationPenalty}
-        brandToInfo={brandToInfo}
-        debt={debt}
-      />
-      <div className={classes.valuesTable}>
-        <ChangesTable
-          locked={locked}
-          lockedAfterDelta={lockedAfterDelta}
-          collateralizationRatio={collateralizationRatio}
-          newCollateralizationRatio={newCollateralizationRatio}
+      <ErrorBoundary>
+        {header}{' '}
+        <UnchangeableValues
+          marketPrice={marketPrice}
+          liquidationRatio={liquidationRatio}
+          interestRate={interestRate}
+          // liquidationPenalty={liquidationPenalty}
+          brandToInfo={brandToInfo}
           debt={debt}
-          debtAfterDelta={debtAfterDelta}
+        />
+        <div className={classes.valuesTable}>
+          <ChangesTable
+            locked={locked}
+            lockedAfterDelta={lockedAfterDelta}
+            collateralizationRatio={collateralizationRatio}
+            newCollateralizationRatio={newCollateralizationRatio}
+            debt={debt}
+            debtAfterDelta={debtAfterDelta}
+            brandToInfo={brandToInfo}
+          />
+        </div>
+        <AdjustVaultForm
+          purses={purses}
+          walletP={walletP}
+          vaultToManageId={vaultToManageId}
+          debt={debt}
+          locked={locked}
+          onLockedDeltaChange={onLockedDeltaChange}
+          onDebtDeltaChange={onDebtDeltaChange}
+          brandToInfo={brandToInfo}
+        />{' '}
+        <CloseVaultForm
+          purses={purses}
+          walletP={walletP}
+          vaultToManageId={vaultToManageId}
+          debt={debt}
+          locked={locked}
           brandToInfo={brandToInfo}
         />
-      </div>
-      <AdjustVaultForm
-        purses={purses}
-        walletP={walletP}
-        vaultToManageId={vaultToManageId}
-        debt={debt}
-        locked={locked}
-        onLockedDeltaChange={onLockedDeltaChange}
-        onDebtDeltaChange={onDebtDeltaChange}
-        brandToInfo={brandToInfo}
-      />{' '}
-      <CloseVaultForm
-        purses={purses}
-        walletP={walletP}
-        vaultToManageId={vaultToManageId}
-        debt={debt}
-        locked={locked}
-        brandToInfo={brandToInfo}
-      />
+      </ErrorBoundary>
     </div>
   );
 };
