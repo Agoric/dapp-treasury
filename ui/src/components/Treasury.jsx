@@ -23,6 +23,7 @@ const useStyles = makeStyles(theme => {
   return {
     card: {
       paddingLeft: theme.spacing(2),
+      marginBottom: theme.spacing(2),
     },
     loading: {
       padding: theme.spacing(3),
