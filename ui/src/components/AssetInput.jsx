@@ -35,6 +35,7 @@ const NatPurseSelector = makeNatPurseSelector({
 
 export default function AssetInput({
   title,
+  purseTitle,
   purses,
   onPurseChange,
   onAmountChange,
@@ -49,7 +50,7 @@ export default function AssetInput({
       <Grid container spacing={3}>
         <Grid item xs={12} sm={12} md={4}>
           <NatPurseSelector
-            label={`${title} Purse`}
+            label={`${purseTitle || title} Purse`}
             purses={purses}
             purseSelected={purse}
             onChange={onPurseChange}

@@ -21,6 +21,7 @@ export const {
     setVaultToManageId,
     updateVault,
     resetVault,
+    setAutoswap,
   },
 } = autodux({
   slice: 'treasury',
@@ -31,11 +32,7 @@ export const {
     purses: null,
     brandToInfo: [], // [[brand, infoObj] ...]
     // Autoswap state
-    inputPurse: null,
-    outputPurse: null,
-    inputAmount: null,
-    outputAmount: null,
-    quoteRequest: null, // null | 'input' | 'output'
+    autoswap: {},
     // Vault state
     treasury: null,
     vaultCollateral: null,

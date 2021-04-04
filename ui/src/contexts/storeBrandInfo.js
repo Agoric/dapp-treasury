@@ -110,6 +110,7 @@ export const updateBrandPetnames = ({
   brandToInfo,
   issuersFromNotifier,
 }) => {
+  console.log('BRANDS', issuersFromNotifier);
   const resultPs = issuersFromNotifier.map(([petname, { brand, issuer }]) => {
     return storeBrand({ dispatch, brandToInfo, issuer, brand, petname });
   });

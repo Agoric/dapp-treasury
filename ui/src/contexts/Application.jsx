@@ -20,15 +20,14 @@ import {
   updateVault,
   setCollaterals,
   setTreasury,
+  setAutoswap,
   setApproved,
 } from '../store';
-import { getPublicFacet } from './getPublicFacet';
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
 
 // eslint-disable-next-line import/no-mutable-exports
 let walletP;
 export { walletP };
-let ammPublicFacet;
 
 export const ApplicationContext = createContext();
 
@@ -70,6 +69,46 @@ function watchOffers(dispatch, INSTANCE_BOARD_ID) {
   }
   offersUpdater().catch(err => console.error('Offers watcher exception', err));
 }
+
+const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
+  const instance = await E(board).getValue(instanceID);
+  const treasuryAPIP = E(zoe).getPublicFacet(instance);
+  const [treasuryAPI, terms, collaterals] = await Promise.all([
+    treasuryAPIP,
+    E(zoe).getTerms(instance),
+    E(treasuryAPIP).getCollaterals(),
+  ]);
+  const {
+    issuers: { Scones: sconeIssuer },
+    brands: { Scones: sconeBrand },
+  } = terms;
+  dispatch(setTreasury({ instance, treasuryAPI, sconeIssuer, sconeBrand }));
+  await storeAllBrandsFromTerms({
+    dispatch,
+    terms,
+    brandToInfo,
+  });
+  console.log('SET COLLATERALS', collaterals);
+  dispatch(setCollaterals(collaterals));
+  return { terms, collaterals };
+};
+const setupAMM = async (dispatch, brandToInfo, zoe, board, instanceID) => {
+  const instance = await E(board).getValue(instanceID);
+  const [ammAPI, terms] = await Promise.all([
+    E(zoe).getPublicFacet(instance),
+    E(zoe).getTerms(instance),
+  ]);
+  const {
+    brands: { Central: centralBrand, ...otherBrands },
+  } = terms;
+  console.log('AMM brands retrieved', otherBrands);
+  dispatch(setAutoswap({ instance, ammAPI, centralBrand, otherBrands }));
+  await storeAllBrandsFromTerms({
+    dispatch,
+    terms,
+    brandToInfo,
+  });
+};
 
 /* eslint-disable complexity, react/prop-types */
 export default function Provider({ children }) {
@@ -117,34 +156,13 @@ export default function Provider({ children }) {
           AMM_INSTANCE_BOARD_ID,
         } = dappConfig;
 
-        ammPublicFacet = getPublicFacet(walletP, AMM_INSTANCE_BOARD_ID);
-
         const zoe = E(walletP).getZoe();
         const board = E(walletP).getBoard();
 
-        const instance = await E(board).getValue(INSTANCE_BOARD_ID);
-        const treasuryAPI = E(zoe).getPublicFacet(instance);
-        const [terms, collaterals] = await Promise.all([
-          E(zoe).getTerms(instance),
-          E(treasuryAPI).getCollaterals(),
+        await Promise.all([
+          setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID),
+          setupAMM(dispatch, brandToInfo, zoe, board, AMM_INSTANCE_BOARD_ID),
         ]);
-        const {
-          issuers: { Scones: sconeIssuer },
-          brands: { Scones: sconeBrand },
-        } = terms;
-
-        dispatch(
-          setTreasury({ instance, treasuryAPI, sconeIssuer, sconeBrand }),
-        );
-
-        await storeAllBrandsFromTerms({
-          dispatch,
-          terms,
-          brandToInfo,
-        });
-
-        console.log('SET COLLATERALS', collaterals);
-        dispatch(setCollaterals(collaterals));
 
         // The moral equivalent of walletGetPurses()
         async function watchPurses() {
@@ -158,6 +176,7 @@ export default function Provider({ children }) {
         );
 
         async function watchBrands() {
+          console.log('BRANDS REQUESTED');
           const issuersN = E(walletP).getIssuersNotifier();
           for await (const issuers of iterateNotifier(issuersN)) {
             updateBrandPetnames({
@@ -200,9 +219,7 @@ export default function Provider({ children }) {
   }, []);
 
   return (
-    <ApplicationContext.Provider
-      value={{ state, dispatch, walletP, ammPublicFacet }}
-    >
+    <ApplicationContext.Provider value={{ state, dispatch, walletP }}>
       {children}
     </ApplicationContext.Provider>
   );

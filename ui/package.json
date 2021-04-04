@@ -40,6 +40,7 @@
     "@agoric/install-ses": "*",
     "@agoric/nat": "^4.0.0",
     "@agoric/notifier": "*",
+    "@agoric/same-structure": "*",
     "@agoric/ui-components": "*",
     "@agoric/zoe": "*",
     "@material-ui/core": "^4.11.3",

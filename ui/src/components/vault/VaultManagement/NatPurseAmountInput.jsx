@@ -12,6 +12,7 @@ import PurseIcon from '@material-ui/icons/BusinessCenter';
 import { makeStyles } from '@material-ui/core/styles';
 
 import {
+  filterPurses,
   makeNatAmountInput,
   makeNatPurseSelector,
 } from '@agoric/ui-components';
@@ -53,7 +54,7 @@ const PurseAmountInput = ({
       <Grid item>
         <NatPurseSelector
           label={purseLabel}
-          purses={purses}
+          purses={filterPurses(purses, brandToFilter)}
           purseSelected={purseSelected}
           onChange={newPurse => {
             onPurseChange(newPurse);
@@ -63,7 +64,6 @@ const PurseAmountInput = ({
             onAmountChange(0n);
           }}
           disabled={offerBeingMade}
-          brandToFilter={brandToFilter}
         />
       </Grid>
       <Grid item>

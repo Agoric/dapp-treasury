@@ -9,12 +9,12 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 
 // import AirportShuttleIcon from '@material-ui/icons/AirportShuttle';
-import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
+// import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
 import MonetizationIcon from '@material-ui/icons/MonetizationOn';
 import AccountBalanceIcon from '@material-ui/icons/AccountBalance';
 import SwapIcon from '@material-ui/icons/SwapHoriz';
-import TrendingUpIcon from '@material-ui/icons/TrendingUp';
-import HowToVoteIcon from '@material-ui/icons/HowToVote';
+// import TrendingUpIcon from '@material-ui/icons/TrendingUp';
+// import HowToVoteIcon from '@material-ui/icons/HowToVote';
 
 const useStyles = makeStyles(_theme => ({
   selected: {
@@ -68,19 +68,19 @@ function NavDrawer() {
           to="/treasury"
           replace
         />
-        <ListItemLink
+        {/* <ListItemLink
           icon={<FlightTakeoffIcon />}
           primary="Pegasus"
           to="/pegasus"
           replace
-        />
+        /> */}
         <ListItemLink
           icon={<SwapIcon />}
           primary="Autoswap"
           to="/swap"
           replace
         />
-        <ListItemLink
+        {/* <ListItemLink
           icon={<TrendingUpIcon />}
           primary="Rewards"
           to="/rewards"
@@ -91,7 +91,7 @@ function NavDrawer() {
           primary="Governance"
           to="/gov"
           replace
-        />
+        /> */}
       </List>
     </div>
   );
