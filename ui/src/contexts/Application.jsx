@@ -98,6 +98,8 @@ const setupAMM = async (dispatch, brandToInfo, zoe, board, instanceID) => {
     E(zoe).getPublicFacet(instance),
     E(zoe).getTerms(instance),
   ]);
+  // TODO this uses getTerms.brands, but that includes utility tokens, etc.
+  // We need a query/notifier for what are the pools supported
   const {
     brands: { Central: centralBrand, ...otherBrands },
   } = terms;

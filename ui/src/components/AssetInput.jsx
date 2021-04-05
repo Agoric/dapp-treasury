@@ -74,7 +74,7 @@ export default function AssetInput({
             value={amount}
             decimalPlaces={getPurseDecimalPlaces(purse)}
             placesToShow={2}
-            disabled={disabled}
+            disabled={disabled || !purse}
             error={amountError}
           />
         </Grid>

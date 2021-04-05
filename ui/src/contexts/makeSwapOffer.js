@@ -10,13 +10,16 @@ export const makeSwapOffer = async (
   inputAmount,
   outputPurse,
   outputAmount,
+  isSwapIn,
 ) => {
   const id = `${Date.now()}`;
 
   const { AMM_INSTALLATION_BOARD_ID, AMM_INSTANCE_BOARD_ID } = dappConfig;
 
   const AMMPublicFacet = getPublicFacet(walletP, AMM_INSTANCE_BOARD_ID);
-  const invitation = E(AMMPublicFacet).makeSwapInvitation();
+  const invitation = isSwapIn
+    ? E(AMMPublicFacet).makeSwapInInvitation()
+    : E(AMMPublicFacet).makeSwapOutInvitation();
 
   const offerConfig = {
     id,

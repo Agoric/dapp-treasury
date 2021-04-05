@@ -71,13 +71,23 @@ export default function Swap() {
   const { state, dispatch, walletP } = useApplicationContext();
   // const { purses, connected, ammAPI, centralBrand, otherBrands } = state;
   const {
-    purses,
+    purses: unfilteredPurses,
     connected,
     brandToInfo,
-    autoswap: { ammAPI, centralBrand },
+    autoswap: { ammAPI, centralBrand, otherBrands },
   } = state;
 
-  const [inputPurse, setInputPurse] = useState(null);
+  console.log(otherBrands);
+  const knownBrands = new Set(Object.values(otherBrands || {}));
+  knownBrands.add(centralBrand);
+  const purses =
+    unfilteredPurses &&
+    unfilteredPurses.filter(({ brand }) => knownBrands.has(brand));
+
+  const getDefaultPurse = () =>
+    purses && purses.find(({ brand }) => brand === centralBrand);
+
+  const [inputPurse, setInputPurse] = useState(getDefaultPurse);
   const [outputPurse, setOutputPurse] = useState(null);
   const [inputAmount, setInputAmount] = useState(null);
   const [outputAmount, setOutputAmount] = useState(null);
@@ -176,6 +186,11 @@ export default function Swap() {
 
   const getMarketQuote = async (isInput, brand, amount) => {
     console.log('QUOTING', isInput, brand, amount);
+    if (brand === amount.brand) {
+      // There's no brand conversion so it's 100% as a ratio
+      setQuote(makeRatioFromAmounts(amount, amount));
+      return;
+    }
     const quoteResult = isInput
       ? E(ammAPI).getPriceGivenAvailableInput(amount, brand)
       : E(ammAPI).getPriceGivenRequiredOutput(brand, amount);
@@ -211,62 +226,6 @@ export default function Swap() {
 
   const hasError = pursesError || inputAmountError || outputAmountError;
 
-  const isValid =
-    !hasError &&
-    inputPurse &&
-    outputPurse &&
-    inputAmount &&
-    outputAmount &&
-    inputAmount.value > 0n &&
-    outputAmount.value > 0n;
-
-  function handleChangeInputPurse(purse) {
-    if (inputPurse && inputPurse.brand !== purse.brand) {
-      setInputAmount(null);
-    }
-    setInputPurse(purse);
-  }
-
-  function handleChangeOutputPurse(purse) {
-    if (outputPurse && outputPurse.brand !== purse.brand) {
-      setOutputAmount(null);
-    }
-    setOutputPurse(purse);
-  }
-
-  function handleChangeInputAmount(value) {
-    setOutputAmount(null);
-    setInputAmount(amountMath.make(inputPurse.brand, value));
-  }
-
-  function handleChangeOutputAmount(value) {
-    setOutputAmount(amountMath.make(outputPurse.brand, value));
-    setInputAmount(null);
-  }
-
-  function handleswapInputs() {
-    setInputPurse(outputPurse);
-    setOutputPurse(inputPurse);
-    setOutputAmount(inputAmount);
-    setInputAmount(outputAmount);
-    setQuote(quote && invertRatio(quote));
-  }
-
-  function handleSwap() {
-    makeSwapOffer(
-      walletP,
-      dispatch,
-      inputPurse,
-      inputAmount,
-      outputPurse,
-      outputAmount,
-    );
-    setInputPurse(null);
-    setOutputPurse(null);
-    setInputAmount(null);
-    setOutputAmount(null);
-  }
-
   function getExchangeRate(placesToShow) {
     if (marketRate) {
       const giveInfo = getInfoForBrand(brandToInfo, inputRate.brand);
@@ -278,13 +237,13 @@ export default function Swap() {
       );
       const exchangeRate = stringifyAmountValue(
         wantPrice,
-        wantInfo.amountMathKind,
-        wantInfo.decimalPlaces,
+        giveInfo.amountMathKind,
+        giveInfo.decimalPlaces,
         placesToShow,
       );
       return `Exchange rate: 1 ${displayPetname(
-        giveInfo.petname,
-      )} = ${exchangeRate} ${displayPetname(wantInfo.petname)}`;
+        wantInfo.petname,
+      )} = ${exchangeRate} ${displayPetname(giveInfo.petname)}`;
     }
     return '';
   }
@@ -323,6 +282,93 @@ export default function Swap() {
     'Output',
   );
 
+  const isValid =
+    !hasError &&
+    inputPurse &&
+    outputPurse &&
+    inputDisplay > 0n &&
+    outputDisplay > 0n;
+
+  // To limit slippage with offer safety, this computes
+  // the most we would give or the least we would want
+  // The most or least we would give or want respectively
+  // TODO this hardwires 2% silppage limit; it should be
+  // editable: https://github.com/Agoric/dapp-token-economy/issues/230
+  const unitBasis = 10000n;
+  const maxSlippageBasis = 200n + unitBasis;
+  const giveLimit =
+    inputDisplay && (inputDisplay * maxSlippageBasis) / unitBasis;
+  const wantLimit =
+    outputDisplay && (outputDisplay * unitBasis) / maxSlippageBasis;
+  const isSwapIn = !!inputAmount;
+  // TODO this needs to deal with decimals. Should the *Display
+  // variables contain Amounts?
+  // const limitMessage = isSwapIn
+  //   ? `The least you will receive is ${wantLimit}`
+  //   : `The most you will spend is ${giveLimit}`;
+
+  function handleSwap() {
+    makeSwapOffer(
+      walletP,
+      dispatch,
+      inputPurse,
+      isSwapIn ? giveLimit : inputDisplay,
+      outputPurse,
+      isSwapIn ? outputDisplay : wantLimit,
+      isSwapIn,
+    );
+    setInputPurse(null);
+    setOutputPurse(null);
+    setInputAmount(null);
+    setOutputAmount(null);
+  }
+
+  function handleChangeInputPurse(purse) {
+    if (inputPurse && inputPurse.brand !== purse.brand) {
+      setInputAmount(null);
+    }
+    setInputPurse(purse);
+  }
+
+  function handleChangeOutputPurse(purse) {
+    if (outputPurse && outputPurse.brand !== purse.brand) {
+      setOutputAmount(null);
+    }
+    setOutputPurse(purse);
+  }
+
+  function handleChangeInputAmount(value) {
+    if (inputPurse) {
+      setOutputAmount(null);
+      setInputAmount(amountMath.make(inputPurse.brand, value));
+    }
+  }
+
+  function handleChangeOutputAmount(value) {
+    if (outputPurse) {
+      setOutputAmount(amountMath.make(outputPurse.brand, value));
+      setInputAmount(null);
+    }
+  }
+
+  function handleSwapInputs() {
+    setInputPurse(outputPurse);
+    setOutputPurse(inputPurse);
+    setOutputAmount(inputAmount);
+    setInputAmount(outputAmount);
+    setQuote(quote && invertRatio(quote));
+  }
+
+  console.log('DISPLAY AMOUNTS', {
+    inputDisplay,
+    outputDisplay,
+    marketRate,
+    connected,
+    hasError,
+    inputPurse,
+    outputPurse,
+    isValid,
+  });
   return (
     <Paper className={classes.paper}>
       <Typography component="h1" variant="h4" align="center">
@@ -359,7 +405,7 @@ export default function Swap() {
 
           <IconButton
             size="medium"
-            onClick={handleswapInputs}
+            onClick={handleSwapInputs}
             disabled={!connected}
           >
             <ArrowDownIcon />
