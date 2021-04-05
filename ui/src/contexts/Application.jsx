@@ -79,8 +79,8 @@ const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
     E(treasuryAPIP).getCollaterals(),
   ]);
   const {
-    issuers: { Scones: sconeIssuer },
-    brands: { Scones: sconeBrand },
+    issuers: { RUN: sconeIssuer },
+    brands: { RUN: sconeBrand },
   } = terms;
   dispatch(setTreasury({ instance, treasuryAPI, sconeIssuer, sconeBrand }));
   await storeAllBrandsFromTerms({

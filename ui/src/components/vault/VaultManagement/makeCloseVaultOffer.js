@@ -12,7 +12,7 @@ export const makeCloseVaultOffer = ({
   const id = `${Date.now()}`;
   const { INSTALLATION_BOARD_ID, INSTANCE_BOARD_ID } = dappConfig;
 
-  // give: { Scones: null },
+  // give: { RUN: null },
   // want: { Collateral: null },
 
   const empty = harden({});
@@ -32,7 +32,7 @@ export const makeCloseVaultOffer = ({
 
   if (moePurseSelected && moeValue) {
     const scones = {
-      Scones: {
+      RUN: {
         pursePetname: moePurseSelected.pursePetname,
         value: moeValue,
       },

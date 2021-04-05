@@ -41,7 +41,7 @@ export const makeLoanOffer = async (
         },
       },
       want: {
-        Scones: {
+        RUN: {
           pursePetname: dstPurse.pursePetname,
           value: toBorrow.value,
         },

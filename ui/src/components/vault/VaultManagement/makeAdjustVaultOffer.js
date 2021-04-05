@@ -37,7 +37,7 @@ export const makeAdjustVaultOffer = ({
 
   if (moePurseSelected && moeValue) {
     const scones = {
-      Scones: {
+      RUN: {
         pursePetname: moePurseSelected.pursePetname,
         value: moeValue,
       },

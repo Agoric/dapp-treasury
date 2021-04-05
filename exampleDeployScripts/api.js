@@ -99,8 +99,8 @@ export default async function deployApi(homePromise, endowments) {
   console.log(`-- AMM_INSTANCE_BOARD_ID: ${AMM_INSTANCE_BOARD_ID}`);
 
   const {
-    issuers: { Governance: governanceIssuer, Scones: moeIssuer },
-    brands: { Governance: governanceBrand, Scones: moeBrand },
+    issuers: { Governance: governanceIssuer, RUN: moeIssuer },
+    brands: { Governance: governanceBrand, RUN: moeBrand },
   } = await E(zoe).getTerms(instance);
   const walletAdmin = E(wallet).getAdminFacet();
   const issuerManager = E(walletAdmin).getIssuerManager();
