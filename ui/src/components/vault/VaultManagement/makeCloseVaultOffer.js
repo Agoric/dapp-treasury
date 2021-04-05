@@ -4,8 +4,8 @@ import { dappConfig } from '../../../utils/config';
 export const makeCloseVaultOffer = ({
   vaultToManageId,
   walletP,
-  moePurseSelected,
-  moeValue,
+  runPurseSelected,
+  runValue,
   collateralPurseSelected,
   collateralValue,
 }) => {
@@ -30,14 +30,14 @@ export const makeCloseVaultOffer = ({
     want = { ...want, ...collateral };
   }
 
-  if (moePurseSelected && moeValue) {
-    const scones = {
+  if (runPurseSelected && runValue) {
+    const run = {
       RUN: {
-        pursePetname: moePurseSelected.pursePetname,
-        value: moeValue,
+        pursePetname: runPurseSelected.pursePetname,
+        value: runValue,
       },
     };
-    give = { ...give, ...scones };
+    give = { ...give, ...run };
   }
 
   if (want === empty && give === empty) {

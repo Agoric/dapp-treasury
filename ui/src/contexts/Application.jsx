@@ -79,10 +79,10 @@ const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
     E(treasuryAPIP).getCollaterals(),
   ]);
   const {
-    issuers: { RUN: sconeIssuer },
-    brands: { RUN: sconeBrand },
+    issuers: { RUN: runIssuer },
+    brands: { RUN: runBrand },
   } = terms;
-  dispatch(setTreasury({ instance, treasuryAPI, sconeIssuer, sconeBrand }));
+  dispatch(setTreasury({ instance, treasuryAPI, runIssuer, runBrand }));
   await storeAllBrandsFromTerms({
     dispatch,
     terms,
@@ -153,7 +153,7 @@ export default function Provider({ children }) {
         const {
           INSTALLATION_BOARD_ID,
           INSTANCE_BOARD_ID,
-          SCONE_ISSUER_BOARD_ID,
+          RUN_ISSUER_BOARD_ID,
           AMM_INSTALLATION_BOARD_ID,
           AMM_INSTANCE_BOARD_ID,
         } = dappConfig;
@@ -202,7 +202,7 @@ export default function Provider({ children }) {
             `${AMM_NAME}Instance`,
             AMM_INSTANCE_BOARD_ID,
           ),
-          E(walletP).suggestIssuer('MoE', SCONE_ISSUER_BOARD_ID),
+          E(walletP).suggestIssuer('RUN', RUN_ISSUER_BOARD_ID),
         ]);
 
         watchOffers(dispatch, INSTANCE_BOARD_ID);

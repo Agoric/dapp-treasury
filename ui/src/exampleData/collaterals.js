@@ -1,13 +1,13 @@
 // import { makeIssuerKit, amountMath } from '@agoric/ertp';
 
 // const moolaKit = makeIssuerKit('moola');
-// const sconesKit = makeIssuerKit('scones');
+// const runKit = makeIssuerKit('RUN');
 
 // const collaterals = [ {
 //   brand: moolaBrand,
-//   initialMargin: { denominator: scones100, numerator: scones150 },
-//   liquidationMargin: { denominator: scones100, numerator: scones125 },
-//   marketPrice: { denominator: moola1, numerator: scones1 },
+//   initialMargin: { denominator: run100, numerator: run150 },
+//   liquidationMargin: { denominator: run100, numerator: run125 },
+//   marketPrice: { denominator: moola1, numerator: run1 },
 //   petname: "moola",
-//   stabilityFee: {denominator: scones10000, numerator: scones50 },
+//   stabilityFee: {denominator: run10000, numerator: run50 },
 // });

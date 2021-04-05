@@ -121,7 +121,7 @@ const VaultManagement = () => {
     quoteP.then(({ amountIn, amountOut }) => {
       console.log('setting marketPrice', amountIn, amountOut);
       const newMarketPrice = makeRatioFromAmounts(
-        amountOut, // moe
+        amountOut, // RUN
         amountIn, // 1 unit of collateral
       );
       console.log('marketPrice', marketPrice);

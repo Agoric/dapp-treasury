@@ -16,7 +16,7 @@ const ToBorrowValueInput = ({
 }) => (
   <NatAmountInput
     required
-    label="$MOE to receive"
+    label="RUN to receive"
     value={toBorrow.value}
     decimalPlaces={toBorrowDecimalPlaces}
     onChange={value => onChange({ brand: toBorrow.brand, value })}

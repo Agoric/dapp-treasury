@@ -99,21 +99,21 @@ export default async function deployApi(homePromise, endowments) {
   console.log(`-- AMM_INSTANCE_BOARD_ID: ${AMM_INSTANCE_BOARD_ID}`);
 
   const {
-    issuers: { Governance: governanceIssuer, RUN: moeIssuer },
-    brands: { Governance: governanceBrand, RUN: moeBrand },
+    issuers: { Governance: governanceIssuer, RUN: runIssuer },
+    brands: { Governance: governanceBrand, RUN: runBrand },
   } = await E(zoe).getTerms(instance);
   const walletAdmin = E(wallet).getAdminFacet();
   const issuerManager = E(walletAdmin).getIssuerManager();
 
   const GOVERNANCE_BRAND_PETNAME = [DEPLOY_NAME, 'Governance'];
 
-  const [SCONE_ISSUER_BOARD_ID, SCONE_BRAND_BOARD_ID] = await Promise.all([
-    E(board).getId(moeIssuer),
-    E(board).getId(moeBrand),
+  const [RUN_ISSUER_BOARD_ID, RUN_BRAND_BOARD_ID] = await Promise.all([
+    E(board).getId(runIssuer),
+    E(board).getId(runBrand),
     E(issuerManager).add(GOVERNANCE_BRAND_PETNAME, governanceIssuer),
   ]);
-  console.log('-- SCONE_ISSUER_BOARD_ID', SCONE_ISSUER_BOARD_ID);
-  console.log('-- SCONE_BRAND_BOARD_ID', SCONE_BRAND_BOARD_ID);
+  console.log('-- RUN_ISSUER_BOARD_ID', RUN_ISSUER_BOARD_ID);
+  console.log('-- RUN_BRAND_BOARD_ID', RUN_BRAND_BOARD_ID);
 
   // Try getting the vault manager params from what Pegasus dropped in our
   // scratch.
@@ -213,14 +213,14 @@ export default async function deployApi(homePromise, endowments) {
       const rates = {
         initialPrice: makeRatio(
           rateValues.initialPrice,
-          moeBrand,
+          runBrand,
           PERCENT,
           collateralIssuers[i].amount.brand,
         ),
-        initialMargin: makeRatio(150n, moeBrand),
-        liquidationMargin: makeRatio(125n, moeBrand),
-        interestRate: makeRatio(250n, moeBrand, BASIS_POINTS),
-        loanFee: makeRatio(50n, moeBrand, BASIS_POINTS),
+        initialMargin: makeRatio(150n, runBrand),
+        liquidationMargin: makeRatio(125n, runBrand),
+        interestRate: makeRatio(250n, runBrand, BASIS_POINTS),
+        loanFee: makeRatio(50n, runBrand, BASIS_POINTS),
       };
       const issuerBoardId = await E(board).getId(collateralIssuers[i].issuer);
       return {
@@ -298,7 +298,7 @@ export default async function deployApi(homePromise, endowments) {
       instancePetname: PA_NAME,
       installation,
       terms: {
-        sconesBrand: moeBrand,
+        runBrand,
         issuerToTrades,
         timer,
       },
@@ -312,8 +312,8 @@ export default async function deployApi(homePromise, endowments) {
 
   await priceAuthoritiesHandler();
 
-  // Add MoeIssuer to scratch for dappCardStore
-  await E(scratch).set('moeIssuer', moeIssuer);
+  // Add runIssuer to scratch for dappCardStore
+  await E(scratch).set('runIssuer', runIssuer);
 
   const invitationBrand = await invitationBrandP;
   const INVITE_BRAND_BOARD_ID = await E(board).getId(invitationBrand);
@@ -325,8 +325,8 @@ export default async function deployApi(homePromise, endowments) {
     CONTRACT_NAME,
     INSTANCE_BOARD_ID,
     INSTALLATION_BOARD_ID,
-    SCONE_ISSUER_BOARD_ID,
-    SCONE_BRAND_BOARD_ID,
+    RUN_ISSUER_BOARD_ID,
+    RUN_BRAND_BOARD_ID,
     AMM_NAME,
     AMM_INSTALLATION_BOARD_ID,
     LIQ_INSTALLATION_BOARD_ID,

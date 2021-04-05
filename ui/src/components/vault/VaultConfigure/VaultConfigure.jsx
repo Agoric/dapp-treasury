@@ -65,7 +65,7 @@ const useConfigStyles = makeStyles(theme => ({
  * @param {Function} props.dispatch
  * @param {CollateralInfo} props.vaultCollateral
  * @param {Array<PursesJSONState>} props.purses
- * @param {Brand} props.moeBrand
+ * @param {Brand} props.runBrand
  * @param {Array<Array<Brand, BrandInfo>>} props.brandToInfo
  * @returns {React.ReactElement}
  */
@@ -73,7 +73,7 @@ function VaultConfigure({
   dispatch,
   vaultCollateral,
   purses,
-  moeBrand,
+  runBrand,
   brandToInfo,
 }) {
   const classes = useConfigStyles();
@@ -82,8 +82,8 @@ function VaultConfigure({
   // selected in the previous step.
   const fundPurses = filterPursesByBrand(purses, vaultCollateral.brand);
 
-  // Purses with the moe brand
-  const dstPurses = filterPursesByBrand(purses, moeBrand);
+  // Purses with the RUN brand
+  const dstPurses = filterPursesByBrand(purses, runBrand);
 
   sortPurses(fundPurses);
   sortPurses(dstPurses);
@@ -94,7 +94,7 @@ function VaultConfigure({
   const [dstPurse, setDstPurse] = useState(
     dstPurses.length ? dstPurses[0] : null,
   );
-  const [toBorrow, setToBorrow] = useState(amountMath.makeEmpty(moeBrand));
+  const [toBorrow, setToBorrow] = useState(amountMath.makeEmpty(runBrand));
   // Assumes that collateral is MathKind.NAT
   const [toLock, setToLock] = useState(
     amountMath.makeEmpty(vaultCollateral.brand),

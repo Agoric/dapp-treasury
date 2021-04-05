@@ -69,7 +69,7 @@ const AdjustVaultForm = ({
   const [debtAction, setDebtAction] = React.useState('noaction');
 
   const [collateralPurseSelected, setCollateralPurseSelected] = useState(null);
-  const [moePurseSelected, setMoePurseSelected] = useState(null);
+  const [runPurseSelected, setRunPurseSelected] = useState(null);
 
   const [lockedDelta, setLockedDelta] = useState(
     amountMath.make(0n, locked.brand),
@@ -88,8 +88,8 @@ const AdjustVaultForm = ({
       makeAdjustVaultOffer({
         vaultToManageId,
         walletP,
-        moePurseSelected,
-        moeValue: debtDelta && debtDelta.value,
+        runPurseSelected,
+        runValue: debtDelta && debtDelta.value,
         collateralPurseSelected,
         collateralValue: lockedDelta && lockedDelta.value,
         collateralAction,
@@ -102,7 +102,7 @@ const AdjustVaultForm = ({
     needToAddOfferToWallet,
     collateralPurseSelected,
     lockedDelta,
-    moePurseSelected,
+    runPurseSelected,
     debtDelta,
     offerBeingMade,
   ]);
@@ -178,9 +178,9 @@ const AdjustVaultForm = ({
           <NatPurseAmountInput
             offerBeingMade={offerBeingMade}
             purses={purses}
-            purseSelected={moePurseSelected}
+            purseSelected={runPurseSelected}
             amountValue={debtDelta && debtDelta.value}
-            onPurseChange={setMoePurseSelected}
+            onPurseChange={setRunPurseSelected}
             onAmountChange={handleDebtAmountChange}
             brandToFilter={debt && debt.brand}
             brandToInfo={brandToInfo}

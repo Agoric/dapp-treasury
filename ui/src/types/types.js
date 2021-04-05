@@ -5,21 +5,21 @@
  *
  * @property {Ratio} initialMargin - the required
  * over-collateralization ratio required to open a loan. Example:
- * scones150/scones100
+ * RUN150/RUN100
  *
  * @property {Ratio} liquidationMargin - the ratio below which
  * collateral will be liquidated to satisfy the debt. Example:
- * scones125/scones100
+ * RUN125/RUN100
  *
  * @property {Ratio} marketPrice - price of one unit of collateral in
- * scones, where unit is the commonly understood unit indicated by
- * decimalPlaces (e.g. ETH, not wei). Example: scones1/moola1
+ * run, where unit is the commonly understood unit indicated by
+ * decimalPlaces (e.g. ETH, not wei). Example: RUN1/moola1
  *
  * @property {string} petname - the petname from the user's wallet for
  *   this brand. Example: "moola"
  *
  * @property {Ratio} stabilityFee - the fee for the loan. Example:
- * scones50/scones10000
+ * RUN50/RUN10000
  */
 
 /**

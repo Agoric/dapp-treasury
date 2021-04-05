@@ -7,7 +7,7 @@ import { allComparable } from '@agoric/same-structure';
 const QUOTE_INTERVAL = 30;
 
 export async function start(zcf) {
-  const { issuerToTrades, timer, sconesBrand } = zcf.getTerms();
+  const { issuerToTrades, timer, runBrand } = zcf.getTerms();
   const quoteMint = makeIssuerKit('quote', MathKind.SET).mint;
 
   // start with issuerToTrades, which has { issuer, fTGC, fTGO }, map to a list
@@ -29,8 +29,8 @@ export async function start(zcf) {
   const priceAuthorities = [];
   addedBrands.forEach(
     ({ brand, fakeTradesGivenCentral, fakeTradesGivenOther }) => {
-      const sconesInPriceAuthority = makeFakePriceAuthority({
-        actualBrandIn: sconesBrand,
+      const runInPriceAuthority = makeFakePriceAuthority({
+        actualBrandIn: runBrand,
         actualBrandOut: brand,
         tradeList: fakeTradesGivenCentral,
         timer,
@@ -38,22 +38,22 @@ export async function start(zcf) {
         quoteInterval: QUOTE_INTERVAL,
       });
       priceAuthorities.push({
-        pa: sconesInPriceAuthority,
-        brandIn: sconesBrand,
+        pa: runInPriceAuthority,
+        brandIn: runBrand,
         brandOut: brand,
       });
 
-      const sconesOutPriceAuthority = makeFakePriceAuthority({
+      const runOutPriceAuthority = makeFakePriceAuthority({
         actualBrandIn: brand,
-        actualBrandOut: sconesBrand,
+        actualBrandOut: runBrand,
         tradeList: fakeTradesGivenOther,
         timer,
         quoteMint,
       });
       priceAuthorities.push({
-        pa: sconesOutPriceAuthority,
+        pa: runOutPriceAuthority,
         brandIn: brand,
-        brandOut: sconesBrand,
+        brandOut: runBrand,
       });
     },
   );

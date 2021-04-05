@@ -57,9 +57,9 @@ const CloseVaultForm = ({
   const offerBeingMade = false;
 
   const [collateralPurseSelected, setCollateralPurseSelected] = useState(null);
-  const [moePurseSelected, setMoePurseSelected] = useState(null);
+  const [runPurseSelected, setRunPurseSelected] = useState(null);
   const [collateralValue, setCollateralValue] = useState(locked.value);
-  const [moeValue, setMoeValue] = useState(debt.value);
+  const [runValue, setRunValue] = useState(debt.value);
 
   const [needToAddOfferToWallet, setNeedToAddOfferToWallet] = useState(false);
   const [redirect, setRedirect] = useState(false);
@@ -71,8 +71,8 @@ const CloseVaultForm = ({
       makeCloseVaultOffer({
         vaultToManageId,
         walletP,
-        moePurseSelected,
-        moeValue,
+        runPurseSelected,
+        runValue,
         collateralPurseSelected,
         collateralValue,
       });
@@ -115,10 +115,10 @@ const CloseVaultForm = ({
               <NatPurseAmountInput
                 offerBeingMade={offerBeingMade}
                 purses={purses}
-                purseSelected={moePurseSelected}
-                amountValue={moeValue}
-                onPurseChange={setMoePurseSelected}
-                onAmountChange={setMoeValue}
+                purseSelected={runPurseSelected}
+                amountValue={runValue}
+                onPurseChange={setRunPurseSelected}
+                onAmountChange={setRunValue}
                 brandToFilter={debt && debt.brand}
                 brandToInfo={brandToInfo}
               />

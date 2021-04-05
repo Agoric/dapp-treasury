@@ -86,7 +86,7 @@ export default function NewVault() {
           dispatch={dispatch}
           vaultCollateral={vaultCollateral}
           purses={purses}
-          moeBrand={treasury.sconeBrand}
+          runBrand={treasury.runBrand}
           brandToInfo={brandToInfo}
         />
       );
@@ -115,7 +115,7 @@ export default function NewVault() {
   return (
     <Paper className={classes.paper}>
       <Typography component="h1" variant="h4" align="center">
-        Borrow $MOE
+        Borrow RUN
       </Typography>
       <ErrorBoundary>
         <VaultSteps
