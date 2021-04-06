@@ -38,9 +38,15 @@ const useStyles = makeStyles(theme => ({
 const VaultManagement = () => {
   const classes = useStyles();
 
-  const { state, walletP, ammPublicFacet } = useApplicationContext();
+  const { state, walletP } = useApplicationContext();
 
-  const { purses, vaults, vaultToManageId, brandToInfo } = state;
+  const {
+    purses,
+    vaults,
+    vaultToManageId,
+    brandToInfo,
+    autoswap: { ammAPI },
+  } = state;
 
   console.log('vaults', vaults, 'vaultToManageId', vaultToManageId);
 
@@ -111,7 +117,7 @@ const VaultManagement = () => {
       10n ** Nat(decimalPlaces),
       locked.brand,
     );
-    const quoteP = E(ammPublicFacet).getPriceGivenAvailableInput(
+    const quoteP = E(ammAPI).getPriceGivenAvailableInput(
       inputAmount,
       debt.brand,
     );
