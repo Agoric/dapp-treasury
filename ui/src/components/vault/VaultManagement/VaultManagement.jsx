@@ -158,9 +158,9 @@ const VaultManagement = () => {
           marketPrice={marketPrice}
           liquidationRatio={liquidationRatio}
           interestRate={interestRate}
-          // liquidationPenalty={liquidationPenalty}
           brandToInfo={brandToInfo}
           debt={debt}
+          locked={locked}
         />
         <div className={classes.valuesTable}>
           <ChangesTable

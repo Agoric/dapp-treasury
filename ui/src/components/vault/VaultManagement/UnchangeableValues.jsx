@@ -7,7 +7,10 @@ import Paper from '@material-ui/core/Paper';
 
 import { makeStyles } from '@material-ui/core/styles';
 
-import { multiplyBy } from '@agoric/zoe/src/contractSupport';
+import {
+  multiplyBy,
+  makeRatioFromAmounts,
+} from '@agoric/zoe/src/contractSupport';
 
 import { makeDisplayFunctions } from '../../helpers';
 
@@ -44,6 +47,7 @@ const ValueCard = ({ title, text }) => {
 };
 
 const UnchangeableValues = ({
+  locked,
   marketPrice,
   liquidationRatio,
   interestRate,
@@ -51,13 +55,16 @@ const UnchangeableValues = ({
   brandToInfo,
   debt,
 }) => {
-  const { displayPercent, displayRatio, displayAmount } = makeDisplayFunctions(
-    brandToInfo,
-  );
+  const { displayPercent, displayRatio } = makeDisplayFunctions(brandToInfo);
 
   // The liquidationPrice is when the value of the collateral
-  // equals liquidationRatio (i.e. 125%) of the current debt
-  const liquidationPrice = multiplyBy(debt, liquidationRatio);
+  // equals liquidationRatio (i.e. 125%) of the current debt, divided
+  // by the collateral locked
+  const liquidationPriceTotal = multiplyBy(debt, liquidationRatio);
+  const liquidationPricePerUnit = makeRatioFromAmounts(
+    liquidationPriceTotal,
+    locked,
+  );
 
   const classes = useStyles();
   return (
@@ -72,7 +79,10 @@ const UnchangeableValues = ({
           title="Liq. Ratio"
           text={`${displayPercent(liquidationRatio)}%`}
         />
-        <ValueCard title="Liq. Price" text={displayAmount(liquidationPrice)} />
+        <ValueCard
+          title="Liq. Price"
+          text={displayRatio(liquidationPricePerUnit)}
+        />
         <ValueCard
           title="Interest Rate"
           text={`${displayPercent(interestRate)}%`}
