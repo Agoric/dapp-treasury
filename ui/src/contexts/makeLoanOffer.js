@@ -17,6 +17,7 @@ export const makeLoanOffer = async (
     collateralPercent,
     liquidationMargin,
     stabilityFee,
+    interestRate,
   },
   walletP,
 ) => {
@@ -53,15 +54,11 @@ export const makeLoanOffer = async (
 
   const vault = {
     id,
-    collateralizationRatio: collateralPercent,
+    collateralPercent,
     debt: toBorrow,
-    interestRate: 0,
-    lockedBrandPetname: fundPurse.brandPetname,
-    debtBrandPetname: dstPurse.brandPetname,
-    lockedDisplayInfo: fundPurse.displayInfo,
-    debtDisplayInfo: dstPurse.displayInfo,
+    interestRate,
     liquidated: false,
-    liquidationRatio: liquidationMargin,
+    liquidationMargin,
     locked: toLock,
     stabilityFee,
     status: 'Pending Wallet Acceptance',

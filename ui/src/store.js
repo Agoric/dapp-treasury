@@ -54,7 +54,7 @@ export const {
     },
     updateVault: ({ vaults, ...state }, { id, vault }) => {
       const oldVaultData = vaults[id];
-      const status = vault.liquidated ? 'Liquidated' : 'Loan Initiated';
+      const status = vault.liquidated ? 'Liquidated' : vault.status;
       return {
         ...state,
         vaults: { ...vaults, [id]: { ...oldVaultData, ...vault, status } },

@@ -37,17 +37,32 @@ export function useApplicationContext() {
 
 function watchVault(id, dispatch) {
   console.log('vaultWatched', id);
+
+  // There is no UINotifier for offers that haven't been accepted, but
+  // we still want to show that the offer exists
+
+  const status = 'Pending Wallet Acceptance';
+  dispatch(
+    updateVault({
+      id,
+      vault: { status },
+    }),
+  );
+
   async function vaultUpdater() {
     const uiNotifier = E(walletP).getUINotifier(id);
     for await (const value of iterateNotifier(uiNotifier)) {
       console.log('======== VAULT', id, value);
-      dispatch(updateVault({ id, vault: value }));
+      dispatch(
+        updateVault({ id, vault: { ...value, status: 'Loan Initiated' } }),
+      );
     }
   }
 
-  vaultUpdater().catch(err =>
-    console.error('Vault watcher exception', id, err),
-  );
+  vaultUpdater().catch(err => {
+    console.error('Vault watcher exception', id, err);
+    dispatch(updateVault({ id, vault: { status: 'Error in offer', err } }));
+  });
 }
 
 function watchOffers(dispatch, INSTANCE_BOARD_ID) {

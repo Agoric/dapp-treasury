@@ -20,6 +20,9 @@
  *
  * @property {Ratio} stabilityFee - the fee for the loan. Example:
  * RUN50/RUN10000
+ *
+ * @property {Ratio} interestRate - the interest to be charged on a
+ * regular basis. The interest is added to the outstanding debt.
  */
 
 /**

@@ -21,9 +21,12 @@ import { setVaultToManageId } from '../store';
 
 const useStyles = makeStyles(theme => {
   return {
-    card: {
+    gridCard: {
       paddingLeft: theme.spacing(2),
       marginBottom: theme.spacing(2),
+    },
+    card: {
+      width: '350px',
     },
     loading: {
       padding: theme.spacing(3),
@@ -91,10 +94,10 @@ function VaultList() {
   return (
     <div>
       <ErrorBoundary>
-        <Grid container className={classes.grid}>
+        <Grid container className={classes.grid} alignItems="stretch">
           {vaultsList.map(([key, v]) => (
-            <Grid key={key} className={classes.card}>
-              <Card key={key}>
+            <Grid item key={key} className={classes.gridCard}>
+              <Card key={key} className={classes.card}>
                 <CardContent>
                   <VaultSummary
                     vault={v}

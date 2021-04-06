@@ -136,6 +136,7 @@ function VaultConfigure({
     stabilityFee: vaultCollateral.stabilityFee,
     liquidationMargin: vaultCollateral.liquidationMargin,
     marketPrice: vaultCollateral.marketPrice,
+    interestRate: vaultCollateral.interestRate,
   };
 
   const handlePercentInputError = bool => {

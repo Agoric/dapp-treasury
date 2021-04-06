@@ -24,6 +24,60 @@ const useStyles = makeStyles(theme => {
 export function VaultSummary({ vault, brandToInfo, id }) {
   const classes = useStyles();
 
+  if (vault.status === 'Pending Wallet Acceptance') {
+    return (
+      <TableContainer>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell className={classes.header}>Id</TableCell>
+              <TableCell className={classes.header} align="right">
+                {id}
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Status</TableCell>
+              <TableCell align="right">{vault.status}</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell colSpan={3}>
+                Please accept the offer in your wallet.
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  }
+
+  if (vault.status === 'Error in offer') {
+    return (
+      <TableContainer>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell className={classes.header}>Id</TableCell>
+              <TableCell className={classes.header} align="right">
+                {id}
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Status</TableCell>
+              <TableCell align="right">{vault.status}</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell colSpan={3}>
+                <details style={{ whiteSpace: 'pre-wrap' }}>
+                  {vault.err && vault.err.toString()}
+                </details>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  }
+
   const {
     collateralizationRatio, // ratio
     debt, // amount
