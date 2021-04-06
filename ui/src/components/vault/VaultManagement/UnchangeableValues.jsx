@@ -17,6 +17,14 @@ const useStyles = makeStyles(theme => ({
     marginBottom: theme.spacing(2),
   },
   card: { backgroundColor: theme.palette.info.main },
+  title: {
+    paddingLeft: theme.spacing(2),
+    paddingTop: theme.spacing(2),
+  },
+  break: {
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(2),
+  },
 }));
 
 const ValueCard = ({ title, text }) => {
@@ -54,16 +62,17 @@ const UnchangeableValues = ({
   const classes = useStyles();
   return (
     <Paper className={classes.root} elevation={0}>
+      <Typography className={classes.title}>Market Details</Typography>
+      <div className={classes.break}>
+        <hr />
+      </div>
       <Grid container spacing={1}>
         <ValueCard title="Market Price" text={displayRatio(marketPrice)} />
         <ValueCard
-          title="Liquidation Ratio"
+          title="Liq. Ratio"
           text={`${displayPercent(liquidationRatio)}%`}
         />
-        <ValueCard
-          title="Liquidation Price"
-          text={displayAmount(liquidationPrice)}
-        />
+        <ValueCard title="Liq. Price" text={displayAmount(liquidationPrice)} />
         <ValueCard
           title="Interest Rate"
           text={`${displayPercent(interestRate)}%`}

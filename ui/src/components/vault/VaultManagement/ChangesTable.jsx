@@ -79,7 +79,7 @@ const ChangesTable = ({
         ? displayPercent(newCollateralizationRatio)
         : '...',
     ),
-    createData('Debt Borrowed', displayAmount(debt), debtDeltaString),
+    createData('Outstanding RUN Debt', displayAmount(debt), debtDeltaString),
   ];
 
   return (

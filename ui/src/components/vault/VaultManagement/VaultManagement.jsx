@@ -156,12 +156,15 @@ const VaultManagement = () => {
     );
   };
 
+  const valueOfLocked = multiplyBy(locked, marketPrice);
+
   const header = (
     <div className={classes.header}>
-      <Typography>Vault {vaultToManageId}</Typography>
-      <Typography variant="h3" gutterBottom>
-        {displayAmount(locked)} {lockedPetname} locked
+      <Typography variant="h3">
+        {displayAmount(locked)} {lockedPetname} ({displayAmount(valueOfLocked)}{' '}
+        RUN) Locked
       </Typography>
+      <Typography>Vault ID: {vaultToManageId}</Typography>
     </div>
   );
 
