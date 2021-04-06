@@ -27,6 +27,7 @@ import { sameStructure } from '@agoric/same-structure';
 import AssetInput from './AssetInput';
 import Steps from './Steps';
 import ErrorBoundary from './ErrorBoundary';
+import ApproveOfferSB from './ApproveOfferSB';
 
 import { displayPetname, getInfoForBrand } from './helpers';
 
@@ -95,6 +96,12 @@ export default function Swap() {
   const [inputRate, setInputRate] = useState({});
   const [outputRate, setOutputRate] = useState({});
   const [quote, setQuote] = useState();
+
+  const [openApproveOfferSB, setOpenApproveOfferSB] = useState(false);
+
+  const handleApproveOfferSBClose = () => {
+    setOpenApproveOfferSB(false);
+  };
 
   console.log('ALL', {
     purses,
@@ -321,6 +328,7 @@ export default function Swap() {
     setOutputPurse(null);
     setInputAmount(null);
     setOutputAmount(null);
+    setOpenApproveOfferSB(true);
   }
 
   function handleChangeInputPurse(purse) {
@@ -370,78 +378,84 @@ export default function Swap() {
     isValid,
   });
   return (
-    <Paper className={classes.paper}>
-      <Typography component="h1" variant="h4" align="center">
-        Swap
-      </Typography>
-      <ErrorBoundary>
-        <Steps
-          connected={connected}
-          inputPurse={inputPurse}
-          outputPurse={outputPurse}
-          inputAmount={inputAmount}
-          outputAmount={outputAmount}
-        />
+    <div>
+      <Paper className={classes.paper}>
+        <Typography component="h1" variant="h4" align="center">
+          Swap
+        </Typography>
+        <ErrorBoundary>
+          <Steps
+            connected={connected}
+            inputPurse={inputPurse}
+            outputPurse={outputPurse}
+            inputAmount={inputAmount}
+            outputAmount={outputAmount}
+          />
 
-        <Grid container spacing={3} className={classes.grid} justify="center">
-          <Grid item sm={12}>
-            <AssetInput
-              title={inputLabel}
-              purseTitle={'Input'}
-              purses={purses}
-              onPurseChange={handleChangeInputPurse}
-              onAmountChange={handleChangeInputAmount}
-              purse={inputPurse}
-              amount={inputDisplay}
-              disabled={!connected}
-              purseError={pursesError}
-              amountError={inputAmountError}
-            />
-          </Grid>
-          <Grid item sm={12}>
-            <Grid container justify="center">
-              <IconButton
-                size="medium"
-                onClick={handleSwapInputs}
+          <Grid container spacing={3} className={classes.grid} justify="center">
+            <Grid item sm={12}>
+              <AssetInput
+                title={inputLabel}
+                purseTitle={'Input'}
+                purses={purses}
+                onPurseChange={handleChangeInputPurse}
+                onAmountChange={handleChangeInputAmount}
+                purse={inputPurse}
+                amount={inputDisplay}
                 disabled={!connected}
-              >
-                <ArrowDownIcon />
-              </IconButton>
+                purseError={pursesError}
+                amountError={inputAmountError}
+              />
+            </Grid>
+            <Grid item sm={12}>
+              <Grid container justify="center">
+                <IconButton
+                  size="medium"
+                  onClick={handleSwapInputs}
+                  disabled={!connected}
+                >
+                  <ArrowDownIcon />
+                </IconButton>
+              </Grid>
+            </Grid>
+            <Grid item sm={12}>
+              <AssetInput
+                title={outputLabel}
+                purseTitle={'Output'}
+                purses={purses}
+                onPurseChange={handleChangeOutputPurse}
+                onAmountChange={handleChangeOutputAmount}
+                purse={outputPurse}
+                amount={outputDisplay}
+                disabled={!connected}
+                purseError={pursesError}
+                amountError={outputAmountError}
+              />
+            </Grid>
+            <Grid item sm={12}>
+              <InputLabel className={classes.message}>
+                {connected && getExchangeRate(4)}
+              </InputLabel>
             </Grid>
           </Grid>
-          <Grid item sm={12}>
-            <AssetInput
-              title={outputLabel}
-              purseTitle={'Output'}
-              purses={purses}
-              onPurseChange={handleChangeOutputPurse}
-              onAmountChange={handleChangeOutputAmount}
-              purse={outputPurse}
-              amount={outputDisplay}
-              disabled={!connected}
-              purseError={pursesError}
-              amountError={outputAmountError}
-            />
-          </Grid>
-          <Grid item sm={12}>
-            <InputLabel className={classes.message}>
-              {connected && getExchangeRate(4)}
-            </InputLabel>
-          </Grid>
-        </Grid>
-        <div className={classes.buttons}>
-          <Button
-            variant="contained"
-            color="primary"
-            className={classes.button}
-            disabled={!connected || !isValid}
-            onClick={handleSwap}
-          >
-            Swap
-          </Button>
-        </div>
-      </ErrorBoundary>
-    </Paper>
+          <div className={classes.buttons}>
+            <Button
+              variant="contained"
+              color="primary"
+              className={classes.button}
+              disabled={!connected || !isValid}
+              onClick={handleSwap}
+            >
+              Swap
+            </Button>
+          </div>
+        </ErrorBoundary>
+      </Paper>
+      <ApproveOfferSB
+        open={openApproveOfferSB}
+        handleClose={handleApproveOfferSBClose}
+      />
+    </div>
   );
 }
 /* eslint-enable complexity */

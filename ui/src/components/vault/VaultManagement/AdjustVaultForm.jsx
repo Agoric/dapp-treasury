@@ -22,6 +22,7 @@ import CollateralActionChoice from './CollateralActionChoice';
 import DebtActionChoice from './DebtActionChoice';
 
 import { makeAdjustVaultOffer } from './makeAdjustVaultOffer';
+import ApproveOfferSB from '../../ApproveOfferSB';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -78,13 +79,47 @@ const AdjustVaultForm = ({
 
   const [needToAddOfferToWallet, setNeedToAddOfferToWallet] = useState(false);
   const [redirect, setRedirect] = useState(false);
+  const [openApproveOfferSB, setOpenApproveOfferSB] = React.useState(false);
+
+  const resetState = () => {
+    setCollateralAction('noaction');
+    setDebtAction('noaction');
+    setCollateralPurseSelected(null);
+    setRunPurseSelected(null);
+    setLockedDelta(amountMath.make(0n, locked.brand));
+    setDebtDelta(amountMath.make(0n, debt.brand));
+    setNeedToAddOfferToWallet(false);
+    setRedirect(false);
+  };
+
+  const handleApproveOfferSBClose = () => {
+    setOpenApproveOfferSB(false);
+  };
 
   const classes = useStyles();
 
   useEffect(() => {
-    const bothNoAction =
-      collateralAction === 'noaction' && debtAction === 'noaction';
-    if (needToAddOfferToWallet && !bothNoAction) {
+    if (needToAddOfferToWallet) {
+      setNeedToAddOfferToWallet(false);
+
+      if (collateralAction === 'noaction' && debtAction === 'noaction') {
+        // No actions should be taken
+        return;
+      }
+      if (collateralAction === 'deposit' || collateralAction === 'withdraw') {
+        // We are taking a collateral action, and should have a
+        // collateralPurseSelected and lockedDelta
+        if (!(collateralPurseSelected && lockedDelta && lockedDelta.value)) {
+          return;
+        }
+      }
+      if (debtAction === 'borrow' || debtAction === 'repay') {
+        // We are taking a debt action, and should have a
+        // runPurseSelected and debtDelta
+        if (!(runPurseSelected && debtDelta && debtDelta.value)) {
+          return;
+        }
+      }
       makeAdjustVaultOffer({
         vaultToManageId,
         walletP,
@@ -95,9 +130,9 @@ const AdjustVaultForm = ({
         collateralAction,
         debtAction,
       });
-      // dispatch(setOfferBeingMade(true));
+      resetState();
+      setOpenApproveOfferSB(true);
     }
-    setNeedToAddOfferToWallet(false);
   }, [
     needToAddOfferToWallet,
     collateralPurseSelected,
@@ -108,8 +143,6 @@ const AdjustVaultForm = ({
   ]);
 
   const handleSubmission = () => {
-    // TODO: check that the purses and amounts are present
-
     // make offer to the wallet, the react way
     setNeedToAddOfferToWallet(true);
   };
@@ -162,76 +195,82 @@ const AdjustVaultForm = ({
     return <Redirect to={redirect} />;
   }
   return (
-    <Paper elevation={3}>
-      <div className={classes.root}>
-        <AppBar position="static">
-          <Toolbar className={classes.settingsToolbar}>
-            <TuneIcon className={classes.toolbarIcon} />
-            <Typography variant="h6">Adjust Vault</Typography>
-          </Toolbar>
-        </AppBar>
-      </div>
-      <Container maxWidth="sm" className={classes.content}>
+    <div>
+      <Paper elevation={3}>
         <div className={classes.root}>
-          <CollateralActionChoice
-            collateralAction={collateralAction}
-            setCollateralAction={handleCollateralAction}
-          />
-          <Grid container>
+          <AppBar position="static">
+            <Toolbar className={classes.settingsToolbar}>
+              <TuneIcon className={classes.toolbarIcon} />
+              <Typography variant="h6">Adjust Vault</Typography>
+            </Toolbar>
+          </AppBar>
+        </div>
+        <Container maxWidth="sm" className={classes.content}>
+          <div className={classes.root}>
+            <CollateralActionChoice
+              collateralAction={collateralAction}
+              setCollateralAction={handleCollateralAction}
+            />
+            <Grid container>
+              <NatPurseAmountInput
+                offerBeingMade={offerBeingMade}
+                purses={purses}
+                purseSelected={collateralPurseSelected}
+                amountValue={lockedDelta && lockedDelta.value}
+                onPurseChange={setCollateralPurseSelected}
+                onAmountChange={handleCollateralAmountChange}
+                brandToFilter={locked && locked.brand}
+                brandToInfo={brandToInfo}
+              />
+            </Grid>
+            <DebtActionChoice
+              debtAction={debtAction}
+              setDebtAction={handleDebtAction}
+            />
             <NatPurseAmountInput
               offerBeingMade={offerBeingMade}
               purses={purses}
-              purseSelected={collateralPurseSelected}
-              amountValue={lockedDelta && lockedDelta.value}
-              onPurseChange={setCollateralPurseSelected}
-              onAmountChange={handleCollateralAmountChange}
-              brandToFilter={locked && locked.brand}
+              purseSelected={runPurseSelected}
+              amountValue={debtDelta && debtDelta.value}
+              onPurseChange={setRunPurseSelected}
+              onAmountChange={handleDebtAmountChange}
+              brandToFilter={debt && debt.brand}
               brandToInfo={brandToInfo}
             />
+          </div>
+          <Grid container spacing={1} className={classes.buttons}>
+            <Grid item>
+              <Button
+                className={classes.button}
+                variant="contained"
+                color="secondary"
+                disabled={offerBeingMade}
+                startIcon={<DeleteIcon />}
+                onClick={() => setRedirect('/treasury')}
+              >
+                Cancel
+              </Button>
+            </Grid>
+            <Grid item>
+              <Button
+                className={classes.button}
+                variant="contained"
+                color="secondary"
+                disabled={offerBeingMade}
+                startIcon={<SendIcon />}
+                onClick={handleSubmission}
+              >
+                Make Offer
+              </Button>
+            </Grid>
           </Grid>
-          <DebtActionChoice
-            debtAction={debtAction}
-            setDebtAction={handleDebtAction}
-          />
-          <NatPurseAmountInput
-            offerBeingMade={offerBeingMade}
-            purses={purses}
-            purseSelected={runPurseSelected}
-            amountValue={debtDelta && debtDelta.value}
-            onPurseChange={setRunPurseSelected}
-            onAmountChange={handleDebtAmountChange}
-            brandToFilter={debt && debt.brand}
-            brandToInfo={brandToInfo}
-          />
-        </div>
-        <Grid container spacing={1} className={classes.buttons}>
-          <Grid item>
-            <Button
-              className={classes.button}
-              variant="contained"
-              color="secondary"
-              disabled={offerBeingMade}
-              startIcon={<DeleteIcon />}
-              onClick={() => setRedirect('/treasury')}
-            >
-              Cancel
-            </Button>
-          </Grid>
-          <Grid item>
-            <Button
-              className={classes.button}
-              variant="contained"
-              color="secondary"
-              disabled={offerBeingMade}
-              startIcon={<SendIcon />}
-              onClick={handleSubmission}
-            >
-              Make Offer
-            </Button>
-          </Grid>
-        </Grid>
-      </Container>
-    </Paper>
+        </Container>
+      </Paper>
+      <ApproveOfferSB
+        open={openApproveOfferSB}
+        handleClose={handleApproveOfferSBClose}
+      />
+    </div>
   );
 };
 

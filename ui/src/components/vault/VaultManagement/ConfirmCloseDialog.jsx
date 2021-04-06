@@ -23,7 +23,8 @@ const ConfirmCloseDialog = ({ onClose, open }) => {
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="alert-dialog-description">
-          Closing a vault is permanent and cannot be undone.
+          Closing a vault is permanent and cannot be undone. To close your
+          vault, please approve the offer in your wallet.
         </DialogContentText>
       </DialogContent>
       <DialogActions>
