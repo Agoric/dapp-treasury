@@ -142,7 +142,9 @@ function VaultConfigure({
     setBelowMinError(bool);
   };
 
-  const { displayBrandPetname } = makeDisplayFunctions(brandToInfo);
+  const { displayBrandPetname, displayPercent } = makeDisplayFunctions(
+    brandToInfo,
+  );
   const collateralPetnameDisplay = displayBrandPetname(vaultCollateral.brand);
 
   return (
@@ -156,6 +158,11 @@ function VaultConfigure({
             <div style={{ paddingTop: 20 }}>
               {fundPurseBalanceDisplay} {collateralPetnameDisplay} Available
               from Funding Purse
+            </div>
+            <div style={{ paddingTop: 20 }}>
+              A stability fee of{' '}
+              {displayPercent(vaultCollateral.stabilityFee, 2)}% will be charged
+              on vault creation.
             </div>
           </Grid>
           <Grid item xs={8}>
