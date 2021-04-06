@@ -60,7 +60,7 @@ export const makeAdjustVaultOffer = ({
     id,
     continuingInvitation: {
       priorOfferId: vaultToManageId,
-      description: 'adjustBalances',
+      description: 'AdjustBalances',
     },
     installationHandleBoardId: INSTALLATION_BOARD_ID,
     instanceHandleBoardId: INSTANCE_BOARD_ID,

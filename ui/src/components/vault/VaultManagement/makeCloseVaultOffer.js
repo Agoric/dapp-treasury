@@ -48,7 +48,7 @@ export const makeCloseVaultOffer = ({
     id,
     continuingInvitation: {
       priorOfferId: vaultToManageId,
-      description: 'pay off entire loan and close Vault',
+      description: 'CloseVault',
     },
     installationHandleBoardId: INSTALLATION_BOARD_ID,
     instanceHandleBoardId: INSTANCE_BOARD_ID,
