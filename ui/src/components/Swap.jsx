@@ -383,49 +383,51 @@ export default function Swap() {
           outputAmount={outputAmount}
         />
 
-        <Grid
-          container
-          direction="column"
-          alignItems="center"
-          spacing={3}
-          className={classes.grid}
-        >
-          <AssetInput
-            title={inputLabel}
-            purseTitle={'Input'}
-            purses={purses}
-            onPurseChange={handleChangeInputPurse}
-            onAmountChange={handleChangeInputAmount}
-            purse={inputPurse}
-            amount={inputDisplay}
-            disabled={!connected}
-            purseError={pursesError}
-            amountError={inputAmountError}
-          />
-
-          <IconButton
-            size="medium"
-            onClick={handleSwapInputs}
-            disabled={!connected}
-          >
-            <ArrowDownIcon />
-          </IconButton>
-
-          <AssetInput
-            title={outputLabel}
-            purseTitle={'Output'}
-            purses={purses}
-            onPurseChange={handleChangeOutputPurse}
-            onAmountChange={handleChangeOutputAmount}
-            purse={outputPurse}
-            amount={outputDisplay}
-            disabled={!connected}
-            purseError={pursesError}
-            amountError={outputAmountError}
-          />
-          <InputLabel className={classes.message}>
-            {connected && getExchangeRate(4)}
-          </InputLabel>
+        <Grid container spacing={3} className={classes.grid} justify="center">
+          <Grid item sm={12}>
+            <AssetInput
+              title={inputLabel}
+              purseTitle={'Input'}
+              purses={purses}
+              onPurseChange={handleChangeInputPurse}
+              onAmountChange={handleChangeInputAmount}
+              purse={inputPurse}
+              amount={inputDisplay}
+              disabled={!connected}
+              purseError={pursesError}
+              amountError={inputAmountError}
+            />
+          </Grid>
+          <Grid item sm={12}>
+            <Grid container justify="center">
+              <IconButton
+                size="medium"
+                onClick={handleSwapInputs}
+                disabled={!connected}
+              >
+                <ArrowDownIcon />
+              </IconButton>
+            </Grid>
+          </Grid>
+          <Grid item sm={12}>
+            <AssetInput
+              title={outputLabel}
+              purseTitle={'Output'}
+              purses={purses}
+              onPurseChange={handleChangeOutputPurse}
+              onAmountChange={handleChangeOutputAmount}
+              purse={outputPurse}
+              amount={outputDisplay}
+              disabled={!connected}
+              purseError={pursesError}
+              amountError={outputAmountError}
+            />
+          </Grid>
+          <Grid item sm={12}>
+            <InputLabel className={classes.message}>
+              {connected && getExchangeRate(4)}
+            </InputLabel>
+          </Grid>
         </Grid>
         <div className={classes.buttons}>
           <Button

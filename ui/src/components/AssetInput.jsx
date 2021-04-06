@@ -33,6 +33,17 @@ const NatPurseSelector = makeNatPurseSelector({
   makeStyles,
 });
 
+const useStyles = makeStyles(_theme => ({
+  natPurseSelector: {
+    '&.MuiFormControl-fullWidth': {
+      minWidth: '300px',
+    },
+  },
+  natAmountInput: {
+    minWidth: '300px',
+  },
+}));
+
 export default function AssetInput({
   title,
   purseTitle,
@@ -45,10 +56,12 @@ export default function AssetInput({
   purseError,
   amountError,
 }) {
+  const classes = useStyles();
+
   return (
     <ErrorBoundary>
-      <Grid container spacing={3}>
-        <Grid item xs={12} sm={12} md={4}>
+      <Grid container justify="center" spacing={2}>
+        <Grid item>
           <NatPurseSelector
             label={`${purseTitle || title} Purse`}
             purses={purses}
@@ -56,18 +69,10 @@ export default function AssetInput({
             onChange={onPurseChange}
             disabled={disabled}
             error={purseError}
+            className={classes.natPurseSelector}
           />
         </Grid>
-        <Grid
-          item
-          xs={12}
-          sm={12}
-          md={8}
-          container
-          direction="column"
-          alignItems="flex-end"
-          justify="flex-end"
-        >
+        <Grid item>
           <NatAmountInput
             label={title}
             onChange={onAmountChange}
@@ -76,6 +81,7 @@ export default function AssetInput({
             placesToShow={2}
             disabled={disabled || !purse}
             error={amountError}
+            className={classes.natAmountInput}
           />
         </Grid>
       </Grid>
