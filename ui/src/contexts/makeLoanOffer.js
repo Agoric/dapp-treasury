@@ -1,28 +1,16 @@
-import { makeRatio } from '@agoric/zoe/src/contractSupport/ratio';
-
 import { E } from '@agoric/captp';
-
-import { resetVault, createVault, setVaultCreated } from '../store';
 
 import { dappConfig } from '../utils/config';
 
-export const makeLoanOffer = async (
-  dispatch,
-  {
-    fundPurse,
-    toLock,
-    toBorrow,
-    dstPurse,
-    collateralPercent,
-    liquidationMargin,
-    stabilityFee,
-    interestRate,
-  },
+export const makeLoanOffer = async ({
+  fundPurse,
+  toLock,
+  toBorrow,
+  dstPurse,
   walletP,
   treasuryAPI,
-) => {
-  const id = `${Date.now()}`;
-
+  id,
+}) => {
   const { INSTALLATION_BOARD_ID, INSTANCE_BOARD_ID } = dappConfig;
 
   const invitation = E(treasuryAPI).makeLoanInvitation();
@@ -49,21 +37,5 @@ export const makeLoanOffer = async (
     },
   };
 
-  await E(walletP).addOffer(offerConfig);
-
-  const vault = {
-    id,
-    collateralPercent,
-    debt: toBorrow,
-    interestRate,
-    liquidated: false,
-    liquidationMargin,
-    locked: toLock,
-    stabilityFee,
-    status: 'Pending Wallet Acceptance',
-    liquidationPenalty: makeRatio(3n, toBorrow.brand),
-  };
-  dispatch(createVault({ id, vault }));
-  dispatch(setVaultCreated(true));
-  dispatch(resetVault());
+  return E(walletP).addOffer(offerConfig);
 };

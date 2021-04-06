@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -12,6 +12,7 @@ import VaultCollateral from './VaultCollateral';
 import VaultConfigure from './VaultConfigure/VaultConfigure';
 import VaultCreate from './VaultCreate';
 import ErrorBoundary from '../ErrorBoundary';
+import { resetVault } from '../../store';
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -51,13 +52,23 @@ export default function NewVault() {
       collaterals,
       purses,
       vaultConfiguration,
-      vaultCreated,
       approved,
       brandToInfo,
     },
     dispatch,
     walletP,
   } = useApplicationContext();
+
+  const [redirect, setRedirect] = useState(false);
+
+  if (redirect) {
+    return <Redirect to={redirect} />;
+  }
+
+  const handleOfferMade = () => {
+    dispatch(resetVault());
+    setRedirect('/treasury');
+  };
 
   if (!approved) {
     return (
@@ -91,23 +102,14 @@ export default function NewVault() {
         />
       );
     }
-    if (!vaultCreated) {
-      // User needs to confirm the vault configuration
-      return (
-        <VaultCreate
-          dispatch={dispatch}
-          vaultConfiguration={vaultConfiguration}
-          walletP={walletP}
-          brandToInfo={brandToInfo}
-        />
-      );
-    }
-    // Vault has been created, so redirect to the page showing open vaults
+    // User needs to confirm the vault configuration
     return (
-      <Redirect
-        to={{
-          pathname: '/treasury',
-        }}
+      <VaultCreate
+        dispatch={dispatch}
+        vaultConfiguration={vaultConfiguration}
+        walletP={walletP}
+        brandToInfo={brandToInfo}
+        onOfferMade={handleOfferMade}
       />
     );
   };
