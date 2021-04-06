@@ -299,7 +299,7 @@ export default function Swap() {
   // To limit slippage with offer safety, this computes
   // the most we would give or the least we would want
   // The most or least we would give or want respectively
-  // TODO this hardwires 2% silppage limit; it should be
+  // TODO this hardwires 2% slippage limit; it should be
   // editable: https://github.com/Agoric/dapp-token-economy/issues/230
   const unitBasis = 10000n;
   const maxSlippageBasis = 200n + unitBasis;

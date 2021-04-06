@@ -20,7 +20,7 @@ jobs:
       matrix:
         node-version: [12.x, 14.x]
     steps:
-    - name: Checkout token-economy
+    - name: Checkout treasury
       uses: actions/checkout@v2
 
     # Select a branch on agoric-sdk to test against by adding text to the body of the
