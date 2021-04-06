@@ -15,7 +15,7 @@ const CollateralizationPercentInput = ({
   belowMinError,
 }) => {
   const { displayPercent } = makeDisplayFunctions(brandToInfo);
-  const minValueStr = displayPercent(initialMargin);
+  const minValueStr = displayPercent(initialMargin, 0);
 
   return (
     <TextField
@@ -25,8 +25,10 @@ const CollateralizationPercentInput = ({
       InputProps={{
         inputComponent: NumberFormatPercent,
       }}
-      value={displayPercent(collateralPercent)}
+      value={displayPercent(collateralPercent, 0)}
       onChange={ev => {
+        // TODO: The parsing of a percent into a ratio should be put
+        // in ui-components rather than done manually here.
         const numeratorValue = BigInt(ev.target.value || 0);
         if (numeratorValue === 0n) {
           onError(true);
