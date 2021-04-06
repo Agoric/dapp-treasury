@@ -9,11 +9,7 @@ import { makeNatAmountInput } from '@agoric/ui-components';
 // instances to the component.
 const NatAmountInput = makeNatAmountInput({ React, TextField });
 
-const ToBorrowValueInput = ({
-  toBorrow,
-  toBorrowDecimalPlaces, // getPurseDecimalPlaces(dstPurse)
-  onChange,
-}) => (
+const ToBorrowValueInput = ({ toBorrow, toBorrowDecimalPlaces, onChange }) => (
   <NatAmountInput
     required
     label="RUN to receive"

@@ -11,7 +11,6 @@ import { amountMath } from '@agoric/ertp';
 import '../../../types/types';
 
 import {
-  getPurseDecimalPlaces,
   filterPursesByBrand,
   sortPurses,
   makeDisplayFunctions,
@@ -105,7 +104,6 @@ function VaultConfigure({
 
   const [belowMinError, setBelowMinError] = useState(false);
 
-  const toLockDecimalPlaces = getPurseDecimalPlaces(fundPurse);
   const priceRate = vaultCollateral.marketPrice;
 
   const onBorrowChange = newToBorrow => {
@@ -143,10 +141,15 @@ function VaultConfigure({
     setBelowMinError(bool);
   };
 
-  const { displayBrandPetname, displayPercent } = makeDisplayFunctions(
-    brandToInfo,
-  );
+  const {
+    displayBrandPetname,
+    displayPercent,
+    getDecimalPlaces,
+  } = makeDisplayFunctions(brandToInfo);
   const collateralPetnameDisplay = displayBrandPetname(vaultCollateral.brand);
+
+  const toLockDecimalPlaces = getDecimalPlaces(toLock.brand);
+  const toBorrowDecimalPlaces = getDecimalPlaces(toBorrow.brand);
 
   return (
     <div className={classes.root}>
@@ -181,7 +184,7 @@ function VaultConfigure({
             />
             <ToBorrowValueInput
               toBorrow={toBorrow}
-              toBorrowDecimalPlaces={getPurseDecimalPlaces(dstPurse)}
+              toBorrowDecimalPlaces={toBorrowDecimalPlaces}
               onChange={onBorrowChange}
             />
             <DstPurseSelector
