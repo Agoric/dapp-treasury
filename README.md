@@ -1,4 +1,4 @@
-# Dapp Token Economy
+# Agoric Treasury
 
 ## Development
 
@@ -8,10 +8,10 @@
 3. In agoric-sdk, do `yarn build`
 4. Git clone this repository, and pull down the latest from branch
    `main`
-5. Navigate to where you cloned dapp-token-economy, and do `agoric install`
+5. Navigate to where you cloned `treasury`, and do `agoric install`
 6. To start a local chain for development, do `agoric start --reset
    --verbose`
-7. In another terminal, in dapp-token-economy, do
+7. In another terminal, in `treasury`, do
    `ui/use-on-chain-config.js`. This will use the default on-chain settings.
 8. To start the UI locally, do `cd ui && yarn start`
 9. Open your wallet with `agoric open`

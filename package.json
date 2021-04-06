@@ -1,5 +1,5 @@
 {
-  "name": "dapp-token-economy",
+  "name": "treasury",
   "version": "0.0.1",
   "private": true,
   "useWorkspaces": true,
