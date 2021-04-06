@@ -67,6 +67,27 @@ function VaultList() {
     );
   }
 
+  const makeButtons = (key, vaultData) => {
+    // TODO: use a less fragile way of keeping track of a loan status
+    const canManage = vaultData.status === 'Loan Initiated';
+    return (
+      <CardActions>
+        <Grid container justify="flex-end">
+          <Grid item className={classes.button}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => handleOnClick(key)}
+              disabled={!canManage}
+            >
+              Manage Vault
+            </Button>
+          </Grid>
+        </Grid>
+      </CardActions>
+    );
+  };
+
   return (
     <div>
       <ErrorBoundary>
@@ -81,19 +102,7 @@ function VaultList() {
                     brandToInfo={brandToInfo}
                   ></VaultSummary>
                 </CardContent>
-                <CardActions>
-                  <Grid container justify="flex-end">
-                    <Grid item className={classes.button}>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => handleOnClick(key)}
-                      >
-                        Manage Vault
-                      </Button>
-                    </Grid>
-                  </Grid>
-                </CardActions>
+                {makeButtons(key, v)}
               </Card>
             </Grid>
           ))}
