@@ -68,7 +68,7 @@ const composeRatio = (x, y) =>
 /* eslint-disable complexity */
 export default function Swap() {
   const classes = useStyles();
-  const { state, dispatch, walletP } = useApplicationContext();
+  const { state, walletP } = useApplicationContext();
   // const { purses, connected, ammAPI, centralBrand, otherBrands } = state;
   const {
     purses: unfilteredPurses,
@@ -310,7 +310,7 @@ export default function Swap() {
   function handleSwap() {
     makeSwapOffer(
       walletP,
-      dispatch,
+      ammAPI,
       inputPurse,
       isSwapIn ? giveLimit : inputDisplay,
       outputPurse,

@@ -1,7 +1,6 @@
 import { makeRatio } from '@agoric/zoe/src/contractSupport/ratio';
 
 import { E } from '@agoric/captp';
-import { getPublicFacet } from './getPublicFacet';
 
 import { resetVault, createVault, setVaultCreated } from '../store';
 
@@ -20,13 +19,13 @@ export const makeLoanOffer = async (
     interestRate,
   },
   walletP,
+  treasuryAPI,
 ) => {
   const id = `${Date.now()}`;
 
   const { INSTALLATION_BOARD_ID, INSTANCE_BOARD_ID } = dappConfig;
 
-  const loanPublicFacet = getPublicFacet(walletP, INSTANCE_BOARD_ID);
-  const invitation = E(loanPublicFacet).makeLoanInvitation();
+  const invitation = E(treasuryAPI).makeLoanInvitation();
 
   const offerConfig = {
     id,
