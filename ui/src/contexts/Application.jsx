@@ -70,10 +70,15 @@ function watchOffers(dispatch, INSTANCE_BOARD_ID) {
   async function offersUpdater() {
     const offerNotifier = E(walletP).getOffersNotifier();
     for await (const offers of iterateNotifier(offerNotifier)) {
-      for (const { id, instanceHandleBoardId } of offers) {
+      for (const {
+        id,
+        instanceHandleBoardId,
+        continuingInvitation,
+      } of offers) {
         if (
           instanceHandleBoardId === INSTANCE_BOARD_ID &&
-          !watchedVaults.has(id)
+          !watchedVaults.has(id) &&
+          continuingInvitation === undefined // AdjustBalances and CloseVault offers use continuingInvitation
         ) {
           watchedVaults.add(id);
           watchVault(id, dispatch);
