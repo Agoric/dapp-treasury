@@ -36,7 +36,11 @@ const ChangesTable = ({
 }) => {
   const classes = useStyles();
 
-  const { displayAmount, displayPercent } = makeDisplayFunctions(brandToInfo);
+  const {
+    displayAmount,
+    displayPercent,
+    displayBrandPetname,
+  } = makeDisplayFunctions(brandToInfo);
 
   const getDeltaString = (oldAmount, newAmount) => {
     if (
@@ -63,23 +67,28 @@ const ChangesTable = ({
     return '...';
   };
 
-  const lockedDeltaString = getDeltaString(
-    locked.value,
-    lockedAfterDelta.value,
-  );
+  const lockedDeltaString = getDeltaString(locked, lockedAfterDelta);
 
-  const debtDeltaString = getDeltaString(debt.value, debtAfterDelta.value);
+  const debtDeltaString = getDeltaString(debt, debtAfterDelta);
 
   const rows = [
-    createData('Collateral Locked', displayAmount(locked), lockedDeltaString),
+    createData(
+      'Collateral Locked',
+      `${displayAmount(locked)} ${displayBrandPetname(locked.brand)}`,
+      lockedDeltaString,
+    ),
     createData(
       'Collateralization Ratio',
-      displayPercent(collateralizationRatio),
+      `${displayPercent(collateralizationRatio)}%`,
       newCollateralizationRatio
-        ? displayPercent(newCollateralizationRatio)
+        ? `${displayPercent(newCollateralizationRatio)}%`
         : '...',
     ),
-    createData('Outstanding RUN Debt', displayAmount(debt), debtDeltaString),
+    createData(
+      'Outstanding RUN Debt',
+      `${displayAmount(debt)} ${displayBrandPetname(debt.brand)}`,
+      debtDeltaString,
+    ),
   ];
 
   return (

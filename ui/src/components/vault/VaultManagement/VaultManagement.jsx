@@ -48,8 +48,6 @@ const VaultManagement = () => {
     autoswap: { ammAPI },
   } = state;
 
-  console.log('vaults', vaults, 'vaultToManageId', vaultToManageId);
-
   let vaultToManage = {
     collateralizationRatio: null,
     debt: null,
@@ -92,24 +90,14 @@ const VaultManagement = () => {
 
   // Collateralization ratio is the value of collateral to debt.
   const calcRatio = (priceRate, newLock, newBorrow) => {
-    console.log(
-      'priceRate',
-      priceRate,
-      'newLock',
-      newLock,
-      'newBorrow',
-      newBorrow,
-    );
     const lockPrice = multiplyBy(newLock, priceRate);
     const newRatio = makeRatioFromAmounts(lockPrice, newBorrow);
-    console.log(newRatio);
     return newRatio;
   };
 
   // run once when component loaded.
   // TODO: use makeQuoteNotifier
   useEffect(() => {
-    console.log('getting quote for marketPrice');
     const decimalPlaces = getDecimalPlaces(locked.brand);
 
     // Make what would display as 1 unit of collateral
@@ -122,15 +110,11 @@ const VaultManagement = () => {
       debt.brand,
     );
 
-    console.log('marketPrice inputAmount', inputAmount);
-
     quoteP.then(({ amountIn, amountOut }) => {
-      console.log('setting marketPrice', amountIn, amountOut);
       const newMarketPrice = makeRatioFromAmounts(
         amountOut, // RUN
         amountIn, // 1 unit of collateral
       );
-      console.log('marketPrice', marketPrice);
       setMarketPrice(newMarketPrice);
       setCollateralizationRatio(calcRatio(newMarketPrice, locked, debt));
     });
@@ -140,19 +124,17 @@ const VaultManagement = () => {
     return <div>Finding the market price...</div>;
   }
 
-  console.log('newCollateralizationRatio', newCollateralizationRatio);
-
   const onLockedDeltaChange = newLockedAfterDelta => {
     setLockedAfterDelta(newLockedAfterDelta);
     setNewCollateralizationRatio(
-      calcRatio(marketPrice, lockedAfterDelta, debtAfterDelta),
+      calcRatio(marketPrice, newLockedAfterDelta, debtAfterDelta),
     );
   };
 
   const onDebtDeltaChange = newDebtAfterDelta => {
     setDebtAfterDelta(newDebtAfterDelta);
     setNewCollateralizationRatio(
-      calcRatio(marketPrice, lockedAfterDelta, debtAfterDelta),
+      calcRatio(marketPrice, lockedAfterDelta, newDebtAfterDelta),
     );
   };
 

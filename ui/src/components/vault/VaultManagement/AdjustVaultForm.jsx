@@ -114,30 +114,48 @@ const AdjustVaultForm = ({
     setNeedToAddOfferToWallet(true);
   };
 
+  const updateLockedDelta = (collAction, collDelta) => {
+    if (collAction === 'deposit') {
+      onLockedDeltaChange(amountMath.add(locked, collDelta));
+    }
+    if (collAction === 'withdraw') {
+      onLockedDeltaChange(amountMath.subtract(locked, collDelta));
+    }
+  };
+
+  const updateDebtDelta = (dAction, dDelta) => {
+    if (dAction === 'borrow') {
+      onDebtDeltaChange(amountMath.add(debt, dDelta));
+    }
+    if (dAction === 'repay') {
+      onDebtDeltaChange(amountMath.subtract(debt, dDelta));
+    }
+  };
+
   const handleCollateralAmountChange = value => {
     const newLockedDelta = amountMath.make(value, locked.brand);
     setLockedDelta(newLockedDelta);
-    let newLockedAfterDelta = locked;
-    if (collateralAction === 'deposit') {
-      newLockedAfterDelta = amountMath.add(locked, newLockedDelta);
-    }
-    if (collateralAction === 'withdraw') {
-      newLockedAfterDelta = amountMath.subtract(locked, newLockedDelta);
-    }
-    onLockedDeltaChange(newLockedAfterDelta);
+    updateLockedDelta(collateralAction, newLockedDelta);
   };
 
   const handleDebtAmountChange = value => {
     const newDebtDelta = amountMath.make(value, debt.brand);
     setDebtDelta(newDebtDelta);
-    let newDebtAfterDelta = debt;
-    if (debtAction === 'borrow') {
-      newDebtAfterDelta = amountMath.add(debt, newDebtDelta);
-    }
-    if (debtAction === 'repay') {
-      newDebtAfterDelta = amountMath.subtract(debt, newDebtAfterDelta);
-    }
-    onDebtDeltaChange(newDebtAfterDelta);
+    updateDebtDelta(debtAction, newDebtDelta);
+  };
+
+  const handleCollateralAction = value => {
+    // if the collateral action changes, rerun the logic for sending
+    // the newLockedAfterDelta
+    setCollateralAction(value);
+    updateLockedDelta(value, lockedDelta);
+  };
+
+  const handleDebtAction = value => {
+    // if the debt action changes, rerun the logic for sending
+    // the newDebtAfterDelta
+    setDebtAction(value);
+    updateDebtDelta(value, debtDelta);
   };
 
   if (redirect) {
@@ -157,7 +175,7 @@ const AdjustVaultForm = ({
         <div className={classes.root}>
           <CollateralActionChoice
             collateralAction={collateralAction}
-            setCollateralAction={setCollateralAction}
+            setCollateralAction={handleCollateralAction}
           />
           <Grid container>
             <NatPurseAmountInput
@@ -173,7 +191,7 @@ const AdjustVaultForm = ({
           </Grid>
           <DebtActionChoice
             debtAction={debtAction}
-            setDebtAction={setDebtAction}
+            setDebtAction={handleDebtAction}
           />
           <NatPurseAmountInput
             offerBeingMade={offerBeingMade}
