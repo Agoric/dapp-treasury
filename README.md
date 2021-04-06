@@ -14,7 +14,7 @@
 7. In another terminal, in dapp-token-economy, do
    `ui/use-on-chain-config.js`. This will use the default on-chain settings.
 8. To start the UI locally, do `cd ui && yarn start`
-
+9. Open your wallet with `agoric open`
 
 ## Reusing the code with other parameters
 
