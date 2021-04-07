@@ -50,7 +50,7 @@ const ValueCard = ({ title, text }) => {
   const classes = useStyles();
   return (
     <Grid item>
-      <Box square={true} className={classes.card}>
+      <Box className={classes.card}>
         <Typography className={classes.cardTitle}>{title}</Typography>
         <Typography className={classes.cardValue}>{text}</Typography>
       </Box>
