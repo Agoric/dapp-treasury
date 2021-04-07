@@ -34,7 +34,12 @@ const makeHeaderCell = data => (
   <TableCell key={data.id}>{data.label}</TableCell>
 );
 
-function VaultCollateral({ dispatch, collaterals, brandToInfo }) {
+function VaultCollateral({
+  dispatch,
+  purses,
+  collaterals: collateralsRaw,
+  brandToInfo,
+}) {
   const {
     displayRatio,
     displayPercent,
@@ -44,6 +49,11 @@ function VaultCollateral({ dispatch, collaterals, brandToInfo }) {
   const makeOnClick = row => _ev => {
     dispatch(setVaultCollateral(row));
   };
+
+  // Filter out brands that the wallet does not have purses for
+  const purseBrands = new Set(purses && purses.map(p => p.brand));
+  const collaterals =
+    collateralsRaw && collateralsRaw.filter(c => purseBrands.has(c.brand));
 
   if (!collateralAvailable(collaterals)) {
     return noCollateralAvailableDiv;
