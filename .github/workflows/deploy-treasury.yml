@@ -3,12 +3,12 @@
 
 name: Deploy Treasury Dapp
 
-# run CI on pushes to master, and on all PRs (even the ones that target other
+# run CI on pushes to beta, and on all PRs (even the ones that target other
 # branches)
 
 on:
   push:
-    branches: [ main ]
+    branches: [ beta ]
   pull_request:
 
 jobs:
@@ -91,8 +91,8 @@ jobs:
     - name: Deploy via Netlify
       uses: nwtgck/actions-netlify@v1.1
       with:
-        # Production deployment if a commit to main.
-        production-deploy: ${{ github.ref == 'refs/heads/main' }}
+        # Production deployment if a commit to beta.
+        production-deploy: ${{ github.ref == 'refs/heads/beta' }}
         publish-dir: dapp/ui/build
         github-token: ${{ secrets.GITHUB_TOKEN }}
       env:
