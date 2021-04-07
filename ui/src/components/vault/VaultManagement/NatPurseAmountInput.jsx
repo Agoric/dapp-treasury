@@ -51,8 +51,9 @@ const PurseAmountInput = ({
 
   const pursesFiltered = filterPurses(purses, brandToFilter);
   const defaultPurse = pursesFiltered.length > 0 ? pursesFiltered[0] : null;
-  const purseSelectedWithDefault =
-    purseSelected === null ? defaultPurse : purseSelected;
+  if (purseSelected === null && defaultPurse !== null) {
+    onPurseChange(defaultPurse);
+  }
 
   return (
     <Grid container spacing={3}>
@@ -60,7 +61,7 @@ const PurseAmountInput = ({
         <NatPurseSelector
           label={purseLabel}
           purses={pursesFiltered}
-          purseSelected={purseSelectedWithDefault}
+          purseSelected={purseSelected}
           onChange={onPurseChange}
           disabled={offerBeingMade}
         />
