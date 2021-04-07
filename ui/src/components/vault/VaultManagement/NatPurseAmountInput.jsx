@@ -36,7 +36,6 @@ const NatPurseSelector = makeNatPurseSelector({
 const PurseAmountInput = ({
   purseLabel = 'Purse to use',
   amountLabel = 'Amount',
-  offerBeingMade,
   purses,
   purseSelected,
   amountValue,
@@ -44,26 +43,28 @@ const PurseAmountInput = ({
   onAmountChange,
   brandToFilter,
   brandToInfo,
+  purseSelectorDisabled = false,
+  amountInputDisabled = false,
 }) => {
   const decimalPlaces = getInfoForBrand(brandToInfo, brandToFilter)
     .decimalPlaces;
   const placesToShow = decimalPlaces > 0 ? 2 : 0;
+
+  const pursesFiltered = filterPurses(purses, brandToFilter);
+  const defaultPurse = pursesFiltered.length > 0 ? pursesFiltered[0] : null;
+  if (purseSelected === null && defaultPurse !== null) {
+    onPurseChange(defaultPurse);
+  }
 
   return (
     <Grid container spacing={3}>
       <Grid item>
         <NatPurseSelector
           label={purseLabel}
-          purses={filterPurses(purses, brandToFilter)}
+          purses={pursesFiltered}
           purseSelected={purseSelected}
-          onChange={newPurse => {
-            onPurseChange(newPurse);
-
-            // Set to 0 on purse change because carrying over the
-            // value with different decimal places doesn't make sense
-            onAmountChange(0n);
-          }}
-          disabled={offerBeingMade}
+          onChange={onPurseChange}
+          disabled={purseSelectorDisabled}
         />
       </Grid>
       <Grid item>
@@ -73,7 +74,7 @@ const PurseAmountInput = ({
           value={amountValue}
           decimalPlaces={decimalPlaces}
           placesToShow={placesToShow}
-          disabled={offerBeingMade}
+          disabled={amountInputDisabled}
         />
       </Grid>
     </Grid>
