@@ -54,8 +54,6 @@ const CloseVaultForm = ({
   debt,
   brandToInfo,
 }) => {
-  const offerBeingMade = false;
-
   const [collateralPurseSelected, setCollateralPurseSelected] = useState(null);
   const [runPurseSelected, setRunPurseSelected] = useState(null);
   const [collateralValue, setCollateralValue] = useState(locked.value);
@@ -113,7 +111,6 @@ const CloseVaultForm = ({
                 All debt must be paid.
               </Typography>
               <NatPurseAmountInput
-                offerBeingMade={offerBeingMade}
                 purses={purses}
                 purseSelected={runPurseSelected}
                 amountValue={runValue}
@@ -126,7 +123,6 @@ const CloseVaultForm = ({
                 How much collateral would you like?
               </Typography>
               <NatPurseAmountInput
-                offerBeingMade={offerBeingMade}
                 purses={purses}
                 purseSelected={collateralPurseSelected}
                 amountValue={collateralValue}

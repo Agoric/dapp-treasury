@@ -36,7 +36,6 @@ const NatPurseSelector = makeNatPurseSelector({
 const PurseAmountInput = ({
   purseLabel = 'Purse to use',
   amountLabel = 'Amount',
-  offerBeingMade,
   purses,
   purseSelected,
   amountValue,
@@ -44,6 +43,8 @@ const PurseAmountInput = ({
   onAmountChange,
   brandToFilter,
   brandToInfo,
+  purseSelectorDisabled = false,
+  amountInputDisabled = false,
 }) => {
   const decimalPlaces = getInfoForBrand(brandToInfo, brandToFilter)
     .decimalPlaces;
@@ -63,7 +64,7 @@ const PurseAmountInput = ({
           purses={pursesFiltered}
           purseSelected={purseSelected}
           onChange={onPurseChange}
-          disabled={offerBeingMade}
+          disabled={purseSelectorDisabled}
         />
       </Grid>
       <Grid item>
@@ -73,7 +74,7 @@ const PurseAmountInput = ({
           value={amountValue}
           decimalPlaces={decimalPlaces}
           placesToShow={placesToShow}
-          disabled={offerBeingMade}
+          disabled={amountInputDisabled}
         />
       </Grid>
     </Grid>
