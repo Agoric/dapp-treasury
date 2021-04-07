@@ -85,6 +85,7 @@ export default function NewVault() {
         <VaultCollateral
           dispatch={dispatch}
           collaterals={collaterals}
+          purses={purses}
           brandToInfo={brandToInfo}
         />
       );
