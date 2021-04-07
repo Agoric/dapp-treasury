@@ -30,7 +30,7 @@ export default function Header({ children }) {
           noWrap
           className={classes.title}
         >
-          AutoSwap Exchange
+          Swap Exchange
         </Typography>
         {children}
       </Toolbar>

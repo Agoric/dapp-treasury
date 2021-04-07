@@ -74,12 +74,7 @@ function NavDrawer() {
           to="/pegasus"
           replace
         /> */}
-        <ListItemLink
-          icon={<SwapIcon />}
-          primary="Autoswap"
-          to="/swap"
-          replace
-        />
+        <ListItemLink icon={<SwapIcon />} primary="Swap" to="/swap" replace />
         {/* <ListItemLink
           icon={<TrendingUpIcon />}
           primary="Rewards"
