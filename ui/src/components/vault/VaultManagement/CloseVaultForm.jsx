@@ -2,13 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import Paper from '@material-ui/core/Paper';
-import AppBar from '@material-ui/core/AppBar';
 import Typography from '@material-ui/core/Typography';
 
-import Toolbar from '@material-ui/core/Toolbar';
-import TuneIcon from '@material-ui/icons/Tune';
-
-import { Grid, Container } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
 
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -21,28 +17,48 @@ import { makeCloseVaultOffer } from './makeCloseVaultOffer';
 const useStyles = makeStyles(theme => ({
   root: {
     flexGrow: 1,
-    backgroundColor: theme.palette.background.paper,
-  },
-  content: {
-    margin: theme.spacing(3),
-    paddingBottom: theme.spacing(3),
-  },
-  settingsToolbar: {
-    minHeight: '48px',
-    paddingLeft: '20px',
-  },
-  toolbarIcon: {
-    marginRight: theme.spacing(1),
+    backgroundColor: '#FFFFFF',
+    marginBottom: theme.spacing(4),
+    borderRadius: '20px',
+    color: '#707070',
+    fontSize: '22px',
+    lineHeight: '27px',
+    padding: theme.spacing(4),
   },
   buttons: {
-    marginTop: theme.spacing(3),
+    marginTop: theme.spacing(1),
   },
   button: {
     color: 'white',
   },
-  infoText: {
-    marginBottom: theme.spacing(3),
-    marginTop: theme.spacing(3),
+  title: {
+    fontSize: '22px',
+  },
+  break: {
+    border: 0,
+    height: '1px',
+    background: '#E5E5E5',
+  },
+  stepTitle: {
+    fontSize: '16px',
+    lineHeight: '19px',
+    color: '#222222',
+  },
+  stepText: {
+    fontSize: '15px',
+    lineHeight: '18px',
+    color: '#ADA9A9',
+    paddingTop: theme.spacing(2),
+  },
+  explanation: {
+    paddingRight: theme.spacing(5),
+  },
+  debt: {
+    paddingTop: theme.spacing(5),
+  },
+  collateral: {
+    paddingTop: theme.spacing(5),
+    paddingBottom: theme.spacing(3),
   },
 }));
 
@@ -95,21 +111,20 @@ const CloseVaultForm = ({
   return (
     <div>
       <ConfirmCloseDialog onClose={handleSubmission} open={dialogOpen} />
-      <Paper elevation={3}>
-        <div className={classes.root}>
-          <AppBar position="static">
-            <Toolbar className={classes.settingsToolbar}>
-              <TuneIcon className={classes.toolbarIcon} />
-              <Typography variant="h6">Close Vault</Typography>
-            </Toolbar>
-          </AppBar>
-        </div>
-        <Container maxWidth="sm" className={classes.content}>
-          <div className={classes.root}>
-            <Grid container>
-              <Typography className={classes.infoText}>
-                All debt must be paid.
+      <Paper elevation={3} className={classes.root}>
+        <Typography className={classes.title}>Close Vault</Typography>
+        <hr className={classes.break} />
+        <div>
+          <Grid container className={classes.debt}>
+            <Grid item md={4} className={classes.explanation}>
+              <Typography variant="h6" className={classes.stepTitle}>
+                Step 1: Repay Debt
               </Typography>
+              <Typography className={classes.stepText}>
+                To close a vault, all debt must be repaid.
+              </Typography>
+            </Grid>
+            <Grid item md={8}>
               <NatPurseAmountInput
                 purses={purses}
                 purseSelected={runPurseSelected}
@@ -119,26 +134,41 @@ const CloseVaultForm = ({
                 brandToFilter={debt && debt.brand}
                 brandToInfo={brandToInfo}
               />
-              <Typography className={classes.infoText}>
-                How much collateral would you like?
-              </Typography>
-              <NatPurseAmountInput
-                purses={purses}
-                purseSelected={collateralPurseSelected}
-                amountValue={collateralValue}
-                onPurseChange={setCollateralPurseSelected}
-                onAmountChange={setCollateralValue}
-                brandToFilter={locked && locked.brand}
-                brandToInfo={brandToInfo}
-              />
             </Grid>
-          </div>
-          <Grid container spacing={1} className={classes.buttons}>
-            <Grid item>
-              <CloseVault onClick={() => setDialogOpen(true)} />
+            <Grid container className={classes.collateral}>
+              <Grid item md={4} className={classes.explanation}>
+                <Typography variant="h6" className={classes.stepTitle}>
+                  Step 2: Require collateral
+                </Typography>
+                <Typography className={classes.stepText}>
+                  {`Select a minimum amount of collateral to be returned. If less than this amount is returned, Zoe's offer safety guarantees that you will get a full refund of the debt repaid, and your loan will not be closed.`}
+                </Typography>
+              </Grid>
+              <Grid item md={8}>
+                <NatPurseAmountInput
+                  purses={purses}
+                  purseSelected={collateralPurseSelected}
+                  amountValue={collateralValue}
+                  onPurseChange={setCollateralPurseSelected}
+                  onAmountChange={setCollateralValue}
+                  brandToFilter={locked && locked.brand}
+                  brandToInfo={brandToInfo}
+                />
+              </Grid>
             </Grid>
           </Grid>
-        </Container>
+        </div>
+        <hr className={classes.break} />
+        <Grid
+          container
+          spacing={1}
+          justify="flex-end"
+          className={classes.buttons}
+        >
+          <Grid item>
+            <CloseVault onClick={() => setDialogOpen(true)} />
+          </Grid>
+        </Grid>
       </Paper>
     </div>
   );

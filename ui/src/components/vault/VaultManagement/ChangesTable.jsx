@@ -1,5 +1,6 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -10,14 +11,49 @@ import Paper from '@material-ui/core/Paper';
 import { makeDisplayFunctions } from '../../helpers';
 
 const useStyles = makeStyles(theme => ({
+  root: {
+    backgroundColor: '#FFFFFF',
+    marginBottom: theme.spacing(2),
+    borderRadius: '20px',
+    color: '#707070',
+    fontSize: '22px',
+    lineHeight: '27px',
+    padding: theme.spacing(4),
+  },
+  title: {
+    fontSize: '22px',
+  },
   table: {
     minWidth: 650,
+    '& > .MuiTableCell-root': {
+      borderBottom: 'none',
+    },
+  },
+  row: {
+    '& > th, td': {
+      borderBottom: 'none',
+    },
+    '& > th': {
+      paddingLeft: 0,
+    },
+    '& > td': {
+      fontSize: '22px',
+      lineHeight: '27px',
+      color: '#707070',
+    },
+  },
+  left: {
+    paddingLeft: 0,
   },
   rowHeader: {
     '& > *': {
-      backgroundColor: theme.palette.secondary.main,
-      color: 'white',
+      fontSize: '16px',
     },
+  },
+  break: {
+    border: 0,
+    height: '1px',
+    background: '#E5E5E5',
   },
 }));
 
@@ -85,35 +121,37 @@ const ChangesTable = ({
         : '...',
     ),
     createData(
-      'Outstanding RUN Debt',
+      'Outstanding Debt',
       `${displayAmount(debt)} ${displayBrandPetname(debt.brand)}`,
       debtDeltaString,
     ),
   ];
 
   return (
-    <TableContainer component={Paper}>
-      <Table className={classes.table} size="small" aria-label="simple table">
-        <TableHead>
-          <TableRow className={classes.rowHeader}>
-            <TableCell></TableCell>
-            <TableCell align="right">Current Values</TableCell>
-            <TableCell align="right">Pending Changes</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {rows.map(row => (
-            <TableRow key={row.name}>
-              <TableCell component="th" scope="row">
-                {row.name}
-              </TableCell>
-              <TableCell align="right">{row.currentValue}</TableCell>
-              <TableCell align="right">{row.pendingChanges}</TableCell>
+    <Paper className={classes.root} elevation={4}>
+      <Typography className={classes.title}>Vault Details</Typography>
+      <hr className={classes.break} />
+      <TableContainer>
+        <Table className={classes.table} size="small">
+          <TableHead>
+            <TableRow className={[classes.rowHeader, classes.row].join(' ')}>
+              <TableCell>Value</TableCell>
+              <TableCell align="right">Current</TableCell>
+              <TableCell align="right">Proposed</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+          <TableBody>
+            {rows.map(row => (
+              <TableRow key={row.name} className={classes.row}>
+                <TableCell className={classes.left}>{row.name}</TableCell>
+                <TableCell align="right">{row.currentValue}</TableCell>
+                <TableCell align="right">{row.pendingChanges}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Paper>
   );
 };
 export default ChangesTable;
