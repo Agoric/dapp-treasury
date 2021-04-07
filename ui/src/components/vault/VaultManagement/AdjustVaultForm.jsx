@@ -61,9 +61,8 @@ const AdjustVaultForm = ({
   onLockedDeltaChange,
   onDebtDeltaChange,
   brandToInfo,
+  invalidOffer,
 }) => {
-  const offerBeingMade = false;
-
   // deposit, withdraw, noaction
   const [collateralAction, setCollateralAction] = useState('noaction');
   // borrow, repay, noaction
@@ -139,7 +138,6 @@ const AdjustVaultForm = ({
     lockedDelta,
     runPurseSelected,
     debtDelta,
-    offerBeingMade,
   ]);
 
   const handleSubmission = () => {
@@ -213,7 +211,6 @@ const AdjustVaultForm = ({
             />
             <Grid container>
               <NatPurseAmountInput
-                offerBeingMade={offerBeingMade}
                 purses={purses}
                 purseSelected={collateralPurseSelected}
                 amountValue={lockedDelta && lockedDelta.value}
@@ -228,7 +225,6 @@ const AdjustVaultForm = ({
               setDebtAction={handleDebtAction}
             />
             <NatPurseAmountInput
-              offerBeingMade={offerBeingMade}
               purses={purses}
               purseSelected={runPurseSelected}
               amountValue={debtDelta && debtDelta.value}
@@ -244,7 +240,6 @@ const AdjustVaultForm = ({
                 className={classes.button}
                 variant="contained"
                 color="secondary"
-                disabled={offerBeingMade}
                 startIcon={<DeleteIcon />}
                 onClick={() => setRedirect('/treasury')}
               >
@@ -256,7 +251,7 @@ const AdjustVaultForm = ({
                 className={classes.button}
                 variant="contained"
                 color="secondary"
-                disabled={offerBeingMade}
+                disabled={invalidOffer}
                 startIcon={<SendIcon />}
                 onClick={handleSubmission}
               >

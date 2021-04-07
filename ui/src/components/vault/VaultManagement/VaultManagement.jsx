@@ -140,6 +140,16 @@ const VaultManagement = () => {
 
   const valueOfLocked = multiplyBy(locked, marketPrice);
 
+  const checkIfOfferInvalid = () => {
+    const ratio = calcRatio(marketPrice, lockedAfterDelta, debtAfterDelta);
+    const approxCollateralizationRatio =
+      Number(ratio.numerator.value) / Number(ratio.denominator.value);
+    const approxLiquidationRatio =
+      Number(liquidationRatio.numerator.value) /
+      Number(liquidationRatio.denominator.value);
+    return approxCollateralizationRatio < approxLiquidationRatio;
+  };
+
   const header = (
     <div className={classes.header}>
       <Typography variant="h3">
@@ -182,6 +192,7 @@ const VaultManagement = () => {
           onLockedDeltaChange={onLockedDeltaChange}
           onDebtDeltaChange={onDebtDeltaChange}
           brandToInfo={brandToInfo}
+          invalidOffer={checkIfOfferInvalid()}
         />{' '}
         <CloseVaultForm
           purses={purses}
