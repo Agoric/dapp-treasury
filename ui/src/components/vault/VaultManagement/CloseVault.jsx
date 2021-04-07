@@ -22,7 +22,7 @@ const CloseVault = ({ onClick }) => {
         <Button
           size="large"
           variant="contained"
-          color="secondary"
+          color="primary"
           startIcon={<ErrorIcon />}
           onClick={onClick}
           className={classes.button}

@@ -27,8 +27,19 @@ const useStyles = makeStyles(theme => ({
   },
   header: {
     marginTop: theme.spacing(3),
-    marginBottom: theme.spacing(3),
+    marginBottom: theme.spacing(1),
+    marginLeft: theme.spacing(1),
     padding: theme.spacing(2),
+    '& > .MuiTypography-root': {
+      fontFamily: 'Inter',
+      fontWeight: '500',
+      color: '#707070',
+      fontSize: '22px',
+    },
+    '& > .MuiTypography-h3': {
+      fontSize: '40px',
+      lineHeight: '48px',
+    },
   },
   valuesTable: {
     marginBottom: theme.spacing(3),
@@ -138,8 +149,6 @@ const VaultManagement = () => {
     );
   };
 
-  const valueOfLocked = multiplyBy(locked, marketPrice);
-
   const checkIfOfferInvalid = () => {
     const ratio = calcRatio(marketPrice, lockedAfterDelta, debtAfterDelta);
     const approxCollateralizationRatio =
@@ -153,8 +162,7 @@ const VaultManagement = () => {
   const header = (
     <div className={classes.header}>
       <Typography variant="h3">
-        {displayAmount(locked)} {lockedPetname} ({displayAmount(valueOfLocked)}{' '}
-        RUN) Locked
+        {displayAmount(locked)} {lockedPetname} Locked
       </Typography>
       <Typography>Vault ID: {vaultToManageId}</Typography>
     </div>

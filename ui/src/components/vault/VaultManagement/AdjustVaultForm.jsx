@@ -2,16 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import Paper from '@material-ui/core/Paper';
-import AppBar from '@material-ui/core/AppBar';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 
-import Toolbar from '@material-ui/core/Toolbar';
-import TuneIcon from '@material-ui/icons/Tune';
 import DeleteIcon from '@material-ui/icons/Delete';
 import SendIcon from '@material-ui/icons/Send';
 
-import { Grid, Container } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
 
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -27,7 +24,13 @@ import ApproveOfferSB from '../../ApproveOfferSB';
 const useStyles = makeStyles(theme => ({
   root: {
     flexGrow: 1,
-    backgroundColor: theme.palette.background.paper,
+    backgroundColor: '#FFFFFF',
+    marginBottom: theme.spacing(4),
+    borderRadius: '20px',
+    color: '#707070',
+    fontSize: '22px',
+    lineHeight: '27px',
+    padding: theme.spacing(4),
   },
   content: {
     margin: theme.spacing(3),
@@ -41,7 +44,7 @@ const useStyles = makeStyles(theme => ({
     marginRight: theme.spacing(1),
   },
   buttons: {
-    marginTop: theme.spacing(3),
+    marginTop: theme.spacing(1),
   },
   button: {
     color: 'white',
@@ -49,6 +52,35 @@ const useStyles = makeStyles(theme => ({
   infoText: {
     marginBottom: theme.spacing(3),
     marginTop: theme.spacing(3),
+  },
+  title: {
+    fontSize: '22px',
+  },
+  break: {
+    border: 0,
+    height: '1px',
+    background: '#E5E5E5',
+  },
+  stepTitle: {
+    fontSize: '16px',
+    lineHeight: '19px',
+    color: '#222222',
+  },
+  stepText: {
+    fontSize: '15px',
+    lineHeight: '18px',
+    color: '#ADA9A9',
+    paddingTop: theme.spacing(2),
+  },
+  explanation: {
+    paddingRight: theme.spacing(5),
+  },
+  adjustCollateral: {
+    paddingTop: theme.spacing(5),
+  },
+  adjustDebt: {
+    paddingTop: theme.spacing(5),
+    paddingBottom: theme.spacing(3),
   },
 }));
 
@@ -194,22 +226,25 @@ const AdjustVaultForm = ({
   }
   return (
     <div>
-      <Paper elevation={3}>
-        <div className={classes.root}>
-          <AppBar position="static">
-            <Toolbar className={classes.settingsToolbar}>
-              <TuneIcon className={classes.toolbarIcon} />
-              <Typography variant="h6">Adjust Vault</Typography>
-            </Toolbar>
-          </AppBar>
-        </div>
-        <Container maxWidth="sm" className={classes.content}>
-          <div className={classes.root}>
-            <CollateralActionChoice
-              collateralAction={collateralAction}
-              setCollateralAction={handleCollateralAction}
-            />
-            <Grid container>
+      <Paper elevation={3} className={classes.root}>
+        <Typography className={classes.title}>Adjust Vault</Typography>
+        <hr className={classes.break} />
+        <Grid container>
+          <Grid container className={classes.adjustCollateral}>
+            <Grid item md={4} className={classes.explanation}>
+              <Typography variant="h6" className={classes.stepTitle}>
+                Step 1: Adjust Collateral
+              </Typography>
+              <Typography className={classes.stepText}>
+                Deposit additional collateral or withdraw your existing
+                collateral. Select No Action to leave collateral unchanged.
+              </Typography>
+            </Grid>
+            <Grid item md={8}>
+              <CollateralActionChoice
+                collateralAction={collateralAction}
+                setCollateralAction={handleCollateralAction}
+              />
               <NatPurseAmountInput
                 purses={purses}
                 purseSelected={collateralPurseSelected}
@@ -220,46 +255,65 @@ const AdjustVaultForm = ({
                 brandToInfo={brandToInfo}
               />
             </Grid>
-            <DebtActionChoice
-              debtAction={debtAction}
-              setDebtAction={handleDebtAction}
-            />
-            <NatPurseAmountInput
-              purses={purses}
-              purseSelected={runPurseSelected}
-              amountValue={debtDelta && debtDelta.value}
-              onPurseChange={setRunPurseSelected}
-              onAmountChange={handleDebtAmountChange}
-              brandToFilter={debt && debt.brand}
-              brandToInfo={brandToInfo}
-            />
-          </div>
-          <Grid container spacing={1} className={classes.buttons}>
-            <Grid item>
-              <Button
-                className={classes.button}
-                variant="contained"
-                color="secondary"
-                startIcon={<DeleteIcon />}
-                onClick={() => setRedirect('/treasury')}
-              >
-                Cancel
-              </Button>
+          </Grid>
+          <Grid container className={classes.adjustDebt}>
+            <Grid item md={4} className={classes.explanation}>
+              <Typography variant="h6" className={classes.stepTitle}>
+                Step 2: Adjust Debt
+              </Typography>
+              <Typography className={classes.stepText}>
+                Borrow additional RUN or repay your existing RUN debt. Select No
+                Action to leave debt unchanged.
+              </Typography>
             </Grid>
-            <Grid item>
-              <Button
-                className={classes.button}
-                variant="contained"
-                color="secondary"
-                disabled={invalidOffer}
-                startIcon={<SendIcon />}
-                onClick={handleSubmission}
-              >
-                Make Offer
-              </Button>
+            <Grid item md={8}>
+              <DebtActionChoice
+                debtAction={debtAction}
+                setDebtAction={handleDebtAction}
+              />
+              <NatPurseAmountInput
+                purses={purses}
+                purseSelected={runPurseSelected}
+                amountValue={debtDelta && debtDelta.value}
+                onPurseChange={setRunPurseSelected}
+                onAmountChange={handleDebtAmountChange}
+                brandToFilter={debt && debt.brand}
+                brandToInfo={brandToInfo}
+              />
             </Grid>
           </Grid>
-        </Container>
+        </Grid>
+        <hr className={classes.break} />
+        <Grid
+          container
+          spacing={1}
+          className={classes.buttons}
+          justify="flex-end"
+        >
+          <Grid item>
+            <Button
+              className={classes.button}
+              variant="contained"
+              color="primary"
+              startIcon={<DeleteIcon />}
+              onClick={() => setRedirect('/treasury')}
+            >
+              Cancel
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button
+              className={classes.button}
+              variant="contained"
+              color="primary"
+              disabled={invalidOffer}
+              startIcon={<SendIcon />}
+              onClick={handleSubmission}
+            >
+              Make Offer
+            </Button>
+          </Grid>
+        </Grid>
       </Paper>
       <ApproveOfferSB
         open={openApproveOfferSB}

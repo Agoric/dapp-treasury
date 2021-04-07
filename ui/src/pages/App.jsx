@@ -34,6 +34,16 @@ const theme = createMuiTheme({
       },
     },
   },
+  typography: {
+    fontFamily: [
+      '"Inter"',
+      '"Roboto"',
+      '"Helvetica"',
+      '"Arial"',
+      'sans-serif',
+    ].join(','),
+    fontWeightRegular: 500,
+  },
 });
 
 function App() {

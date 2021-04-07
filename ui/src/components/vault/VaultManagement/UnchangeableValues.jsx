@@ -1,6 +1,5 @@
 import React from 'react';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
+import Box from '@material-ui/core/Box';
 import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
@@ -16,17 +15,34 @@ import { makeDisplayFunctions } from '../../helpers';
 
 const useStyles = makeStyles(theme => ({
   root: {
-    backgroundColor: theme.palette.info.main,
-    marginBottom: theme.spacing(2),
+    backgroundColor: '#FFFFFF',
+    marginBottom: theme.spacing(4),
+    borderRadius: '20px',
+    color: '#707070',
+    fontSize: '22px',
+    lineHeight: '27px',
+    padding: theme.spacing(4),
   },
-  card: { backgroundColor: theme.palette.info.main },
-  title: {
-    paddingLeft: theme.spacing(2),
+  card: {},
+  cardTitle: {
+    fontSize: '16px',
+    lineHeight: '19px',
+    color: '#222222',
     paddingTop: theme.spacing(2),
   },
+  cardValue: {
+    fontSize: '22px',
+    lineHeight: '27px',
+    color: '#707070',
+    paddingTop: theme.spacing(2),
+  },
+  title: {
+    fontSize: '22px',
+  },
   break: {
-    paddingLeft: theme.spacing(2),
-    paddingRight: theme.spacing(2),
+    border: 0,
+    height: '1px',
+    background: '#E5E5E5',
   },
 }));
 
@@ -34,14 +50,10 @@ const ValueCard = ({ title, text }) => {
   const classes = useStyles();
   return (
     <Grid item>
-      <Card elevation={0} square={true} className={classes.card}>
-        <CardContent>
-          <Typography gutterBottom>{title}</Typography>
-          <Typography variant="h5" component="h2">
-            {text}
-          </Typography>
-        </CardContent>
-      </Card>
+      <Box className={classes.card}>
+        <Typography className={classes.cardTitle}>{title}</Typography>
+        <Typography className={classes.cardValue}>{text}</Typography>
+      </Box>
     </Grid>
   );
 };
@@ -68,12 +80,10 @@ const UnchangeableValues = ({
 
   const classes = useStyles();
   return (
-    <Paper className={classes.root} elevation={0}>
+    <Paper className={classes.root} elevation={4}>
       <Typography className={classes.title}>Market Details</Typography>
-      <div className={classes.break}>
-        <hr />
-      </div>
-      <Grid container spacing={1}>
+      <hr className={classes.break} />
+      <Grid container spacing={1} justify="space-between" alignItems="center">
         <ValueCard title="Market Price" text={displayRatio(marketPrice)} />
         <ValueCard
           title="Liq. Ratio"
