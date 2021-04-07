@@ -74,11 +74,11 @@ export default function Swap() {
   const {
     purses: unfilteredPurses,
     connected,
+    approved,
     brandToInfo,
     autoswap: { ammAPI, centralBrand, otherBrands },
   } = state;
 
-  console.log(otherBrands);
   const knownBrands = new Set(Object.values(otherBrands || {}));
   knownBrands.add(centralBrand);
   const purses =
@@ -221,6 +221,14 @@ export default function Swap() {
     }
     getMarketQuote(false, inputPurse.brand, outputAmount);
   }, [outputAmount, inputPurse]);
+
+  if (!approved) {
+    return (
+      <Paper className={classes.paper}>
+        <div>To continue, please approve the Treasury Dapp in your wallet.</div>
+      </Paper>
+    );
+  }
 
   const inputAmountError =
     inputAmount &&

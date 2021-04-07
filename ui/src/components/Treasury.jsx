@@ -21,6 +21,16 @@ import { setVaultToManageId } from '../store';
 
 const useStyles = makeStyles(theme => {
   return {
+    paper: {
+      marginTop: theme.spacing(3),
+      marginBottom: theme.spacing(3),
+      padding: theme.spacing(2),
+      [theme.breakpoints.up(600 + theme.spacing(3) * 2)]: {
+        marginTop: theme.spacing(6),
+        marginBottom: theme.spacing(6),
+        padding: theme.spacing(3),
+      },
+    },
     gridCard: {
       paddingLeft: theme.spacing(2),
       marginBottom: theme.spacing(2),
@@ -45,11 +55,19 @@ const useStyles = makeStyles(theme => {
 function VaultList() {
   const classes = useStyles();
   const {
-    state: { vaults, brandToInfo },
+    state: { approved, vaults, brandToInfo },
     dispatch,
   } = useApplicationContext();
 
   const [redirect, setRedirect] = useState(false);
+
+  if (!approved) {
+    return (
+      <Paper className={classes.paper}>
+        <div>To continue, please approve the Treasury Dapp in your wallet.</div>
+      </Paper>
+    );
+  }
 
   const handleOnClick = key => {
     dispatch(setVaultToManageId(key));
@@ -65,7 +83,7 @@ function VaultList() {
   if (vaultsList.length <= 0) {
     return (
       <Paper className={classes.loading}>
-        <Typography>Loading vault information.</Typography>
+        <Typography>No vaults available yet</Typography>
       </Paper>
     );
   }
