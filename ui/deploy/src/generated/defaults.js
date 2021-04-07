@@ -1,13 +1,12 @@
 export default {
-  "CONTRACT_NAME": "Treasury",
-  "INSTANCE_BOARD_ID": "1572641147",
-  "INSTALLATION_BOARD_ID": "474502210",
-  "RUN_ISSUER_BOARD_ID": "71499408",
-  "RUN_BRAND_BOARD_ID": "1044832651",
+  "ON_CHAIN_CONFIG": [
+    "getAgoricNames",
+    [
+      "uiConfig",
+      "Treasury"
+    ]
+  ],
   "AMM_NAME": "autoswap",
-  "AMM_INSTALLATION_BOARD_ID": "688500812",
-  "AMM_INSTANCE_BOARD_ID": "192932059",
-  "INVITE_BRAND_BOARD_ID": "1667979430",
   "BRIDGE_URL": "http://127.0.0.1:8000",
-  "API_URL": "http://127.0.0.1:8000"
+  "CONTRACT_NAME": "Treasury"
 };
