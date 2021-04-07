@@ -49,20 +49,20 @@ const PurseAmountInput = ({
     .decimalPlaces;
   const placesToShow = decimalPlaces > 0 ? 2 : 0;
 
+  const pursesFiltered = filterPurses(purses, brandToFilter);
+  const defaultPurse = pursesFiltered.length > 0 ? pursesFiltered[0] : null;
+  if (purseSelected === null && defaultPurse !== null) {
+    onPurseChange(defaultPurse);
+  }
+
   return (
     <Grid container spacing={3}>
       <Grid item>
         <NatPurseSelector
           label={purseLabel}
-          purses={filterPurses(purses, brandToFilter)}
+          purses={pursesFiltered}
           purseSelected={purseSelected}
-          onChange={newPurse => {
-            onPurseChange(newPurse);
-
-            // Set to 0 on purse change because carrying over the
-            // value with different decimal places doesn't make sense
-            onAmountChange(0n);
-          }}
+          onChange={onPurseChange}
           disabled={offerBeingMade}
         />
       </Grid>
