@@ -56,7 +56,7 @@
     "react-dom": "^16.14.0",
     "react-number-format": "^4.4.3",
     "react-router-dom": "^5.2.0",
-    "ses": "^0.12.6"
+    "ses": "^0.12.7"
   },
   "devDependencies": {
     "@babel/eslint-plugin": "^7.12.1",
