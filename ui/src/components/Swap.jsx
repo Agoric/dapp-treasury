@@ -95,7 +95,8 @@ export default function Swap() {
 
   const [inputRate, setInputRate] = useState({});
   const [outputRate, setOutputRate] = useState({});
-  const [quote, setQuote] = useState();
+  // The quote is always non-null with this structure: { amount, rate }
+  const [quote, setQuote] = useState({ amount: null, rate: null });
 
   const [openApproveOfferSB, setOpenApproveOfferSB] = useState(false);
 
@@ -193,19 +194,31 @@ export default function Swap() {
 
   const getMarketQuote = async (isInput, brand, amount) => {
     console.log('QUOTING', isInput, brand, amount);
-    if (brand === amount.brand) {
-      // There's no brand conversion so it's 100% as a ratio
-      setQuote(makeRatioFromAmounts(amount, amount));
+    if (amountMath.isEmpty(amount)) {
       return;
     }
+    if (brand === amount.brand) {
+      // There's no brand conversion so it's 100% as a ratio
+      setQuote({ amount, rate: makeRatioFromAmounts(amount, amount) });
+      return;
+    }
+    // Remember the current amount that we want a quote for
+    setQuote({ amount, rate: null });
     const quoteResult = isInput
       ? E(ammAPI).getPriceGivenAvailableInput(amount, brand)
       : E(ammAPI).getPriceGivenRequiredOutput(brand, amount);
     const { amountIn, amountOut } = await quoteResult;
-    const quoteRatio = makeRatioFromAmounts(amountOut, amountIn);
-    console.log('QUOTE', quoteRatio);
+    const rate = isInput
+      ? makeRatioFromAmounts(amountOut, amountIn)
+      : makeRatioFromAmounts(amountIn, amountOut);
+    console.log('QUOTE', rate, amount);
     // TODO there has got to be a better way than this...
-    setQuote(quoteRatio.numerator.value === 0n ? null : quoteRatio);
+    if (rate.numerator.value === null) {
+      return;
+    }
+    // Only set the quote if the amount we quoted for is still
+    // the current amount
+    setQuote(qr => (sameStructure(qr.amount, amount) ? { amount, rate } : qr));
   };
 
   useEffect(() => {
@@ -263,36 +276,36 @@ export default function Swap() {
     return '';
   }
 
-  function computeOtherAmount(source, dest, quoteRatio, marketRatio, label) {
-    console.log('Amount display', source, dest, quoteRatio, label);
+  function computeOtherAmount(source, dest, marketRatio, label) {
+    console.log('Amount display', source, dest, quote, label);
     if (dest) {
       return { amount: dest.value, label };
     }
     if (source && source.value) {
-      if (quoteRatio && sameStructure(source, quoteRatio.denominator)) {
-        const amount = multiplyBy(source, quoteRatio).value;
-        return { amount, label: `Quoted ${label}` };
+      // The quote units will be quoted amount/entered amount
+      // and so depends on whether the user entered the In or
+      // the Out amount most recently
+      if (quote.rate && sameStructure(source, quote.amount)) {
+        const value = multiplyBy(source, quote.rate).value;
+        return { amount: value, label: `Quoted ${label}` };
       }
       if (marketRatio) {
-        const amount = multiplyBy(source, marketRatio).value;
-        return { amount, label: `Estimated ${label}` };
+        const value = multiplyBy(source, marketRatio).value;
+        return { amount: value, label: `Estimated ${label}` };
       }
     }
     return { amount: null, label };
   }
 
-  const reciprocal = quote && invertRatio(quote);
   const { amount: inputDisplay, label: inputLabel } = computeOtherAmount(
     outputAmount,
     inputAmount,
-    reciprocal,
     marketRate && invertRatio(marketRate),
     'Input',
   );
   const { amount: outputDisplay, label: outputLabel } = computeOtherAmount(
     inputAmount,
     outputAmount,
-    quote,
     marketRate,
     'Output',
   );
@@ -310,7 +323,7 @@ export default function Swap() {
   // TODO this hardwires 2% slippage limit; it should be
   // editable: https://github.com/Agoric/dapp-token-economy/issues/230
   const unitBasis = 10000n;
-  const maxSlippageBasis = 200n + unitBasis;
+  const maxSlippageBasis = 300n + unitBasis;
   const giveLimit =
     inputDisplay && (inputDisplay * maxSlippageBasis) / unitBasis;
   const wantLimit =
@@ -322,14 +335,16 @@ export default function Swap() {
   //   ? `The least you will receive is ${wantLimit}`
   //   : `The most you will spend is ${giveLimit}`;
 
+  // If the user entered the "In" amount, then keep that fixed and
+  // change the output by the slippage.
   function handleSwap() {
     makeSwapOffer(
       walletP,
       ammAPI,
       inputPurse,
-      isSwapIn ? giveLimit : inputDisplay,
+      isSwapIn ? inputDisplay : giveLimit,
       outputPurse,
-      isSwapIn ? outputDisplay : wantLimit,
+      isSwapIn ? wantLimit : outputDisplay,
       isSwapIn,
     );
     setInputPurse(null);
@@ -372,7 +387,6 @@ export default function Swap() {
     setOutputPurse(inputPurse);
     setOutputAmount(inputAmount);
     setInputAmount(outputAmount);
-    setQuote(quote && invertRatio(quote));
   }
 
   console.log('DISPLAY AMOUNTS', {
