@@ -2,7 +2,7 @@
 
 ## Development
 
-1. Follow this steps at this link to install the `agoric-sdk` and agoric CLI tool
+1. Follow the steps [here](https://agoric.com/documentation/getting-started/before-using-agoric.html) to install the `agoric-sdk` and agoric CLI tool
 2. Git clone this repository, and pull down the latest from branch
    `main`
 3. Navigate to where you cloned `treasury`, and do `agoric install`
