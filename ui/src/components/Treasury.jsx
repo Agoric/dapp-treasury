@@ -60,14 +60,7 @@ function VaultList() {
   } = useApplicationContext();
 
   const [redirect, setRedirect] = useState(false);
-
-  if (!approved) {
-    return (
-      <Paper className={classes.paper}>
-        <div>To continue, please approve the Treasury Dapp in your wallet.</div>
-      </Paper>
-    );
-  }
+  const vaultsList = Object.entries(vaults);
 
   const handleOnClick = key => {
     dispatch(setVaultToManageId(key));
@@ -78,7 +71,13 @@ function VaultList() {
     return <Redirect to={redirect} />;
   }
 
-  const vaultsList = Object.entries(vaults);
+  if (!approved) {
+    return (
+      <Paper className={classes.paper}>
+        <div>To continue, please approve the Treasury Dapp in your wallet.</div>
+      </Paper>
+    );
+  }
 
   if (vaultsList.length <= 0) {
     return (
@@ -88,45 +87,40 @@ function VaultList() {
     );
   }
 
-  const makeButtons = (key, vaultData) => {
-    // TODO: use a less fragile way of keeping track of a loan status
-    const canManage = vaultData.status === 'Loan Initiated';
-    return (
-      <CardActions>
-        <Grid container justify="flex-end">
-          <Grid item className={classes.button}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => handleOnClick(key)}
-              disabled={!canManage}
-            >
-              Manage Vault
-            </Button>
-          </Grid>
-        </Grid>
-      </CardActions>
-    );
-  };
-
   return (
     <div>
       <ErrorBoundary>
         <Grid container className={classes.grid} alignItems="stretch">
-          {vaultsList.map(([key, v]) => (
-            <Grid item key={key} className={classes.gridCard}>
-              <Card key={key} className={classes.card}>
-                <CardContent>
-                  <VaultSummary
-                    vault={v}
-                    id={key}
-                    brandToInfo={brandToInfo}
-                  ></VaultSummary>
-                </CardContent>
-                {makeButtons(key, v)}
-              </Card>
-            </Grid>
-          ))}
+          {vaultsList.map(([key, v]) => {
+            const canManage = v.status === 'Loan Initiated';
+            return (
+              <Grid item key={key} className={classes.gridCard}>
+                <Card key={key} className={classes.card}>
+                  <CardContent>
+                    <VaultSummary
+                      vault={v}
+                      id={key}
+                      brandToInfo={brandToInfo}
+                    ></VaultSummary>
+                  </CardContent>
+                  <CardActions>
+                    <Grid container justify="flex-end">
+                      <Grid item className={classes.button}>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={() => handleOnClick(key)}
+                          disabled={!canManage}
+                        >
+                          Manage Vault
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </CardActions>
+                </Card>
+              </Grid>
+            );
+          })}
         </Grid>
       </ErrorBoundary>
     </div>
