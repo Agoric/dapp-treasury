@@ -84,6 +84,8 @@ jobs:
       run: |
         echo "NETLIFY_SITE_ID=$(cat "${{ matrix.deployment }}/NETLIFY_SITE_ID")" >> $GITHUB_ENV
         tar -C "${{ matrix.deployment }}" -cf - src | tar -C dapp/ui -xvf -
+    - name: Use on-chain configuration
+      run: ./ui/use-on-chain-config.js
     - name: yarn build:react in dapp ui
       run: yarn build:react
       working-directory: ./dapp/ui
