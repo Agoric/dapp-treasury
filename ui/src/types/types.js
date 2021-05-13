@@ -53,7 +53,7 @@
 /**
  * @typedef {object} BrandInfo
  * @property {Issuer} issuer
- * @property {AmountMathKind} mathKind
+ * @property {AssetKind} assetKind
  * @property {number} decimalPlaces
  * @property {Petname} petname - the petname for the brand from the user
  */

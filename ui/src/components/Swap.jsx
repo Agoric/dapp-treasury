@@ -265,7 +265,7 @@ export default function Swap() {
       );
       const exchangeRate = stringifyAmountValue(
         wantPrice,
-        giveInfo.amountMathKind,
+        giveInfo.assetKind,
         giveInfo.decimalPlaces,
         placesToShow,
       );
