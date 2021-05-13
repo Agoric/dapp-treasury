@@ -6,10 +6,10 @@ import {
   stringifyValue,
 } from '@agoric/ui-components';
 
-import { MathKind } from '@agoric/ertp';
+import { AssetKind } from '@agoric/ertp';
 
-export const getPurseMathKind = purse =>
-  (purse && purse.displayInfo && purse.displayInfo.amountMathKind) || undefined;
+export const getPurseAssetKind = purse =>
+  (purse && purse.displayInfo && purse.displayInfo.assetKind) || undefined;
 export const getPurseDecimalPlaces = purse =>
   (purse && purse.displayInfo && purse.displayInfo.decimalPlaces) || undefined;
 
@@ -51,7 +51,7 @@ export const makeDisplayFunctions = brandToInfo => {
     const decimalPlaces = getDecimalPlaces(amount.brand);
     return stringifyValue(
       amount.value,
-      MathKind.NAT,
+      AssetKind.NAT,
       decimalPlaces,
       placesToShow,
     );

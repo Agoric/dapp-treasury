@@ -94,7 +94,7 @@ function VaultConfigure({
     dstPurses.length ? dstPurses[0] : null,
   );
   const [toBorrow, setToBorrow] = useState(amountMath.makeEmpty(runBrand));
-  // Assumes that collateral is MathKind.NAT
+  // Assumes that collateral is AssetKind.NAT
   const [toLock, setToLock] = useState(
     amountMath.makeEmpty(vaultCollateral.brand),
   );

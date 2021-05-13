@@ -10,7 +10,7 @@ import { mergeBrandToInfo } from '../store';
 // information about the brand and not overwrite brandToInfo entirely.
 // brandToInfo should only be used here for saving roundtrips by not
 // re-fetching data that already exists. Since we do not delete brands
-// or change the mathKind or decimalPlaces for brands, this is mostly safe.
+// or change the assetKind or decimalPlaces for brands, this is mostly safe.
 // At worst, a petname will be overwritten for a few seconds, then
 // replaced by the correct petname from the user's wallet.
 
@@ -20,7 +20,6 @@ export const storeAllBrandsFromTerms = async ({
   brandToInfo,
 }) => {
   const brandToInfoMap = new Map(brandToInfo);
-  const mathKindPs = [];
   const displayInfoPs = [];
   const brands = [];
   const issuers = [];
@@ -33,27 +32,22 @@ export const storeAllBrandsFromTerms = async ({
     }
 
     const issuer = terms.issuers[keyword];
-    const mathKindP = E(issuer).getAmountMathKind();
     const displayInfoP = E(brand).getDisplayInfo();
 
     issuers.push(issuer);
     brands.push(brand);
-    mathKindPs.push(mathKindP);
     displayInfoPs.push(displayInfoP);
     keywords.push(keyword);
   });
 
-  const [mathKinds, displayInfos] = await Promise.all([
-    Promise.all(mathKindPs),
-    Promise.all(displayInfoPs),
-  ]);
+  const displayInfos = await Promise.all(displayInfoPs);
 
   const newBrandToInfo = brands.map((brand, i) => {
     const decimalPlaces = displayInfos[i] && displayInfos[i].decimalPlaces;
     return [
       brand,
       {
-        mathKind: mathKinds[i],
+        assetKind: displayInfos[i].assetKind,
         decimalPlaces,
         issuer: issuers[i],
         petname: keywords[i],
@@ -88,15 +82,13 @@ export const storeBrand = async ({
   }
 
   // The info record does not exist, so we need to gather the information
-  const mathKindP = E(issuer).getAmountMathKind();
-  const displayInfoP = E(brand).getDisplayInfo();
-  const [mathKind, displayInfo] = await Promise.all([mathKindP, displayInfoP]);
+  const displayInfo = await E(brand).getDisplayInfo();
   const decimalPlaces = displayInfo && displayInfo.decimalPlaces;
 
   const newInfo = {
     petname,
     issuer,
-    mathKind,
+    assetKind: displayInfo.assetKind,
     decimalPlaces,
   };
 
