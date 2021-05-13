@@ -27,8 +27,6 @@ jobs:
     - name: yarn install in agoric-sdk
       run: yarn install
       working-directory: ./agoric-sdk
-    - name: Use on-chain configuration
-      run: ./ui/use-on-chain-config.js
     - name: yarn build in agoric-sdk
       run: yarn build
       working-directory: ./agoric-sdk
@@ -45,6 +43,8 @@ jobs:
     - name: Agoric install in dapp
       run: agoric install
       working-directory: ./dapp
+    - name: Use on-chain configuration
+      run: ./ui/use-on-chain-config.js
     - name: yarn build in dapp
       run: yarn build
       working-directory: ./dapp
