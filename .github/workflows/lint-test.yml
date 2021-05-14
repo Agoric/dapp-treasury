@@ -67,8 +67,6 @@ jobs:
 
     - name: agoric install
       run: agoric install
-    - name: configure
-      run: ./ui/use-on-chain-config.js
     - name: yarn build
       run: yarn build
     - name: yarn test (everything)
