@@ -13,9 +13,10 @@
     "lint-fix": "eslint --fix '**/*.{js,jsx}'",
     "start": "react-scripts start",
     "test": "exit 0",
-    "build": "react-scripts build",
+    "configure": "node use-on-chain-config",
+    "build": "yarn build:react",
     "build:ses": "cp ../node_modules/ses/dist/lockdown.umd.js public/",
-    "build:react": "yarn build:pre-patch; react-scripts build; yarn build:post-patch",
+    "build:react": "yarn configure; yarn build:pre-patch; react-scripts build; yarn build:post-patch",
     "build:pre-patch": "node -r esm ./ses-patch.js src/install-ses-lockdown.js",
     "build:post-patch": "node -r esm ./ses-patch.js build/index.html",
     "eject": "react-scripts eject"
