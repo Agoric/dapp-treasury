@@ -18,7 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x, 14.x]
+        # TODO: ['14.x', '16.x']
+        node-version: [14.x]
     steps:
     - name: Checkout treasury
       uses: actions/checkout@v2
