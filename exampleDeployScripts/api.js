@@ -286,7 +286,7 @@ export default async function deployApi(homePromise, endowments) {
   };
 
   const priceAuthoritiesHandler = async () => {
-    const priceAuthoritiesPath = helpers.resolvePathForLocalContract(
+    const priceAuthoritiesPath = endowments.pathResolve(
       './src/priceAuthorities.js',
     );
     const PA_NAME = 'PriceAuthorities';
