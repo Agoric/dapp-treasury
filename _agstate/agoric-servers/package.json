@@ -1,7 +1,7 @@
 {
-  "name": "@agoric/dapp-simple-exchange-agservers",
+  "name": "@agoric/dapp-treasury-agservers",
   "version": "0.0.1",
-  "description": "Agoric server instances for dapp-autoswap",
+  "description": "Agoric server instances for dapp-treasury",
   "private": true,
   "scripts": {
     "build": "exit 0",
