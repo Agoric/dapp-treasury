@@ -45,8 +45,9 @@ function AppHeader({ handleDrawerToggle, children, drawerWidth }) {
         >
           <MenuIcon />
         </IconButton>
+        <img src="./white-logo.png" height="48" width="48" alt="Agoric Logo" />
         <Typography variant="h6" className={classes.title} noWrap>
-          Agoric Core HQ
+          Agoric Core Economy
         </Typography>
         {children}
       </Toolbar>
