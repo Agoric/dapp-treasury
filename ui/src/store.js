@@ -2,6 +2,24 @@
 // See: https://github.com/ericelliott/autodux
 import autodux from 'autodux';
 
+const initial = {
+  approved: true,
+  connected: false,
+  account: null,
+  purses: null,
+  brandToInfo: [],
+
+  // Autoswap state
+  autoswap: {},
+  // Vault state
+  treasury: null,
+  vaultCollateral: null,
+  vaultConfiguration: null,
+  vaults: {},
+  collaterals: null,
+  vaultToManageId: null,
+};
+
 export const {
   reducer,
   initial: defaultState,
@@ -24,22 +42,7 @@ export const {
   },
 } = autodux({
   slice: 'treasury',
-  initial: {
-    approved: true,
-    connected: false,
-    account: null,
-    purses: null,
-    brandToInfo: [], // [[brand, infoObj] ...]
-    // Autoswap state
-    autoswap: {},
-    // Vault state
-    treasury: null,
-    vaultCollateral: null,
-    vaultConfiguration: null,
-    vaults: {},
-    collaterals: null,
-    vaultToManageId: null,
-  },
+  initial,
   actions: {
     createVault: (state, { id, vault }) => {
       return {
