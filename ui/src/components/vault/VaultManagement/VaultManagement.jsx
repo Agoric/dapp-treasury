@@ -80,6 +80,9 @@ const VaultManagement = () => {
     // status,
   } = vaultToManage;
 
+  assert(locked, 'locked missing from vaultToManage???');
+  assert(debt, 'debt missing from vaultToManage???');
+
   const [lockedAfterDelta, setLockedAfterDelta] = useState(locked);
   const [debtAfterDelta, setDebtAfterDelta] = useState(debt);
   const noRatio = /** @type { Ratio | null } */ (null);
@@ -124,6 +127,7 @@ const VaultManagement = () => {
       10n ** Nat(decimalPlaces),
       locked.brand,
     );
+    assert(ammAPI, 'ammAPI missing');
     const quoteP = E(ammAPI).getPriceGivenAvailableInput(
       inputAmount,
       debt.brand,
@@ -158,6 +162,7 @@ const VaultManagement = () => {
   };
 
   const checkIfOfferInvalid = () => {
+    if (!liquidationRatio) return false;
     const ratio = calcRatio(marketPrice, lockedAfterDelta, debtAfterDelta);
     const approxCollateralizationRatio =
       Number(ratio.numerator.value) / Number(ratio.denominator.value);
