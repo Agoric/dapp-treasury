@@ -14,6 +14,7 @@ import {
 import { dappConfig, refreshConfigFromWallet } from '../utils/config';
 
 import {
+  initial,
   reducer,
   defaultState,
   setPurses,
@@ -31,7 +32,13 @@ import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
 let walletP;
 export { walletP };
 
-export const ApplicationContext = createContext();
+export const ApplicationContext = createContext({
+  state: initial,
+  // TODO: type for dispatch
+  dispatch: /** @type { any } */ (undefined),
+  // TODO: type for walletP
+  walletP: /** @type { any } */ (undefined),
+});
 
 export function useApplicationContext() {
   return useContext(ApplicationContext);
