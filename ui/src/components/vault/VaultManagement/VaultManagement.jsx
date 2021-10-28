@@ -59,6 +59,7 @@ const VaultManagement = () => {
     autoswap: { ammAPI },
   } = state;
 
+  /** @type { import('../../../store').VaultData } */
   let vaultToManage = {
     collateralizationRatio: null,
     debt: null,
@@ -81,12 +82,13 @@ const VaultManagement = () => {
 
   const [lockedAfterDelta, setLockedAfterDelta] = useState(locked);
   const [debtAfterDelta, setDebtAfterDelta] = useState(debt);
+  const noRatio = /** @type { Ratio | null } */ (null);
   const [newCollateralizationRatio, setNewCollateralizationRatio] = useState(
-    null,
+    noRatio,
   );
-  const [marketPrice, setMarketPrice] = useState(null);
+  const [marketPrice, setMarketPrice] = useState(noRatio);
   // calculate based on market price
-  const [collateralizationRatio, setCollateralizationRatio] = useState(null);
+  const [collateralizationRatio, setCollateralizationRatio] = useState(noRatio);
 
   if (vaultToManage.locked === null) {
     return <div>Please select a vault to manage.</div>;
@@ -99,7 +101,13 @@ const VaultManagement = () => {
   } = makeDisplayFunctions(brandToInfo);
   const lockedPetname = displayBrandPetname(locked.brand);
 
-  // Collateralization ratio is the value of collateral to debt.
+  /**
+   * Collateralization ratio is the value of collateral to debt.
+   *
+   * @param {Ratio} priceRate
+   * @param {Amount} newLock
+   * @param {Amount} newBorrow
+   */
   const calcRatio = (priceRate, newLock, newBorrow) => {
     const lockPrice = multiplyBy(newLock, priceRate);
     const newRatio = makeRatioFromAmounts(lockPrice, newBorrow);

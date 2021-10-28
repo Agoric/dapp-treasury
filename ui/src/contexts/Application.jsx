@@ -1,3 +1,4 @@
+// @ts-check
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 
 import { makeCapTP, E } from '@agoric/captp';
@@ -36,6 +37,13 @@ export function useApplicationContext() {
   return useContext(ApplicationContext);
 }
 
+/**
+ * @param {string} id
+ * @param {TD} dispatch
+ * @typedef {React.Dispatch<React.Reducer<TreasuryState, TreasuryAction>>} TD
+ * @typedef {import('../store').TreasuryState} TreasuryState
+ * @typedef {import('../store').TreasuryAction} TreasuryAction
+ */
 function watchVault(id, dispatch) {
   console.log('vaultWatched', id);
 
@@ -66,6 +74,7 @@ function watchVault(id, dispatch) {
   });
 }
 
+/** @type { (d: TD, id: string) => void } */
 function watchOffers(dispatch, INSTANCE_BOARD_ID) {
   const watchedVaults = new Set();
   async function offersUpdater() {
@@ -91,7 +100,18 @@ function watchOffers(dispatch, INSTANCE_BOARD_ID) {
   offersUpdater().catch(err => console.error('Offers watcher exception', err));
 }
 
+/**
+ * @param {TD} dispatch
+ * @param {Iterable<[Brand, BrandInfo]>} brandToInfo
+ * @param {ERef<ZoeService>} zoe
+ * @param {ERef<Board>} board
+ * @param {string} instanceID
+ *
+ * @typedef {{ getId: (value: unknown) => string, getValue: (id: string) => any }} Board
+ * @typedef {import('../store').BrandInfo} BrandInfo
+ */
 const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
+  /** @type { Instance } */
   const instance = await E(board).getValue(instanceID);
   const treasuryAPIP = E(zoe).getPublicFacet(instance);
   const [treasuryAPI, terms, collaterals] = await Promise.all([
@@ -113,6 +133,14 @@ const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
   dispatch(setCollaterals(collaterals));
   return { terms, collaterals };
 };
+
+/**
+ * @param {TD} dispatch
+ * @param {Iterable<[Brand, BrandInfo]>} brandToInfo
+ * @param {ERef<ZoeService>} zoe
+ * @param {ERef<Board>} board
+ * @param {string} instanceID
+ */
 const setupAMM = async (dispatch, brandToInfo, zoe, board, instanceID) => {
   const instance = await E(board).getValue(instanceID);
   const [ammAPI, terms] = await Promise.all([

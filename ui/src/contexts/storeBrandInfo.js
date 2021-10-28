@@ -14,6 +14,16 @@ import { mergeBrandToInfo } from '../store';
 // At worst, a petname will be overwritten for a few seconds, then
 // replaced by the correct petname from the user's wallet.
 
+/**
+ *
+ * @param {{
+ *   dispatch: React.Dispatch<React.Reducer<import('../store').TreasuryState, any>>,
+ *   terms: Terms,
+ *   brandToInfo: Iterable<[Brand, BrandInfo]>,
+ * }} param0
+ *
+ * @typedef {import('../store').BrandInfo} BrandInfo
+ */
 export const storeAllBrandsFromTerms = async ({
   dispatch,
   terms,
@@ -21,7 +31,7 @@ export const storeAllBrandsFromTerms = async ({
 }) => {
   const brandToInfoMap = new Map(brandToInfo);
   const displayInfoPs = [];
-  const brands = [];
+  const brands = /** @type { Brand[] } */ ([]);
   const issuers = [];
   const keywords = [];
 
@@ -44,7 +54,8 @@ export const storeAllBrandsFromTerms = async ({
 
   const newBrandToInfo = brands.map((brand, i) => {
     const decimalPlaces = displayInfos[i] && displayInfos[i].decimalPlaces;
-    return [
+    /** @type { [Brand, BrandInfo]} */
+    const entry = [
       brand,
       {
         assetKind: displayInfos[i].assetKind,
@@ -54,10 +65,21 @@ export const storeAllBrandsFromTerms = async ({
         brand,
       },
     ];
+    return entry;
   });
   dispatch(mergeBrandToInfo(newBrandToInfo));
 };
 
+/**
+ *
+ * @param {{
+ *   dispatch: React.Dispatch<React.Reducer<import('../store').TreasuryState, any>>,
+ *   brandToInfo: Iterable<[Brand, BrandInfo]>,
+ *   issuer: Issuer,
+ *   brand: Brand,
+ *   petname: string,
+ * }} param0
+ */
 export const storeBrand = async ({
   dispatch,
   brandToInfo,
@@ -76,6 +98,7 @@ export const storeBrand = async ({
       petname,
     };
 
+    /** @type { [Brand, BrandInfo][]} */
     const newBrandToInfo = [[brand, newInfo]];
     dispatch(mergeBrandToInfo(newBrandToInfo));
     return newInfo;
@@ -88,10 +111,12 @@ export const storeBrand = async ({
   const newInfo = {
     petname,
     issuer,
+    brand,
     assetKind: displayInfo.assetKind,
     decimalPlaces,
   };
 
+  /** @type { [Brand, BrandInfo][]} */
   const newBrandToInfo = [[brand, newInfo]];
   dispatch(mergeBrandToInfo(newBrandToInfo));
   return newInfo;
