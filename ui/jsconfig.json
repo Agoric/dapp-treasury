@@ -1,23 +1,16 @@
-// This file can contain .js-specific Typescript compiler config.
 {
   "compilerOptions": {
     "target": "es2020",
     "noEmit": true,
-    /*
-    // The following flags are for creating .d.ts files:
-    "noEmit": false,
-    "declaration": true,
-    "emitDeclarationOnly": true,
-*/
     "downlevelIteration": true,
     "strictNullChecks": true,
     "moduleResolution": "node",
-    "jsx": "preserve",
+    "jsx": "preserve"
   },
   "include": [
     "src/**/*.js",
     "src/**/*.jsx",
     "tools/**/*.js",
-    "exports.js",
-  ],
+    "exports.js"
+  ]
 }
