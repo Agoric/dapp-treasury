@@ -14,6 +14,15 @@ import { mergeBrandToInfo } from '../store';
 // At worst, a petname will be overwritten for a few seconds, then
 // replaced by the correct petname from the user's wallet.
 
+/**
+ *
+ * @param {Object} param0
+ * @param {React.Dispatch<React.Reducer<import('../store').TreasuryState, any>>} param0.dispatch
+ * @param {Terms} param0.terms
+ * @param {Iterable<[Brand, BrandInfo]>} param0.brandToInfo
+ *
+ * @typedef {import('../store').BrandInfo} BrandInfo
+ */
 export const storeAllBrandsFromTerms = async ({
   dispatch,
   terms,
@@ -21,7 +30,7 @@ export const storeAllBrandsFromTerms = async ({
 }) => {
   const brandToInfoMap = new Map(brandToInfo);
   const displayInfoPs = [];
-  const brands = [];
+  const brands = /** @type { Brand[] } */ ([]);
   const issuers = [];
   const keywords = [];
 
@@ -44,7 +53,8 @@ export const storeAllBrandsFromTerms = async ({
 
   const newBrandToInfo = brands.map((brand, i) => {
     const decimalPlaces = displayInfos[i] && displayInfos[i].decimalPlaces;
-    return [
+    /** @type { [Brand, BrandInfo]} */
+    const entry = [
       brand,
       {
         assetKind: displayInfos[i].assetKind,
@@ -54,10 +64,20 @@ export const storeAllBrandsFromTerms = async ({
         brand,
       },
     ];
+    return entry;
   });
   dispatch(mergeBrandToInfo(newBrandToInfo));
 };
 
+/**
+ *
+ * @param {Object} param0
+ * @param {React.Dispatch<React.Reducer<import('../store').TreasuryState, any>>} param0.dispatch
+ * @param {Iterable<[Brand, BrandInfo]>} param0.brandToInfo
+ * @param {Issuer} param0.issuer
+ * @param {Brand} param0.brand
+ * @param {string} param0.petname
+ */
 export const storeBrand = async ({
   dispatch,
   brandToInfo,
@@ -76,6 +96,7 @@ export const storeBrand = async ({
       petname,
     };
 
+    /** @type { [Brand, BrandInfo][]} */
     const newBrandToInfo = [[brand, newInfo]];
     dispatch(mergeBrandToInfo(newBrandToInfo));
     return newInfo;
@@ -88,10 +109,12 @@ export const storeBrand = async ({
   const newInfo = {
     petname,
     issuer,
+    brand,
     assetKind: displayInfo.assetKind,
     decimalPlaces,
   };
 
+  /** @type { [Brand, BrandInfo][]} */
   const newBrandToInfo = [[brand, newInfo]];
   dispatch(mergeBrandToInfo(newBrandToInfo));
   return newInfo;
