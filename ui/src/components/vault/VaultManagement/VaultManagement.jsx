@@ -85,7 +85,8 @@ const VaultManagement = () => {
 
   const [lockedAfterDelta, setLockedAfterDelta] = useState(locked);
   const [debtAfterDelta, setDebtAfterDelta] = useState(debt);
-  const noRatio = /** @type { Ratio | null } */ (null);
+  /** @type { Ratio | null } */
+  const noRatio = null;
   const [newCollateralizationRatio, setNewCollateralizationRatio] = useState(
     noRatio,
   );
