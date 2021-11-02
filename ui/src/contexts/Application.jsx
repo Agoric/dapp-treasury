@@ -25,6 +25,7 @@ import {
   resetState,
   updateVault,
   setCollaterals,
+  setRunLoCTerms,
   setTreasury,
   setAutoswap,
   setApproved,
@@ -131,6 +132,8 @@ const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
     brands: { RUN: runBrand },
   } = terms;
   dispatch(setTreasury({ instance, treasuryAPI, runIssuer, runBrand }));
+  const runLoCTerms = await getRunLoCTerms(collaterals);
+  dispatch(setRunLoCTerms(runLoCTerms));
   await storeAllBrandsFromTerms({
     dispatch,
     terms,

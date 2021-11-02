@@ -19,6 +19,7 @@ export const initial = {
   vaultConfiguration: null,
   vaults: /** @type {Record<string, VaultData>} */ ({}),
   collaterals: /** @type { Collateral[] | null } */ (null),
+  runLoCTerms: /** @type { Collateral | null } */ (null),
   vaultToManageId: /** @type {string | null} */ (null),
 };
 
@@ -37,6 +38,7 @@ export const initial = {
  *    mergeBrandToInfo: (payload: typeof initial.brandToInfo ) => TreasuryReducer,
  *    addToBrandToInfo: (payload: typeof initial.brandToInfo) => TreasuryReducer,
  *    setCollaterals: (payload: typeof initial.collaterals) => TreasuryReducer,
+ *    setRunLoCTerms: (payload: typeof initial.runLoCTerms) => TreasuryReducer,
  *    resetState: () => TreasuryReducer,
  *    setTreasury: (payload: typeof initial.treasury) => TreasuryReducer,
  *    setVaultCollateral: (payload: typeof initial.vaultCollateral) => TreasuryReducer,

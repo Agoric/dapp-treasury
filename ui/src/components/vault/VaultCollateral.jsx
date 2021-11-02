@@ -42,12 +42,14 @@ const makeHeaderCell = data => (
  * @param {TreasuryDispatch} info.dispatch
  * @param {PursesJSONState[]} info.purses
  * @param {Collateral[]} info.collaterals
+ * @param {Collateral} info.runLoCTerms
  * @param {Iterable<[Brand, BrandInfo]>} info.brandToInfo
  */
 function VaultCollateral({
   dispatch,
   purses,
   collaterals: collateralsRaw,
+  runLoCTerms,
   brandToInfo,
 }) {
   const {
@@ -72,6 +74,11 @@ function VaultCollateral({
     return noCollateralAvailableDiv;
   }
 
+  /** @param { Ratio } x */
+  const percentCell = x => (
+    <TableCell align="right">{displayPercent(x)}%</TableCell>
+  );
+
   /**
    * Display a row per brand of potential collateral
    *
@@ -79,10 +86,6 @@ function VaultCollateral({
    * @returns {import('react').ReactComponentElement}
    */
   const makeCollateralRow = row => {
-    const percentCell = x => (
-      <TableCell align="right">{displayPercent(x)}%</TableCell>
-    );
-
     const marketPriceDisplay = displayRatio(row.marketPrice);
     const collateralPetnameDisplay = displayBrandPetname(row.brand);
 
@@ -100,6 +103,26 @@ function VaultCollateral({
     );
   };
 
+  /** @param {Collateral} row */
+  const makeRunLoCRow = row => {
+    const marketPriceDisplay = displayRatio(row.marketPrice);
+    const collateralPetnameDisplay = displayBrandPetname(row.brand);
+    return (
+      <TableRow key="RUNLoC">
+        <TableCell padding="checkbox">
+          <Radio onClick={makeOnClick(row)} />
+        </TableCell>
+        <TableCell>{collateralPetnameDisplay}</TableCell>
+        <TableCell align="right">${marketPriceDisplay}</TableCell>
+        {percentCell(row.initialMargin)}
+        <TableCell align="right">
+          <span title="RUN Line of Credit">0%*</span>
+        </TableCell>
+        {percentCell(row.stabilityFee)}
+      </TableRow>
+    );
+  };
+
   return (
     <div>
       <FormControl component="fieldset">
@@ -112,7 +135,10 @@ function VaultCollateral({
                 {headCells.map(makeHeaderCell)}
               </TableRow>
             </TableHead>
-            <TableBody>{collaterals.map(makeCollateralRow)}</TableBody>
+            <TableBody>
+              {runLoCTerms && makeRunLoCRow(runLoCTerms)}
+              {collaterals.map(makeCollateralRow)}
+            </TableBody>
           </Table>
         </TableContainer>
       </FormControl>
