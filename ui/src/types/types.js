@@ -57,3 +57,45 @@
  * @property {number} decimalPlaces
  * @property {Petname} petname - the petname for the brand from the user
  */
+
+/**
+ * @typedef { typeof import('../store').initial } TreasuryState
+ *
+ * @typedef { React.Reducer<TreasuryState, TreasuryAction> } TreasuryReducer
+ *
+ * @typedef { any } TreasuryAction This should probably be a big union type
+ * but specifying it doesn't seem cost-effective just now.
+ *
+ * @typedef {React.Dispatch<React.Reducer<TreasuryState, TreasuryAction>>} TreasuryDispatch
+ */
+
+/**
+ * @typedef {{
+ *   instance?: Instance,
+ *   ammAPI?: ERef<MultipoolAutoswapPublicFacet>,
+ *   centralBrand?: Brand,
+ *   otherBrands?: Record<string, Brand>,
+ * }} AutoswapState
+ */
+
+/**
+ * @typedef {{
+ *   status?: 'Pending Wallet Acceptance' | 'Error in offer'| 'Loan Initiated' | 'Liquidated',
+ *   liquidated?: boolean,
+ *   locked?: Amount | null,
+ *   collateralizationRatio?: Ratio | null,
+ *   debt?: Amount | null,
+ *   interestRate?:  Ratio | null,
+ *   liquidationRatio?: Ratio | null,
+ *   err?: Error
+ * }} VaultData
+ */
+
+/**
+ * @typedef {{
+ *   instance: Instance,
+ *   treasuryAPI: unknown,
+ *   runIssuer: Issuer,
+ *   runBrand: Brand,
+ * }} VaultState
+ */
