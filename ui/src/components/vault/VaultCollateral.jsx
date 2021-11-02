@@ -1,3 +1,4 @@
+// @ts-check
 import React from 'react';
 
 import {
@@ -17,7 +18,9 @@ import '../../types/types';
 import { setVaultCollateral } from '../../store';
 import { makeDisplayFunctions } from '../helpers';
 
+/** @param { unknown } c */
 const collateralAvailable = c => Array.isArray(c) && c.length > 0;
+const standByForCollateralDiv = <div>Looking up collateral...</div>;
 const noCollateralAvailableDiv = (
   <div>No assets are available to use as collateral.</div>
 );
@@ -34,10 +37,19 @@ const makeHeaderCell = data => (
   <TableCell key={data.id}>{data.label}</TableCell>
 );
 
+/**
+ * @param {Object} info
+ * @param {TreasuryDispatch} info.dispatch
+ * @param {PursesJSONState[]} info.purses
+ * @param {Collateral[]} info.collaterals
+ * @param {Collateral} info.runLoCTerms
+ * @param {Iterable<[Brand, BrandInfo]>} info.brandToInfo
+ */
 function VaultCollateral({
   dispatch,
   purses,
   collaterals: collateralsRaw,
+  runLoCTerms,
   brandToInfo,
 }) {
   const {
@@ -46,6 +58,7 @@ function VaultCollateral({
     displayBrandPetname,
   } = makeDisplayFunctions(brandToInfo);
 
+  /** @param {Collateral} row */
   const makeOnClick = row => _ev => {
     dispatch(setVaultCollateral(row));
   };
@@ -55,9 +68,16 @@ function VaultCollateral({
   const collaterals =
     collateralsRaw && collateralsRaw.filter(c => purseBrands.has(c.brand));
 
-  if (!collateralAvailable(collaterals)) {
+  if (!collaterals) {
+    return standByForCollateralDiv;
+  } else if (!collateralAvailable(collaterals)) {
     return noCollateralAvailableDiv;
   }
+
+  /** @param { Ratio } x */
+  const percentCell = x => (
+    <TableCell align="right">{displayPercent(x)}%</TableCell>
+  );
 
   /**
    * Display a row per brand of potential collateral
@@ -66,10 +86,6 @@ function VaultCollateral({
    * @returns {import('react').ReactComponentElement}
    */
   const makeCollateralRow = row => {
-    const percentCell = x => (
-      <TableCell align="right">{displayPercent(x)}%</TableCell>
-    );
-
     const marketPriceDisplay = displayRatio(row.marketPrice);
     const collateralPetnameDisplay = displayBrandPetname(row.brand);
 
@@ -87,6 +103,26 @@ function VaultCollateral({
     );
   };
 
+  /** @param {Collateral} row */
+  const makeRunLoCRow = row => {
+    const marketPriceDisplay = displayRatio(row.marketPrice);
+    const collateralPetnameDisplay = displayBrandPetname(row.brand);
+    return (
+      <TableRow key="RUNLoC">
+        <TableCell padding="checkbox">
+          <Radio onClick={makeOnClick(row)} />
+        </TableCell>
+        <TableCell>{collateralPetnameDisplay}</TableCell>
+        <TableCell align="right">${marketPriceDisplay}</TableCell>
+        {percentCell(row.initialMargin)}
+        <TableCell align="right">
+          <span title="RUN Line of Credit">0%*</span>
+        </TableCell>
+        {percentCell(row.stabilityFee)}
+      </TableRow>
+    );
+  };
+
   return (
     <div>
       <FormControl component="fieldset">
@@ -99,7 +135,10 @@ function VaultCollateral({
                 {headCells.map(makeHeaderCell)}
               </TableRow>
             </TableHead>
-            <TableBody>{collaterals.map(makeCollateralRow)}</TableBody>
+            <TableBody>
+              {runLoCTerms && makeRunLoCRow(runLoCTerms)}
+              {collaterals.map(makeCollateralRow)}
+            </TableBody>
           </Table>
         </TableContainer>
       </FormControl>

@@ -1,3 +1,4 @@
+// @ts-check
 import React, { useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
@@ -50,6 +51,7 @@ export default function NewVault() {
       vaultCollateral,
       treasury,
       collaterals,
+      runLoCTerms,
       purses,
       vaultConfiguration,
       approved,
@@ -59,7 +61,9 @@ export default function NewVault() {
     walletP,
   } = useApplicationContext();
 
-  const [redirect, setRedirect] = useState(false);
+  const [redirect, setRedirect] = useState(
+    /** @type { string | false } */ (false),
+  );
 
   if (redirect) {
     return <Redirect to={redirect} />;
@@ -87,6 +91,7 @@ export default function NewVault() {
           collaterals={collaterals}
           purses={purses}
           brandToInfo={brandToInfo}
+          runLoCTerms={runLoCTerms}
         />
       );
     }

@@ -59,7 +59,7 @@ const VaultManagement = () => {
     autoswap: { ammAPI },
   } = state;
 
-  /** @type { import('../../../store').VaultData } */
+  /** @type { VaultData } */
   let vaultToManage = {
     collateralizationRatio: null,
     debt: null,
@@ -85,14 +85,14 @@ const VaultManagement = () => {
 
   const [lockedAfterDelta, setLockedAfterDelta] = useState(locked);
   const [debtAfterDelta, setDebtAfterDelta] = useState(debt);
-  /** @type { Ratio | null } */
-  const noRatio = null;
-  const [newCollateralizationRatio, setNewCollateralizationRatio] = useState(
-    noRatio,
-  );
-  const [marketPrice, setMarketPrice] = useState(noRatio);
+  const makeRatioState = () => useState(/** @type { Ratio | null } */ (null));
+  const [
+    newCollateralizationRatio,
+    setNewCollateralizationRatio,
+  ] = makeRatioState();
+  const [marketPrice, setMarketPrice] = makeRatioState();
   // calculate based on market price
-  const [collateralizationRatio, setCollateralizationRatio] = useState(noRatio);
+  const [collateralizationRatio, setCollateralizationRatio] = makeRatioState();
 
   if (vaultToManage.locked === null) {
     return <div>Please select a vault to manage.</div>;
