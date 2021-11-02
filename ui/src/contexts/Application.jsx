@@ -30,7 +30,6 @@ import {
   setApproved,
 } from '../store';
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
-import ErrorBoundary from '../components/ErrorBoundary';
 import { getRunLoCTerms } from '../runLoCStub';
 
 // eslint-disable-next-line import/no-mutable-exports
