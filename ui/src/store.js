@@ -9,68 +9,27 @@ export const initial = {
   connected: false,
   account: null,
   purses: /** @type {PursesJSONState[] | null} */ (null),
-  brandToInfo: /** @type {Iterable<[Brand, BrandInfo]>} */ ([]),
+  brandToInfo: /** @type {Array<[Brand, BrandInfo]>} */ ([]),
 
   // Autoswap state
   autoswap: /** @type { AutoswapState } */ ({}),
   // Vault state
   treasury: /** @type { VaultState | null } */ (null),
-  vaultCollateral: null,
+  vaultCollateral: /** @type { Collateral | null } */ (null),
   vaultConfiguration: null,
   vaults: /** @type {Record<string, VaultData>} */ ({}),
-  collaterals: null,
+  collaterals: /** @type { Collateral[] | null } */ (null),
   vaultToManageId: /** @type {string | null} */ (null),
 };
 
 /**
- * @typedef { typeof initial } TreasuryState
- *
- * @typedef {{
- *   instance?: Instance,
- *   ammAPI?: ERef<MultipoolAutoswapPublicFacet>,
- *   centralBrand?: Brand,
- *   otherBrands?: Record<string, Brand>,
- * }} AutoswapState
- *
- * @typedef {{
- *   status?: 'Pending Wallet Acceptance' | 'Error in offer'| 'Loan Initiated' | 'Liquidated',
- *   liquidated?: boolean,
- *   locked?: Amount | null,
- *   collateralizationRatio?: Ratio | null,
- *   debt?: Amount | null,
- *   interestRate?:  Ratio | null,
- *   liquidationRatio?: Ratio | null,
- *   err?: Error
- * }} VaultData
- *
- * @typedef {{
- *   instance: Instance,
- *   treasuryAPI: unknown,
- *   runIssuer: Issuer,
- *   runBrand: Brand,
- * }} VaultState
- * @typedef {{
- *   assetKind: AssetKind,
- *   decimalPlaces?: number,
- *   issuer: Issuer,
- *   petname: string,
- *   brand: Brand,
- * }} BrandInfo
- *
- * @typedef {{ brand: Brand, displayInfo: any }} PursesJSONState
- * see dapp-svelte-wallet/api/src/types.js
- */
-
-/**
- * @typedef { React.Reducer<TreasuryState, TreasuryAction> } TreasuryReducer
- *
- * @typedef { any } TreasuryAction This should probably be a big union type
- * but specifying it doesn't seem cost-effective just now.
- *
  * @type {{
  *   reducer: TreasuryReducer,
  *   initial: TreasuryState,
- *   actions: {
+ *   actions: TreasuryActions,
+ * }}
+ *
+ * @typedef {{
  *    setApproved: (payload: boolean) => TreasuryReducer,
  *    setConnected: (payload: boolean) => TreasuryReducer,
  *    setPurses: (payload: typeof initial.purses) => TreasuryReducer,
@@ -84,10 +43,9 @@ export const initial = {
  *    setVaultConfiguration: (payload: typeof initial.vaultConfiguration) => TreasuryReducer,
  *    setVaultToManageId: (payload: typeof initial.vaultToManageId) => TreasuryReducer,
  *    updateVault: (v: { id: string, vault: VaultData }) => TreasuryReducer,
- *    resetVault: TreasuryReducer,
+ *    resetVault: () => TreasuryReducer,
  *    setAutoswap: (payload: typeof initial.autoswap) => TreasuryReducer,
- *   }
- * }}
+ * }} TreasuryActions
  */
 
 export const {
@@ -100,6 +58,7 @@ export const {
     mergeBrandToInfo,
     addToBrandToInfo,
     setCollaterals,
+    setRunLoCTerms,
     resetState,
     setTreasury,
     setVaultCollateral,
@@ -150,7 +109,7 @@ export const {
       inputAmount: null,
       outputAmount: null,
     }),
-    /** @type {(state: TreasuryState, newBrandToInfo: Iterable<[Brand, BrandInfo]>) => TreasuryState} */
+    /** @type {(state: TreasuryState, newBrandToInfo: Array<[Brand, BrandInfo]>) => TreasuryState} */
     mergeBrandToInfo: (state, newBrandToInfo) => {
       const merged = new Map([...state.brandToInfo, ...newBrandToInfo]);
 

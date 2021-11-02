@@ -1,3 +1,4 @@
+// @ts-check
 import React from 'react';
 
 import {
@@ -17,6 +18,7 @@ import '../../types/types';
 import { setVaultCollateral } from '../../store';
 import { makeDisplayFunctions } from '../helpers';
 
+/** @param { unknown } c */
 const collateralAvailable = c => Array.isArray(c) && c.length > 0;
 const noCollateralAvailableDiv = (
   <div>No assets are available to use as collateral.</div>
@@ -34,6 +36,13 @@ const makeHeaderCell = data => (
   <TableCell key={data.id}>{data.label}</TableCell>
 );
 
+/**
+ * @param {Object} info
+ * @param {TreasuryDispatch} info.dispatch
+ * @param {PursesJSONState[]} info.purses
+ * @param {Collateral[]} info.collaterals
+ * @param {Iterable<[Brand, BrandInfo]>} info.brandToInfo
+ */
 function VaultCollateral({
   dispatch,
   purses,
@@ -46,6 +55,7 @@ function VaultCollateral({
     displayBrandPetname,
   } = makeDisplayFunctions(brandToInfo);
 
+  /** @param {Collateral} row */
   const makeOnClick = row => _ev => {
     dispatch(setVaultCollateral(row));
   };

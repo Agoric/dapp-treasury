@@ -5,6 +5,9 @@ import { makeCapTP, E } from '@agoric/captp';
 import { makeAsyncIterableFromNotifier as iterateNotifier } from '@agoric/notifier';
 import { Far } from '@agoric/marshal'; // eslint-disable-line import/no-extraneous-dependencies
 
+// ISSUE: we only want the API (types), not the implementation
+import '@agoric/treasury/exported'; // eslint-disable-line import/no-extraneous-dependencies
+
 import {
   activateWebSocket,
   deactivateWebSocket,
@@ -27,6 +30,7 @@ import {
   setApproved,
 } from '../store';
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
+import { getRunLoCTerms } from '../runLoCStub';
 
 // eslint-disable-next-line import/no-mutable-exports
 let walletP;
@@ -46,10 +50,7 @@ export function useApplicationContext() {
 
 /**
  * @param {string} id
- * @param {TD} dispatch
- * @typedef {React.Dispatch<React.Reducer<TreasuryState, TreasuryAction>>} TD
- * @typedef {import('../store').TreasuryState} TreasuryState
- * @typedef {import('../store').TreasuryAction} TreasuryAction
+ * @param {TreasuryDispatch} dispatch
  */
 function watchVault(id, dispatch) {
   console.log('vaultWatched', id);
@@ -81,7 +82,7 @@ function watchVault(id, dispatch) {
   });
 }
 
-/** @type { (d: TD, id: string) => void } */
+/** @type { (d: TreasuryDispatch, id: string) => void } */
 function watchOffers(dispatch, INSTANCE_BOARD_ID) {
   const watchedVaults = new Set();
   async function offersUpdater() {
@@ -108,18 +109,17 @@ function watchOffers(dispatch, INSTANCE_BOARD_ID) {
 }
 
 /**
- * @param {TD} dispatch
- * @param {Iterable<[Brand, BrandInfo]>} brandToInfo
+ * @param {TreasuryDispatch} dispatch
+ * @param {Array<[Brand, BrandInfo]>} brandToInfo
  * @param {ERef<ZoeService>} zoe
  * @param {ERef<Board>} board
  * @param {string} instanceID
  *
- * @typedef {{ getId: (value: unknown) => string, getValue: (id: string) => any }} Board
- * @typedef {import('../store').BrandInfo} BrandInfo
- */
+ * @typedef {{ getId: (value: unknown) => string, getValue: (id: string) => any }} Board */
 const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
   /** @type { Instance } */
   const instance = await E(board).getValue(instanceID);
+  /** @type { ERef<StablecoinMachine> } */
   const treasuryAPIP = E(zoe).getPublicFacet(instance);
   const [treasuryAPI, terms, collaterals] = await Promise.all([
     treasuryAPIP,
@@ -142,8 +142,8 @@ const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
 };
 
 /**
- * @param {TD} dispatch
- * @param {Iterable<[Brand, BrandInfo]>} brandToInfo
+ * @param {TreasuryDispatch} dispatch
+ * @param {Array<[Brand, BrandInfo]>} brandToInfo
  * @param {ERef<ZoeService>} zoe
  * @param {ERef<Board>} board
  * @param {string} instanceID
