@@ -220,7 +220,7 @@ export default function Provider({ children }) {
         await Promise.all([
           setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID),
           setupAMM(dispatch, brandToInfo, zoe, board, AMM_INSTANCE_BOARD_ID),
-        ]);
+        ]).catch(err => console.error(`setup failed`, err));
 
         // The moral equivalent of walletGetPurses()
         async function watchPurses() {
