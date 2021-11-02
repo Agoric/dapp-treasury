@@ -20,6 +20,7 @@ import { makeDisplayFunctions } from '../helpers';
 
 /** @param { unknown } c */
 const collateralAvailable = c => Array.isArray(c) && c.length > 0;
+const standByForCollateralDiv = <div>Looking up collateral...</div>;
 const noCollateralAvailableDiv = (
   <div>No assets are available to use as collateral.</div>
 );
@@ -65,7 +66,9 @@ function VaultCollateral({
   const collaterals =
     collateralsRaw && collateralsRaw.filter(c => purseBrands.has(c.brand));
 
-  if (!collateralAvailable(collaterals)) {
+  if (!collaterals) {
+    return standByForCollateralDiv;
+  } else if (!collateralAvailable(collaterals)) {
     return noCollateralAvailableDiv;
   }
 
