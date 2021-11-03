@@ -53,8 +53,9 @@
 /**
  * @typedef {object} BrandInfo
  * @property {Issuer} issuer
+ * @property {Brand} brand
  * @property {AssetKind} assetKind
- * @property {number} decimalPlaces
+ * @property {number | undefined} decimalPlaces
  * @property {Petname} petname - the petname for the brand from the user
  */
 

@@ -17,11 +17,9 @@ import { mergeBrandToInfo } from '../store';
 /**
  *
  * @param {Object} param0
- * @param {React.Dispatch<React.Reducer<import('../store').TreasuryState, any>>} param0.dispatch
+ * @param {TreasuryDispatch} param0.dispatch
  * @param {Terms} param0.terms
  * @param {Array<[Brand, BrandInfo]>} param0.brandToInfo
- *
- * @typedef {import('../store').BrandInfo} BrandInfo
  */
 export const storeAllBrandsFromTerms = async ({
   dispatch,
