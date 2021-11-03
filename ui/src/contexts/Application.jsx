@@ -31,7 +31,7 @@ import {
   setApproved,
 } from '../store';
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
-import { getRunLoCTerms } from '../runLoCStub';
+import { getRunLoCTerms } from '../runLoCStub.js';
 
 // eslint-disable-next-line import/no-mutable-exports
 let walletP;
