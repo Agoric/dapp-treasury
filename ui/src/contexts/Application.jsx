@@ -29,6 +29,7 @@ import {
   setTreasury,
   setAutoswap,
   setApproved,
+  mergeBrandToInfo,
 } from '../store';
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
 import { getRunLoCTerms } from '../runLoCStub.js';
@@ -132,8 +133,6 @@ const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
     brands: { RUN: runBrand },
   } = terms;
   dispatch(setTreasury({ instance, treasuryAPI, runIssuer, runBrand }));
-  const runLoCTerms = await getRunLoCTerms(collaterals);
-  dispatch(setRunLoCTerms(runLoCTerms));
   await storeAllBrandsFromTerms({
     dispatch,
     terms,
@@ -245,6 +244,11 @@ export default function Provider({ children }) {
               brandToInfo,
               issuersFromNotifier: issuers,
             });
+            const { brandInfo, terms: runLoCTerms } = await getRunLoCTerms(
+              issuers,
+            );
+            dispatch(mergeBrandToInfo([[brandInfo.brand, brandInfo]]));
+            dispatch(setRunLoCTerms(runLoCTerms));
           }
         }
         watchBrands().catch(err => {
