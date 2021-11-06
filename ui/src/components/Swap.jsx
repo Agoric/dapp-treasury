@@ -21,7 +21,7 @@ import {
   InputLabel,
 } from '@material-ui/core';
 import ArrowDownIcon from '@material-ui/icons/ArrowDownward';
-import { amountMath } from '@agoric/ertp';
+import { AmountMath } from '@agoric/ertp';
 
 import { sameStructure } from '@agoric/same-structure';
 import AssetInput from './AssetInput';
@@ -194,7 +194,7 @@ export default function Swap() {
 
   const getMarketQuote = async (isInput, brand, amount) => {
     console.log('QUOTING', isInput, brand, amount);
-    if (amountMath.isEmpty(amount)) {
+    if (AmountMath.isEmpty(amount)) {
       return;
     }
     if (brand === amount.brand) {
@@ -260,7 +260,7 @@ export default function Swap() {
       const wantInfo = getInfoForBrand(brandToInfo, outputRate.brand);
       const oneDisplayUnit = 10n ** Nat(wantInfo.decimalPlaces);
       const wantPrice = divideBy(
-        amountMath.make(outputRate.brand, oneDisplayUnit),
+        AmountMath.make(outputRate.brand, oneDisplayUnit),
         marketRate,
       );
       const exchangeRate = stringifyAmountValue(
@@ -371,13 +371,13 @@ export default function Swap() {
   function handleChangeInputAmount(value) {
     if (inputPurse) {
       setOutputAmount(null);
-      setInputAmount(amountMath.make(inputPurse.brand, value));
+      setInputAmount(AmountMath.make(inputPurse.brand, value));
     }
   }
 
   function handleChangeOutputAmount(value) {
     if (outputPurse) {
-      setOutputAmount(amountMath.make(outputPurse.brand, value));
+      setOutputAmount(AmountMath.make(outputPurse.brand, value));
       setInputAmount(null);
     }
   }

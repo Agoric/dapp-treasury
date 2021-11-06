@@ -5,10 +5,10 @@ import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
 import {
-  multiplyBy,
+  floorMultiplyBy,
   makeRatioFromAmounts,
 } from '@agoric/zoe/src/contractSupport';
-import { amountMath } from '@agoric/ertp';
+import { AmountMath } from '@agoric/ertp';
 import { Nat } from '@agoric/nat';
 import { E } from '@agoric/eventual-send';
 
@@ -113,7 +113,7 @@ const VaultManagement = () => {
    * @param {Amount} newBorrow
    */
   const calcRatio = (priceRate, newLock, newBorrow) => {
-    const lockPrice = multiplyBy(newLock, priceRate);
+    const lockPrice = floorMultiplyBy(newLock, priceRate);
     const newRatio = makeRatioFromAmounts(lockPrice, newBorrow);
     return newRatio;
   };
@@ -124,9 +124,9 @@ const VaultManagement = () => {
     const decimalPlaces = getDecimalPlaces(locked.brand);
 
     // Make what would display as 1 unit of collateral
-    const inputAmount = amountMath.make(
-      10n ** Nat(decimalPlaces),
+    const inputAmount = AmountMath.make(
       locked.brand,
+      10n ** Nat(decimalPlaces),
     );
     assert(ammAPI, 'ammAPI missing');
     const quoteP = E(ammAPI).getPriceGivenAvailableInput(
