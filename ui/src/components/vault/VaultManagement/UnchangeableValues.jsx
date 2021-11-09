@@ -7,7 +7,7 @@ import Paper from '@material-ui/core/Paper';
 import { makeStyles } from '@material-ui/core/styles';
 
 import {
-  multiplyBy,
+  floorMultiplyBy,
   makeRatioFromAmounts,
 } from '@agoric/zoe/src/contractSupport';
 
@@ -72,7 +72,7 @@ const UnchangeableValues = ({
   // The liquidationPrice is when the value of the collateral
   // equals liquidationRatio (i.e. 125%) of the current debt, divided
   // by the collateral locked
-  const liquidationPriceTotal = multiplyBy(debt, liquidationRatio);
+  const liquidationPriceTotal = floorMultiplyBy(debt, liquidationRatio);
   const liquidationPricePerUnit = makeRatioFromAmounts(
     liquidationPriceTotal,
     locked,
