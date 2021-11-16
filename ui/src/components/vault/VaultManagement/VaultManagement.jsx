@@ -129,9 +129,9 @@ const VaultManagement = () => {
       10n ** Nat(decimalPlaces),
     );
     assert(ammAPI, 'ammAPI missing');
-    const quoteP = E(ammAPI).getPriceGivenAvailableInput(
+    const quoteP = E(ammAPI).getInputPrice(
       inputAmount,
-      debt.brand,
+      AmountMath.makeEmpty(debt.brand),
     );
 
     quoteP.then(({ amountIn, amountOut }) => {
