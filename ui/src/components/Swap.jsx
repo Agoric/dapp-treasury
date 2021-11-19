@@ -205,8 +205,8 @@ export default function Swap() {
     // Remember the current amount that we want a quote for
     setQuote({ amount, rate: null });
     const quoteResult = isInput
-      ? E(ammAPI).getPriceGivenAvailableInput(amount, brand)
-      : E(ammAPI).getPriceGivenRequiredOutput(brand, amount);
+      ? E(ammAPI).getInputPrice(amount, AmountMath.makeEmpty(brand))
+      : E(ammAPI).getOutputPrice(AmountMath.makeEmpty(brand), amount);
     const { amountIn, amountOut } = await quoteResult;
     const rate = isInput
       ? makeRatioFromAmounts(amountOut, amountIn)
