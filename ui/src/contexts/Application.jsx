@@ -1,15 +1,7 @@
-// @ts-check
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer } from 'react';
 
-import { makeCapTP, E } from '@agoric/captp';
+import { E } from '@agoric/captp';
 import { makeAsyncIterableFromNotifier as iterateNotifier } from '@agoric/notifier';
-import { Far } from '@agoric/marshal'; // eslint-disable-line import/no-extraneous-dependencies
-
-import {
-  activateWebSocket,
-  deactivateWebSocket,
-  getActiveSocket,
-} from '../utils/fetch-websocket';
 
 import { dappConfig, refreshConfigFromWallet } from '../utils/config';
 
@@ -18,15 +10,13 @@ import {
   reducer,
   defaultState,
   setPurses,
-  setConnected,
-  resetState,
   updateVault,
   setCollaterals,
   setTreasury,
   setAutoswap,
-  setApproved,
 } from '../store';
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
+import WalletConnection from '../components/WalletConnection';
 
 // eslint-disable-next-line import/no-mutable-exports
 let walletP;
@@ -173,112 +163,70 @@ export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, defaultState);
   const { brandToInfo } = state;
 
-  useEffect(() => {
-    // Receive callbacks from the wallet connection.
-    const otherSide = Far('needDappApproval', {
-      needDappApproval(_dappOrigin, _suggestedDappPetname) {
-        dispatch(setApproved(false));
-      },
-      dappApproved(_dappOrigin) {
-        dispatch(setApproved(true));
-      },
-    });
+  const setWalletP = async bridge => {
+    walletP = bridge;
 
-    let walletAbort;
-    let walletDispatch;
-    activateWebSocket({
-      async onConnect() {
-        const { CONTRACT_NAME, AMM_NAME } = dappConfig;
+    await refreshConfigFromWallet(walletP);
+    const {
+      INSTALLATION_BOARD_ID,
+      INSTANCE_BOARD_ID,
+      RUN_ISSUER_BOARD_ID,
+      AMM_INSTALLATION_BOARD_ID,
+      AMM_INSTANCE_BOARD_ID,
+      AMM_NAME,
+    } = dappConfig;
 
-        dispatch(setConnected(true));
-        const socket = getActiveSocket();
-        const {
-          abort: ctpAbort,
-          dispatch: ctpDispatch,
-          getBootstrap,
-        } = makeCapTP(
-          CONTRACT_NAME,
-          obj => socket.send(JSON.stringify(obj)),
-          otherSide,
-        );
-        walletAbort = ctpAbort;
-        walletDispatch = ctpDispatch;
-        walletP = getBootstrap();
+    const zoe = E(walletP).getZoe();
+    const board = E(walletP).getBoard();
 
-        await refreshConfigFromWallet(walletP);
-        const {
-          INSTALLATION_BOARD_ID,
-          INSTANCE_BOARD_ID,
-          RUN_ISSUER_BOARD_ID,
-          AMM_INSTALLATION_BOARD_ID,
-          AMM_INSTANCE_BOARD_ID,
-        } = dappConfig;
+    await Promise.all([
+      setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID),
+      setupAMM(dispatch, brandToInfo, zoe, board, AMM_INSTANCE_BOARD_ID),
+    ]);
 
-        const zoe = E(walletP).getZoe();
-        const board = E(walletP).getBoard();
+    // The moral equivalent of walletGetPurses()
+    async function watchPurses() {
+      const pn = E(walletP).getPursesNotifier();
+      for await (const purses of iterateNotifier(pn)) {
+        dispatch(setPurses(purses));
+      }
+    }
+    watchPurses().catch(err =>
+      console.error('FIGME: got watchPurses err', err),
+    );
 
-        await Promise.all([
-          setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID),
-          setupAMM(dispatch, brandToInfo, zoe, board, AMM_INSTANCE_BOARD_ID),
-        ]);
-
-        // The moral equivalent of walletGetPurses()
-        async function watchPurses() {
-          const pn = E(walletP).getPursesNotifier();
-          for await (const purses of iterateNotifier(pn)) {
-            dispatch(setPurses(purses));
-          }
-        }
-        watchPurses().catch(err =>
-          console.error('FIGME: got watchPurses err', err),
-        );
-
-        async function watchBrands() {
-          console.log('BRANDS REQUESTED');
-          const issuersN = E(walletP).getIssuersNotifier();
-          for await (const issuers of iterateNotifier(issuersN)) {
-            updateBrandPetnames({
-              dispatch,
-              brandToInfo,
-              issuersFromNotifier: issuers,
-            });
-          }
-        }
-        watchBrands().catch(err => {
-          console.error('got watchBrands err', err);
+    async function watchBrands() {
+      console.log('BRANDS REQUESTED');
+      const issuersN = E(walletP).getIssuersNotifier();
+      for await (const issuers of iterateNotifier(issuersN)) {
+        updateBrandPetnames({
+          dispatch,
+          brandToInfo,
+          issuersFromNotifier: issuers,
         });
-        await Promise.all([
-          E(walletP).suggestInstallation('Installation', INSTALLATION_BOARD_ID),
-          E(walletP).suggestInstance('Instance', INSTANCE_BOARD_ID),
-          E(walletP).suggestInstallation(
-            `${AMM_NAME}Installation`,
-            AMM_INSTALLATION_BOARD_ID,
-          ),
-          E(walletP).suggestInstance(
-            `${AMM_NAME}Instance`,
-            AMM_INSTANCE_BOARD_ID,
-          ),
-          E(walletP).suggestIssuer('RUN', RUN_ISSUER_BOARD_ID),
-        ]);
-
-        watchOffers(dispatch, INSTANCE_BOARD_ID);
-      },
-      onDisconnect() {
-        dispatch(setConnected(false));
-        walletAbort && walletAbort();
-        dispatch(resetState());
-      },
-      onMessage(data) {
-        const obj = JSON.parse(data);
-        walletDispatch && walletDispatch(obj);
-      },
+      }
+    }
+    watchBrands().catch(err => {
+      console.error('got watchBrands err', err);
     });
-    return deactivateWebSocket;
-  }, []);
+    await Promise.all([
+      E(walletP).suggestInstallation('Installation', INSTALLATION_BOARD_ID),
+      E(walletP).suggestInstance('Instance', INSTANCE_BOARD_ID),
+      E(walletP).suggestInstallation(
+        `${AMM_NAME}Installation`,
+        AMM_INSTALLATION_BOARD_ID,
+      ),
+      E(walletP).suggestInstance(`${AMM_NAME}Instance`, AMM_INSTANCE_BOARD_ID),
+      E(walletP).suggestIssuer('RUN', RUN_ISSUER_BOARD_ID),
+    ]);
+
+    watchOffers(dispatch, INSTANCE_BOARD_ID);
+  };
 
   return (
     <ApplicationContext.Provider value={{ state, dispatch, walletP }}>
       {children}
+      <WalletConnection setWalletP={setWalletP} dispatch={dispatch} />
     </ApplicationContext.Provider>
   );
 }
