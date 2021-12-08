@@ -21,6 +21,7 @@ export const initial = {
   collaterals: /** @type { Collateral[] | null } */ (null),
   runLoCTerms: /** @type { Collateral | null } */ (null),
   vaultToManageId: /** @type {string | null} */ (null),
+  useRloc: false,
 };
 
 /**
@@ -47,6 +48,7 @@ export const initial = {
  *    updateVault: (v: { id: string, vault: VaultData }) => TreasuryReducer,
  *    resetVault: () => TreasuryReducer,
  *    setAutoswap: (payload: typeof initial.autoswap) => TreasuryReducer,
+ *    setUseRloc: (payload: boolean) => TreasuryReducer,
  * }} TreasuryActions
  */
 
@@ -70,6 +72,7 @@ export const {
     updateVault,
     resetVault,
     setAutoswap,
+    setUseRloc,
   },
   // @ts-ignore tsc can't tell that autodux is callable
 } = autodux({

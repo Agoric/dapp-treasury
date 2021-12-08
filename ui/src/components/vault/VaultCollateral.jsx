@@ -17,6 +17,7 @@ import '../../types/types';
 
 import { setVaultCollateral } from '../../store';
 import { makeDisplayFunctions } from '../helpers';
+import { useApplicationContext } from '../../contexts/Application';
 
 /** @param { unknown } c */
 const collateralAvailable = c => Array.isArray(c) && c.length > 0;
@@ -52,6 +53,9 @@ function VaultCollateral({
   runLoCTerms,
   brandToInfo,
 }) {
+  const { state } = useApplicationContext();
+  const { useRloc } = state;
+
   const {
     displayRatio,
     displayPercent,
@@ -136,7 +140,7 @@ function VaultCollateral({
               </TableRow>
             </TableHead>
             <TableBody>
-              {runLoCTerms && makeRunLoCRow(runLoCTerms)}
+              {useRloc && runLoCTerms && makeRunLoCRow(runLoCTerms)}
               {collaterals.map(makeCollateralRow)}
             </TableBody>
           </Table>

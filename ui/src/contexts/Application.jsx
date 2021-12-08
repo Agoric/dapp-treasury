@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useContext, useEffect, useReducer } from 'react';
 
 import { E } from '@agoric/captp';
 import { makeAsyncIterableFromNotifier as iterateNotifier } from '@agoric/notifier';
@@ -15,8 +15,8 @@ import {
   setRunLoCTerms,
   setTreasury,
   setAutoswap,
-  setApproved,
   mergeBrandToInfo,
+  setUseRloc,
 } from '../store';
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
 import WalletConnection from '../components/WalletConnection';
@@ -162,6 +162,12 @@ const setupAMM = async (dispatch, brandToInfo, zoe, board, instanceID) => {
 export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, defaultState);
   const { brandToInfo } = state;
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const useRloc = urlParams.get('rloc') === 'true';
+    dispatch(setUseRloc(useRloc));
+  }, []);
 
   const setWalletP = async bridge => {
     walletP = bridge;
