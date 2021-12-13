@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer } from 'react';
+import React, { createContext, useContext, useEffect, useReducer } from 'react';
 
 import { E } from '@agoric/captp';
 import { makeAsyncIterableFromNotifier as iterateNotifier } from '@agoric/notifier';
@@ -12,11 +12,15 @@ import {
   setPurses,
   updateVault,
   setCollaterals,
+  setRunLoCTerms,
   setTreasury,
   setAutoswap,
+  mergeBrandToInfo,
+  setUseRloc,
 } from '../store';
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
 import WalletConnection from '../components/WalletConnection';
+import { getRunLoCTerms } from '../runLoCStub';
 
 // eslint-disable-next-line import/no-mutable-exports
 let walletP;
@@ -36,10 +40,7 @@ export function useApplicationContext() {
 
 /**
  * @param {string} id
- * @param {TD} dispatch
- * @typedef {React.Dispatch<React.Reducer<TreasuryState, TreasuryAction>>} TD
- * @typedef {import('../store').TreasuryState} TreasuryState
- * @typedef {import('../store').TreasuryAction} TreasuryAction
+ * @param {TreasuryDispatch} dispatch
  */
 function watchVault(id, dispatch) {
   console.log('vaultWatched', id);
@@ -71,7 +72,7 @@ function watchVault(id, dispatch) {
   });
 }
 
-/** @type { (d: TD, id: string) => void } */
+/** @type { (d: TreasuryDispatch, id: string) => void } */
 function watchOffers(dispatch, INSTANCE_BOARD_ID) {
   const watchedVaults = new Set();
   async function offersUpdater() {
@@ -98,18 +99,17 @@ function watchOffers(dispatch, INSTANCE_BOARD_ID) {
 }
 
 /**
- * @param {TD} dispatch
- * @param {Iterable<[Brand, BrandInfo]>} brandToInfo
+ * @param {TreasuryDispatch} dispatch
+ * @param {Array<[Brand, BrandInfo]>} brandToInfo
  * @param {ERef<ZoeService>} zoe
  * @param {ERef<Board>} board
  * @param {string} instanceID
  *
- * @typedef {{ getId: (value: unknown) => string, getValue: (id: string) => any }} Board
- * @typedef {import('../store').BrandInfo} BrandInfo
- */
+ * @typedef {{ getId: (value: unknown) => string, getValue: (id: string) => any }} Board */
 const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
   /** @type { Instance } */
   const instance = await E(board).getValue(instanceID);
+  /** @type { ERef<StablecoinMachine> } */
   const treasuryAPIP = E(zoe).getPublicFacet(instance);
   const [treasuryAPI, terms, collaterals] = await Promise.all([
     treasuryAPIP,
@@ -132,8 +132,8 @@ const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
 };
 
 /**
- * @param {TD} dispatch
- * @param {Iterable<[Brand, BrandInfo]>} brandToInfo
+ * @param {TreasuryDispatch} dispatch
+ * @param {Array<[Brand, BrandInfo]>} brandToInfo
  * @param {ERef<ZoeService>} zoe
  * @param {ERef<Board>} board
  * @param {string} instanceID
@@ -162,6 +162,12 @@ const setupAMM = async (dispatch, brandToInfo, zoe, board, instanceID) => {
 export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, defaultState);
   const { brandToInfo } = state;
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const useRloc = urlParams.get('rloc') === 'true';
+    dispatch(setUseRloc(useRloc));
+  }, []);
 
   const setWalletP = async bridge => {
     walletP = bridge;
@@ -204,6 +210,9 @@ export default function Provider({ children }) {
           brandToInfo,
           issuersFromNotifier: issuers,
         });
+        const { brandInfo, terms: runLoCTerms } = await getRunLoCTerms(issuers);
+        dispatch(mergeBrandToInfo([[brandInfo.brand, brandInfo]]));
+        dispatch(setRunLoCTerms(runLoCTerms));
       }
     }
     watchBrands().catch(err => {
