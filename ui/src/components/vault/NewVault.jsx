@@ -103,7 +103,7 @@ export default function NewVault() {
           dispatch={dispatch}
           vaultCollateral={vaultCollateral}
           purses={purses}
-          runBrand={treasury.runBrand}
+          runBrand={treasury?.runBrand ?? null}
           brandToInfo={brandToInfo}
         />
       );

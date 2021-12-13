@@ -41,9 +41,9 @@ const makeHeaderCell = data => (
 /**
  * @param {Object} info
  * @param {TreasuryDispatch} info.dispatch
- * @param {PursesJSONState[]} info.purses
- * @param {Collateral[]} info.collaterals
- * @param {Collateral} info.runLoCTerms
+ * @param {PursesJSONState[] | null} info.purses
+ * @param {Collaterals | null} info.collaterals
+ * @param {CollateralInfo | null} info.runLoCTerms
  * @param {Iterable<[Brand, BrandInfo]>} info.brandToInfo
  */
 function VaultCollateral({
@@ -62,7 +62,7 @@ function VaultCollateral({
     displayBrandPetname,
   } = makeDisplayFunctions(brandToInfo);
 
-  /** @param {Collateral} row */
+  /** @param {CollateralInfo} row */
   const makeOnClick = row => _ev => {
     dispatch(setVaultCollateral(row));
   };
@@ -107,7 +107,7 @@ function VaultCollateral({
     );
   };
 
-  /** @param {Collateral} row */
+  /** @param {CollateralInfo} row */
   const makeRunLoCRow = row => {
     const marketPriceDisplay = displayRatio(row.marketPrice);
     const collateralPetnameDisplay = displayBrandPetname(row.brand);

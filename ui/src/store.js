@@ -15,11 +15,11 @@ export const initial = {
   autoswap: /** @type { AutoswapState } */ ({}),
   // Vault state
   treasury: /** @type { VaultState | null } */ (null),
-  vaultCollateral: /** @type { Collateral | null } */ (null),
+  vaultCollateral: /** @type { CollateralInfo | null } */ (null),
   vaultConfiguration: null,
   vaults: /** @type {Record<string, VaultData>} */ ({}),
-  collaterals: /** @type { Collateral[] | null } */ (null),
-  runLoCTerms: /** @type { Collateral | null } */ (null),
+  collaterals: /** @type { Collaterals | null } */ (null),
+  runLoCTerms: /** @type { CollateralInfo | null } */ (null),
   vaultToManageId: /** @type {string | null} */ (null),
   useRloc: false,
 };

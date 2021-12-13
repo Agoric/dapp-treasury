@@ -65,10 +65,10 @@ const useConfigStyles = makeStyles(theme => ({
  *
  * @param {object} props
  * @param {Function} props.dispatch
- * @param {CollateralInfo} props.vaultCollateral
- * @param {Array<PursesJSONState>} props.purses
- * @param {Brand} props.runBrand
- * @param {Array<Array<Brand, BrandInfo>>} props.brandToInfo
+ * @param {CollateralInfo | null} props.vaultCollateral
+ * @param {Array<PursesJSONState> | null} props.purses
+ * @param {Brand | null} props.runBrand
+ * @param {Iterable<[Brand, BrandInfo]> | null} props.brandToInfo
  * @returns {React.ReactElement}
  */
 function VaultConfigure({

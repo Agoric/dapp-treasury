@@ -2,10 +2,11 @@
 
 import { E } from '@agoric/eventual-send';
 import { makeRatio } from '@agoric/zoe/src/contractSupport';
+import { assert } from '@agoric/assert';
 
 /**
  * @param {[string, { brand: Brand, issuer: Issuer }][]} issuers
- * @returns { Promise<{ terms: Collateral, brandInfo: BrandInfo }> }
+ * @returns { Promise<{ terms: CollateralInfo, brandInfo: BrandInfo }> }
  */
 export const getRunLoCTerms = async issuers => {
   const [_1, { brand: runBrand }] =
@@ -30,6 +31,8 @@ export const getRunLoCTerms = async issuers => {
     liquidationMargin: makeRatio(0n, bldBrand),
     marketPrice: makeRatio(123n, runBrand, 100n, bldBrand),
     stabilityFee: makeRatio(0n, runBrand),
+    petname: 'BLD',
+    interestRate: makeRatio(0n, bldBrand),
   };
   return { terms, brandInfo };
 };

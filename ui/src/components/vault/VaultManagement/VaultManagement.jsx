@@ -11,6 +11,7 @@ import {
 import { AmountMath } from '@agoric/ertp';
 import { Nat } from '@agoric/nat';
 import { E } from '@agoric/eventual-send';
+import { assert } from '@agoric/assert';
 
 import AdjustVaultForm from './AdjustVaultForm';
 import UnchangeableValues from './UnchangeableValues';
