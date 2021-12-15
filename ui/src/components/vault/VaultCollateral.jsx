@@ -2,6 +2,7 @@
 import React from 'react';
 
 import {
+  Button,
   FormControl,
   FormLabel,
   Radio,
@@ -13,9 +14,11 @@ import {
   TableRow,
 } from '@material-ui/core';
 
+import { Alert } from '@material-ui/lab';
+
 import '../../types/types';
 
-import { setVaultCollateral } from '../../store';
+import { setVaultCollateral, setLoadCollateralsError } from '../../store';
 import { makeDisplayFunctions } from '../helpers';
 import { useApplicationContext } from '../../contexts/Application';
 
@@ -53,8 +56,27 @@ function VaultCollateral({
   runLoCTerms,
   brandToInfo,
 }) {
-  const { state } = useApplicationContext();
-  const { useRloc } = state;
+  const { state, retrySetup } = useApplicationContext();
+  const { useRloc, loadCollateralsError } = state;
+
+  const onRetryClicked = () => {
+    dispatch(setLoadCollateralsError(null));
+    retrySetup();
+  };
+
+  const loadColalteralsErrorDiv = (
+    <Alert
+      action={
+        <Button onClick={onRetryClicked} color="inherit" size="small">
+          Retry
+        </Button>
+      }
+      severity="error"
+    >
+      A problem occured while loading the collaterals — make sure you have RUN
+      in your Zoe fees purse.
+    </Alert>
+  );
 
   const {
     displayRatio,
@@ -72,7 +94,9 @@ function VaultCollateral({
   const collaterals =
     collateralsRaw && collateralsRaw.filter(c => purseBrands.has(c.brand));
 
-  if (!collaterals) {
+  if (loadCollateralsError) {
+    return loadColalteralsErrorDiv;
+  } else if (!collaterals) {
     return standByForCollateralDiv;
   } else if (!collateralAvailable(collaterals)) {
     return noCollateralAvailableDiv;
