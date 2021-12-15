@@ -17,6 +17,7 @@ import {
   setAutoswap,
   mergeBrandToInfo,
   setUseRloc,
+  setLoadCollateralsError,
 } from '../store';
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
 import WalletConnection from '../components/WalletConnection';
@@ -32,6 +33,7 @@ export const ApplicationContext = createContext({
   dispatch: /** @type { any } */ (undefined),
   // TODO: type for walletP
   walletP: /** @type { any } */ (undefined),
+  retrySetup: /** @type { any } */ (undefined),
 });
 
 export function useApplicationContext() {
@@ -169,9 +171,7 @@ export default function Provider({ children }) {
     dispatch(setUseRloc(useRloc));
   }, []);
 
-  const setWalletP = async bridge => {
-    walletP = bridge;
-
+  const retrySetup = async () => {
     await refreshConfigFromWallet(walletP);
     const {
       INSTALLATION_BOARD_ID,
@@ -184,11 +184,16 @@ export default function Provider({ children }) {
 
     const zoe = E(walletP).getZoe();
     const board = E(walletP).getBoard();
-
-    await Promise.all([
-      setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID),
-      setupAMM(dispatch, brandToInfo, zoe, board, AMM_INSTANCE_BOARD_ID),
-    ]);
+    try {
+      await Promise.all([
+        setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID),
+        setupAMM(dispatch, brandToInfo, zoe, board, AMM_INSTANCE_BOARD_ID),
+      ]);
+    } catch (e) {
+      console.log('Couldnt load collaterals');
+      dispatch(setLoadCollateralsError(e));
+      return;
+    }
 
     // The moral equivalent of walletGetPurses()
     async function watchPurses() {
@@ -232,8 +237,16 @@ export default function Provider({ children }) {
     watchOffers(dispatch, INSTANCE_BOARD_ID);
   };
 
+  const setWalletP = async bridge => {
+    walletP = bridge;
+
+    await retrySetup();
+  };
+
   return (
-    <ApplicationContext.Provider value={{ state, dispatch, walletP }}>
+    <ApplicationContext.Provider
+      value={{ state, dispatch, walletP, retrySetup }}
+    >
       {children}
       <WalletConnection setWalletP={setWalletP} dispatch={dispatch} />
     </ApplicationContext.Provider>
