@@ -17,7 +17,7 @@ export const initial = {
   treasury: /** @type { VaultState | null } */ (null),
   vaultCollateral: /** @type { CollateralInfo | null } */ (null),
   vaultConfiguration: null,
-  vaults: /** @type {Record<string, VaultData>} */ ({}),
+  vaults: /** @type {Record<string, VaultData> | null} */ (null),
   collaterals: /** @type { Collaterals | null } */ (null),
   runLoCTerms: /** @type { CollateralInfo | null } */ (null),
   vaultToManageId: /** @type {string | null} */ (null),
@@ -94,7 +94,7 @@ export const {
     },
     /** @type {(state: TreasuryState, v: { id: string, vault: VaultData }) => TreasuryState} */
     updateVault: ({ vaults, ...state }, { id, vault }) => {
-      const oldVaultData = vaults[id];
+      const oldVaultData = vaults && vaults[id];
       const status = vault.liquidated ? 'Liquidated' : vault.status;
       return {
         ...state,

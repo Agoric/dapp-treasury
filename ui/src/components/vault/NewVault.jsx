@@ -47,7 +47,6 @@ export default function NewVault() {
 
   const {
     state: {
-      connected,
       vaultCollateral,
       treasury,
       collaterals,
@@ -127,7 +126,6 @@ export default function NewVault() {
       </Typography>
       <ErrorBoundary>
         <VaultSteps
-          connected={connected}
           vaultCollateral={vaultCollateral}
           vaultConfiguration={vaultConfiguration}
         />

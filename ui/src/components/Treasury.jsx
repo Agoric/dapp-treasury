@@ -11,7 +11,7 @@ import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 
-import { Typography } from '@material-ui/core';
+import { CircularProgress, Typography } from '@material-ui/core';
 import { useApplicationContext } from '../contexts/Application';
 
 import { VaultSummary } from './VaultSummary';
@@ -59,8 +59,8 @@ function VaultList() {
     dispatch,
   } = useApplicationContext();
 
+  const vaultsList = Object.entries(vaults ?? {});
   const [redirect, setRedirect] = useState(false);
-  const vaultsList = Object.entries(vaults);
 
   const handleOnClick = key => {
     dispatch(setVaultToManageId(key));
@@ -77,6 +77,10 @@ function VaultList() {
         <div>To continue, please approve the Treasury Dapp in your wallet.</div>
       </Paper>
     );
+  }
+
+  if (vaults === null) {
+    return <CircularProgress style={{ marginTop: 48 }} />;
   }
 
   if (vaultsList.length <= 0) {

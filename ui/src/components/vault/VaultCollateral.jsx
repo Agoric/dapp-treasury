@@ -3,6 +3,7 @@ import React from 'react';
 
 import {
   Button,
+  CircularProgress,
   FormControl,
   FormLabel,
   Radio,
@@ -24,7 +25,11 @@ import { useApplicationContext } from '../../contexts/Application';
 
 /** @param { unknown } c */
 const collateralAvailable = c => Array.isArray(c) && c.length > 0;
-const standByForCollateralDiv = <div>Looking up collateral...</div>;
+const standByForCollateralDiv = (
+  <div>
+    <CircularProgress style={{ margin: 'auto', display: 'block' }} />
+  </div>
+);
 const noCollateralAvailableDiv = (
   <div>No assets are available to use as collateral.</div>
 );

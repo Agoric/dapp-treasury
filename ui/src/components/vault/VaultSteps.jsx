@@ -9,28 +9,22 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function VaultSteps({
-  connected,
-  vaultCollateral,
-  vaultConfiguration,
-}) {
+export default function VaultSteps({ vaultCollateral, vaultConfiguration }) {
   const classes = useStyles();
 
-  const steps = ['Connect', 'Choose Collateral', 'Configure', 'Create'];
+  const steps = ['Choose Collateral', 'Configure', 'Create'];
 
   const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
-    if (!connected) {
+    if (!vaultCollateral) {
       setActiveStep(0);
-    } else if (!vaultCollateral) {
-      setActiveStep(1);
     } else if (!vaultConfiguration) {
-      setActiveStep(2);
+      setActiveStep(1);
     } else {
-      setActiveStep(3);
+      setActiveStep(2);
     }
-  }, [connected, vaultCollateral, vaultConfiguration]);
+  }, [vaultCollateral, vaultConfiguration]);
 
   return (
     <Stepper
