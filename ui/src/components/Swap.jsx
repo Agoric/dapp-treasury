@@ -19,6 +19,7 @@ import {
   Typography,
   IconButton,
   InputLabel,
+  CircularProgress,
 } from '@material-ui/core';
 import ArrowDownIcon from '@material-ui/icons/ArrowDownward';
 import { AmountMath } from '@agoric/ertp';
@@ -70,7 +71,7 @@ const composeRatio = (x, y) =>
 export default function Swap() {
   const classes = useStyles();
   const { state, walletP } = useApplicationContext();
-  // const { purses, connected, ammAPI, centralBrand, otherBrands } = state;
+
   const {
     purses: unfilteredPurses,
     connected,
@@ -116,7 +117,9 @@ export default function Swap() {
   // See marketPrice comment below
   const centralOnlyRate = {
     brand: centralBrand,
-    ratio: makeRatio(100000000n, centralBrand, 100000000n, centralBrand),
+    ratio: centralBrand
+      ? makeRatio(100000000n, centralBrand, 100000000n, centralBrand)
+      : null,
   };
 
   /**
@@ -241,6 +244,10 @@ export default function Swap() {
         <div>To continue, please approve the Treasury Dapp in your wallet.</div>
       </Paper>
     );
+  }
+
+  if (!centralBrand || !purses) {
+    return <CircularProgress style={{ marginTop: 48 }} />;
   }
 
   const inputAmountError =
