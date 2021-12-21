@@ -10,6 +10,7 @@ import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
+import Alert from '@material-ui/lab/Alert';
 
 import { CircularProgress, Typography } from '@material-ui/core';
 import { useApplicationContext } from '../contexts/Application';
@@ -17,7 +18,7 @@ import { useApplicationContext } from '../contexts/Application';
 import { VaultSummary } from './VaultSummary';
 import ErrorBoundary from './ErrorBoundary';
 
-import { setVaultToManageId } from '../store';
+import { setVaultToManageId, setLoadTreasuryError } from '../store';
 
 const useStyles = makeStyles(theme => {
   return {
@@ -55,8 +56,9 @@ const useStyles = makeStyles(theme => {
 function VaultList() {
   const classes = useStyles();
   const {
-    state: { approved, vaults, brandToInfo },
+    state: { approved, vaults, brandToInfo, loadTreasuryError },
     dispatch,
+    retrySetup,
   } = useApplicationContext();
 
   const vaultsList = Object.entries(vaults ?? {});
@@ -66,6 +68,27 @@ function VaultList() {
     dispatch(setVaultToManageId(key));
     setRedirect('/manageVault');
   };
+
+  const onRetryClicked = () => {
+    dispatch(setLoadTreasuryError(null));
+    retrySetup();
+  };
+
+  const loadTreasuryErrorAlert = (
+    <Paper className={classes.paper}>
+      <Alert
+        action={
+          <Button onClick={onRetryClicked} color="inherit" size="small">
+            Retry
+          </Button>
+        }
+        severity="error"
+      >
+        A problem occured while loading your vaults — make sure you have RUN in
+        your Zoe fees purse.
+      </Alert>
+    </Paper>
+  );
 
   if (redirect) {
     return <Redirect to={redirect} />;
@@ -79,11 +102,15 @@ function VaultList() {
     );
   }
 
+  if (loadTreasuryError) {
+    return loadTreasuryErrorAlert;
+  }
+
   if (vaults === null) {
     return <CircularProgress style={{ marginTop: 48 }} />;
   }
 
-  if (vaultsList.length <= 0) {
+  if (vaultsList.length === 0) {
     return (
       <Paper className={classes.loading}>
         <Typography>No vaults available yet</Typography>

@@ -25,6 +25,7 @@ const useStyles = makeStyles(theme => ({
       marginBottom: theme.spacing(6),
       padding: theme.spacing(3),
     },
+    maxWidth: '100%',
   },
   grid: {
     padding: theme.spacing(2),

@@ -2,7 +2,6 @@ import React from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
 import { NavLink } from 'react-router-dom';
-import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
@@ -20,6 +19,37 @@ const useStyles = makeStyles(_theme => ({
   selected: {
     fontWeight: 'bold',
     textDecoration: 'underline',
+  },
+  logo: {
+    margin: '8px 8px 0 8px',
+    display: 'flex',
+    padding: '4px 4px 0 4px',
+    alignItems: 'center',
+    flexDirection: 'row',
+    height: '60px',
+    [_theme.breakpoints.down('xs')]: {
+      display: 'none',
+    },
+  },
+  logoImage: {
+    transform: 'scale(0.85)',
+  },
+  sectionHeader: {
+    padding: '16px',
+    fontSize: '16px',
+    fontFamily: 'Montserrat,Arial,sans-serif',
+    fontWeight: 700,
+    letterSpacing: '0.15px',
+  },
+  divider: {
+    width: '80%',
+    margin: 'auto',
+    padding: 0,
+    height: '1px',
+    backgroundColor: '#eee',
+    [_theme.breakpoints.down('sm')]: {
+      display: 'none',
+    },
   },
 }));
 
@@ -52,10 +82,23 @@ function ListItemLink(props) {
 }
 
 function NavDrawer() {
+  const classes = useStyles();
+
   return (
     <div>
-      <Divider />
+      <div className={classes.logo}>
+        <a href="https://agoric.com">
+          <img
+            className={classes.logoImage}
+            src="https://agoric.com/wp-content/themes/agoric_2021_theme/assets/img/logo.svg"
+            alt="Agoric"
+            width="200"
+          ></img>
+        </a>
+      </div>
       <List>
+        <div className={classes.divider} />
+        <div className={classes.sectionHeader}>Core Economy</div>
         <ListItemLink
           icon={<MonetizationIcon />}
           primary="New Vault"

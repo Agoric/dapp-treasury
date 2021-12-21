@@ -1,22 +1,20 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 
-import AppBar from '@material-ui/core/AppBar';
 import IconButton from '@material-ui/core/IconButton';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
 import MenuIcon from '@material-ui/icons/Menu';
 
 const useStyles = makeStyles(theme => ({
-  appBar: ({ drawerWidth }) => ({
+  appBar: {
     position: 'sticky',
-    ...(drawerWidth && {
-      [theme.breakpoints.up('sm')]: {
-        width: `calc(100% - ${drawerWidth}px)`,
-        marginLeft: drawerWidth,
-      },
-    }),
-  }),
+    [theme.breakpoints.up('sm')]: {
+      display: 'none',
+    },
+    padding: '8px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   menuButton: ({ drawerWidth }) => ({
     marginRight: theme.spacing(2),
     ...(drawerWidth && {
@@ -24,9 +22,20 @@ const useStyles = makeStyles(theme => ({
         display: 'none',
       },
     }),
+    height: '48px',
   }),
-  title: {
-    flexGrow: 1,
+  logo: {
+    height: '60px',
+    width: '200px',
+    display: 'flex',
+    alignItems: 'center',
+    '& a': {
+      display: 'flex',
+      alignItems: 'center',
+    },
+  },
+  logoImage: {
+    transform: 'scale(0.85)',
   },
 }));
 
@@ -34,23 +43,27 @@ function AppHeader({ handleDrawerToggle, children, drawerWidth }) {
   const classes = useStyles({ drawerWidth });
 
   return (
-    <AppBar className={classes.appBar}>
-      <Toolbar>
-        <IconButton
-          edge="start"
-          className={classes.menuButton}
-          color="inherit"
-          aria-label="menu"
-          onClick={handleDrawerToggle}
-        >
-          <MenuIcon />
-        </IconButton>
-        <Typography variant="h6" className={classes.title} noWrap>
-          Agoric Core HQ
-        </Typography>
-        {children}
-      </Toolbar>
-    </AppBar>
+    <div className={classes.appBar}>
+      <div className={classes.logo}>
+        <a href="https://agoric.com">
+          <img
+            className={classes.logoImage}
+            src="https://agoric.com/wp-content/themes/agoric_2021_theme/assets/img/logo.svg"
+            alt="Agoric"
+            width="200"
+          ></img>
+        </a>
+      </div>
+      <IconButton
+        className={classes.menuButton}
+        color="primary"
+        aria-label="menu"
+        onClick={handleDrawerToggle}
+      >
+        <MenuIcon />
+      </IconButton>
+      {children}
+    </div>
   );
 }
 

@@ -10,6 +10,7 @@ import {
   reducer,
   defaultState,
   setPurses,
+  initVaults,
   updateVault,
   setCollaterals,
   setRunLoCTerms,
@@ -17,7 +18,7 @@ import {
   setAutoswap,
   mergeBrandToInfo,
   setUseRloc,
-  setLoadCollateralsError,
+  setLoadTreasuryError,
 } from '../store';
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
 import WalletConnection from '../components/WalletConnection';
@@ -49,7 +50,6 @@ function watchVault(id, dispatch) {
 
   // There is no UINotifier for offers that haven't been accepted, but
   // we still want to show that the offer exists
-
   const status = 'Pending Wallet Acceptance';
   dispatch(
     updateVault({
@@ -93,6 +93,9 @@ function watchOffers(dispatch, INSTANCE_BOARD_ID) {
           watchedVaults.add(id);
           watchVault(id, dispatch);
         }
+      }
+      if (!watchedVaults.size) {
+        dispatch(initVaults());
       }
       console.log('======== OFFERS', offers);
     }
@@ -191,7 +194,7 @@ export default function Provider({ children }) {
       ]);
     } catch (e) {
       console.log('Couldnt load collaterals');
-      dispatch(setLoadCollateralsError(e));
+      dispatch(setLoadTreasuryError(e));
       return;
     }
 

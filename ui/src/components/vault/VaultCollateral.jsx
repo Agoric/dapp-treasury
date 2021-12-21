@@ -19,7 +19,7 @@ import { Alert } from '@material-ui/lab';
 
 import '../../types/types';
 
-import { setVaultCollateral, setLoadCollateralsError } from '../../store';
+import { setVaultCollateral, setLoadTreasuryError } from '../../store';
 import { makeDisplayFunctions } from '../helpers';
 import { useApplicationContext } from '../../contexts/Application';
 
@@ -62,10 +62,10 @@ function VaultCollateral({
   brandToInfo,
 }) {
   const { state, retrySetup } = useApplicationContext();
-  const { useRloc, loadCollateralsError } = state;
+  const { useRloc, loadTreasuryError } = state;
 
   const onRetryClicked = () => {
-    dispatch(setLoadCollateralsError(null));
+    dispatch(setLoadTreasuryError(null));
     retrySetup();
   };
 
@@ -99,7 +99,7 @@ function VaultCollateral({
   const collaterals =
     collateralsRaw && collateralsRaw.filter(c => purseBrands.has(c.brand));
 
-  if (loadCollateralsError) {
+  if (loadTreasuryError) {
     return loadColalteralsErrorDiv;
   } else if (!collaterals) {
     return standByForCollateralDiv;

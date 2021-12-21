@@ -22,7 +22,7 @@ export const initial = {
   runLoCTerms: /** @type { CollateralInfo | null } */ (null),
   vaultToManageId: /** @type {string | null} */ (null),
   useRloc: false,
-  loadCollateralsError: /** @type {string | null} */ null,
+  loadTreasuryError: /** @type {string | null} */ null,
 };
 
 /**
@@ -48,9 +48,10 @@ export const initial = {
  *    setVaultToManageId: (payload: typeof initial.vaultToManageId) => TreasuryReducer,
  *    updateVault: (v: { id: string, vault: VaultData }) => TreasuryReducer,
  *    resetVault: () => TreasuryReducer,
+ *    initVaults: () => TreasuryReducer,
  *    setAutoswap: (payload: typeof initial.autoswap) => TreasuryReducer,
  *    setUseRloc: (payload: boolean) => TreasuryReducer,
- *    setLoadCollateralsError: (payload: string | null) => TreasuryReducer,
+ *    setLoadTreasuryError: (payload: string | null) => TreasuryReducer,
  * }} TreasuryActions
  */
 
@@ -70,18 +71,23 @@ export const {
     setVaultCollateral,
     setVaultConfiguration,
     createVault,
+    initVaults,
     setVaultToManageId,
     updateVault,
     resetVault,
     setAutoswap,
     setUseRloc,
-    setLoadCollateralsError,
+    setLoadTreasuryError,
   },
   // @ts-ignore tsc can't tell that autodux is callable
 } = autodux({
   slice: 'treasury',
   initial,
   actions: {
+    /** @type {(state: TreasuryState) => TreasuryState} */
+    initVaults: state => {
+      return { ...state, vaults: {} };
+    },
     /** @type {(state: TreasuryState, v: { id: string, vault: VaultData }) => TreasuryState} */
     createVault: (state, { id, vault }) => {
       return {

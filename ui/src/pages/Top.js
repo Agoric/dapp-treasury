@@ -14,7 +14,7 @@ import NewVault from '../components/vault/NewVault';
 import Treasury from '../components/Treasury';
 import VaultManagement from '../components/vault/VaultManagement/VaultManagement';
 
-const navigationDrawerWidth = 200;
+const navigationDrawerWidth = 240;
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -24,7 +24,6 @@ const useStyles = makeStyles(theme => ({
   body: {
     display: 'flex',
     flexDirection: 'row',
-    maxWidth: '1080px',
     margin: '0 auto !important',
     float: 'none !important',
   },
