@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
+import { AGORIC_LOGO_URL } from '../constants';
 
 const useStyles = makeStyles(theme => ({
   appBar: {
@@ -48,7 +49,7 @@ function AppHeader({ handleDrawerToggle, children, drawerWidth }) {
         <a href="https://agoric.com">
           <img
             className={classes.logoImage}
-            src="https://agoric.com/wp-content/themes/agoric_2021_theme/assets/img/logo.svg"
+            src={AGORIC_LOGO_URL}
             alt="Agoric"
             width="200"
           ></img>

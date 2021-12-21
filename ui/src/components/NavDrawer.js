@@ -12,6 +12,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import MonetizationIcon from '@material-ui/icons/MonetizationOn';
 import AccountBalanceIcon from '@material-ui/icons/AccountBalance';
 import SwapIcon from '@material-ui/icons/SwapHoriz';
+import { AGORIC_LOGO_URL } from '../constants';
 // import TrendingUpIcon from '@material-ui/icons/TrendingUp';
 // import HowToVoteIcon from '@material-ui/icons/HowToVote';
 
@@ -90,7 +91,7 @@ function NavDrawer() {
         <a href="https://agoric.com">
           <img
             className={classes.logoImage}
-            src="https://agoric.com/wp-content/themes/agoric_2021_theme/assets/img/logo.svg"
+            src={AGORIC_LOGO_URL}
             alt="Agoric"
             width="200"
           ></img>
