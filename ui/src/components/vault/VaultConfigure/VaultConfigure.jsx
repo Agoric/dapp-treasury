@@ -5,8 +5,11 @@ import { makeStyles } from '@material-ui/core/styles';
 import { FormLabel, Grid } from '@material-ui/core';
 
 import { stringifyPurseValue } from '@agoric/ui-components';
-import { multiplyBy, divideBy } from '@agoric/zoe/src/contractSupport';
-import { amountMath } from '@agoric/ertp';
+import {
+  floorMultiplyBy,
+  floorDivideBy,
+} from '@agoric/zoe/src/contractSupport';
+import { AmountMath } from '@agoric/ertp';
 
 import '../../../types/types';
 
@@ -26,13 +29,13 @@ import CollateralizationPercentInput from './CollateralizationPercentInput';
 import ErrorBoundary from '../../ErrorBoundary';
 
 export function computeToBorrow(priceRate, toLock, collateralPercent) {
-  const lockPrice = multiplyBy(toLock, priceRate);
-  return divideBy(lockPrice, collateralPercent);
+  const lockPrice = floorMultiplyBy(harden(toLock), priceRate);
+  return floorDivideBy(lockPrice, collateralPercent);
 }
 
 export function computeToLock(priceRate, toBorrow, collateralPercent) {
-  const borrowWithMargin = multiplyBy(toBorrow, collateralPercent);
-  return divideBy(borrowWithMargin, priceRate);
+  const borrowWithMargin = floorMultiplyBy(harden(toBorrow), collateralPercent);
+  return floorDivideBy(borrowWithMargin, priceRate);
 }
 
 const useConfigStyles = makeStyles(theme => ({
@@ -62,10 +65,10 @@ const useConfigStyles = makeStyles(theme => ({
  *
  * @param {object} props
  * @param {Function} props.dispatch
- * @param {CollateralInfo} props.vaultCollateral
- * @param {Array<PursesJSONState>} props.purses
- * @param {Brand} props.runBrand
- * @param {Array<Array<Brand, BrandInfo>>} props.brandToInfo
+ * @param {CollateralInfo | null} props.vaultCollateral
+ * @param {Array<PursesJSONState> | null} props.purses
+ * @param {Brand | null} props.runBrand
+ * @param {Iterable<[Brand, BrandInfo]> | null} props.brandToInfo
  * @returns {React.ReactElement}
  */
 function VaultConfigure({
@@ -93,10 +96,10 @@ function VaultConfigure({
   const [dstPurse, setDstPurse] = useState(
     dstPurses.length ? dstPurses[0] : null,
   );
-  const [toBorrow, setToBorrow] = useState(amountMath.makeEmpty(runBrand));
+  const [toBorrow, setToBorrow] = useState(AmountMath.makeEmpty(runBrand));
   // Assumes that collateral is AssetKind.NAT
   const [toLock, setToLock] = useState(
-    amountMath.makeEmpty(vaultCollateral.brand),
+    AmountMath.makeEmpty(vaultCollateral.brand),
   );
   const [collateralPercent, setCollateralPercent] = useState(
     vaultCollateral.initialMargin,

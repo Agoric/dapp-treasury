@@ -44,46 +44,8 @@ export default async function deployApi(homePromise, endowments) {
   const walletBridge = E(wallet).getScopedBridge(DEPLOY_NAME, 'deploy');
   const approvalP = E(walletBridge).getBoard();
 
-  // use the board id to get the values, and save them to the
-  // wallet.
-  const [
-    autoswapInstall,
-    liquidationInstall,
-    stablecoinMachineInstall,
-    _approval,
-  ] = await Promise.all([
-    E(board).getValue(AMM_INSTALLATION_BOARD_ID),
-    E(board).getValue(LIQ_INSTALLATION_BOARD_ID),
-    E(board).getValue(INSTALLATION_BOARD_ID),
-    approvalP,
-  ]);
-
   // the walletBridge access was approved
   console.log('Approved!');
-
-  const loanParams = {
-    chargingPeriod: SECONDS_PER_HOUR,
-    recordingPeriod: SECONDS_PER_DAY,
-  };
-
-  const terms = harden({
-    autoswapInstall,
-    liquidationInstall,
-    priceAuthority,
-    loanParams,
-    timerService: timer,
-  });
-
-  const startInstanceConfig = {
-    instancePetname: [DEPLOY_NAME],
-    installation: stablecoinMachineInstall,
-    terms,
-    issuerKeywordRecord: {},
-  };
-
-  const { instance, creatorFacet } = await helpers.startInstance(
-    startInstanceConfig,
-  );
 
   console.log('Retrieving Board IDs for issuers and brands');
   const invitationIssuerP = E(zoe).getInvitationIssuer();
@@ -258,6 +220,7 @@ export default async function deployApi(homePromise, endowments) {
     stablecoinMachine: creatorFacet,
     zoe,
     emptyGovernanceAmount,
+    amm
   });
 
   // Start the pools

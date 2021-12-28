@@ -1,6 +1,9 @@
+// @ts-check
 import React from 'react';
 
 import {
+  Button,
+  CircularProgress,
   FormControl,
   FormLabel,
   Radio,
@@ -12,12 +15,21 @@ import {
   TableRow,
 } from '@material-ui/core';
 
+import { Alert } from '@material-ui/lab';
+
 import '../../types/types';
 
-import { setVaultCollateral } from '../../store';
+import { setVaultCollateral, setLoadTreasuryError } from '../../store';
 import { makeDisplayFunctions } from '../helpers';
+import { useApplicationContext } from '../../contexts/Application';
 
+/** @param { unknown } c */
 const collateralAvailable = c => Array.isArray(c) && c.length > 0;
+const standByForCollateralDiv = (
+  <div>
+    <CircularProgress style={{ margin: 'auto', display: 'block' }} />
+  </div>
+);
 const noCollateralAvailableDiv = (
   <div>No assets are available to use as collateral.</div>
 );
@@ -34,18 +46,50 @@ const makeHeaderCell = data => (
   <TableCell key={data.id}>{data.label}</TableCell>
 );
 
+/**
+ * @param {Object} info
+ * @param {TreasuryDispatch} info.dispatch
+ * @param {PursesJSONState[] | null} info.purses
+ * @param {Collaterals | null} info.collaterals
+ * @param {CollateralInfo | null} info.runLoCTerms
+ * @param {Iterable<[Brand, BrandInfo]>} info.brandToInfo
+ */
 function VaultCollateral({
   dispatch,
   purses,
   collaterals: collateralsRaw,
+  runLoCTerms,
   brandToInfo,
 }) {
+  const { state, retrySetup } = useApplicationContext();
+  const { useRloc, loadTreasuryError } = state;
+
+  const onRetryClicked = () => {
+    dispatch(setLoadTreasuryError(null));
+    retrySetup();
+  };
+
+  const loadColalteralsErrorDiv = (
+    <Alert
+      action={
+        <Button onClick={onRetryClicked} color="inherit" size="small">
+          Retry
+        </Button>
+      }
+      severity="error"
+    >
+      A problem occured while loading the collaterals — make sure you have RUN
+      in your Zoe fees purse.
+    </Alert>
+  );
+
   const {
     displayRatio,
     displayPercent,
     displayBrandPetname,
   } = makeDisplayFunctions(brandToInfo);
 
+  /** @param {CollateralInfo} row */
   const makeOnClick = row => _ev => {
     dispatch(setVaultCollateral(row));
   };
@@ -55,9 +99,18 @@ function VaultCollateral({
   const collaterals =
     collateralsRaw && collateralsRaw.filter(c => purseBrands.has(c.brand));
 
-  if (!collateralAvailable(collaterals)) {
+  if (loadTreasuryError) {
+    return loadColalteralsErrorDiv;
+  } else if (!collaterals) {
+    return standByForCollateralDiv;
+  } else if (!collateralAvailable(collaterals)) {
     return noCollateralAvailableDiv;
   }
+
+  /** @param { Ratio } x */
+  const percentCell = x => (
+    <TableCell align="right">{displayPercent(x)}%</TableCell>
+  );
 
   /**
    * Display a row per brand of potential collateral
@@ -66,10 +119,6 @@ function VaultCollateral({
    * @returns {import('react').ReactComponentElement}
    */
   const makeCollateralRow = row => {
-    const percentCell = x => (
-      <TableCell align="right">{displayPercent(x)}%</TableCell>
-    );
-
     const marketPriceDisplay = displayRatio(row.marketPrice);
     const collateralPetnameDisplay = displayBrandPetname(row.brand);
 
@@ -87,6 +136,26 @@ function VaultCollateral({
     );
   };
 
+  /** @param {CollateralInfo} row */
+  const makeRunLoCRow = row => {
+    const marketPriceDisplay = displayRatio(row.marketPrice);
+    const collateralPetnameDisplay = displayBrandPetname(row.brand);
+    return (
+      <TableRow key="RUNLoC">
+        <TableCell padding="checkbox">
+          <Radio onClick={makeOnClick(row)} />
+        </TableCell>
+        <TableCell>{collateralPetnameDisplay}</TableCell>
+        <TableCell align="right">${marketPriceDisplay}</TableCell>
+        {percentCell(row.initialMargin)}
+        <TableCell align="right">
+          <span title="RUN Line of Credit">0%*</span>
+        </TableCell>
+        {percentCell(row.stabilityFee)}
+      </TableRow>
+    );
+  };
+
   return (
     <div>
       <FormControl component="fieldset">
@@ -99,7 +168,10 @@ function VaultCollateral({
                 {headCells.map(makeHeaderCell)}
               </TableRow>
             </TableHead>
-            <TableBody>{collaterals.map(makeCollateralRow)}</TableBody>
+            <TableBody>
+              {useRloc && runLoCTerms && makeRunLoCRow(runLoCTerms)}
+              {collaterals.map(makeCollateralRow)}
+            </TableBody>
           </Table>
         </TableContainer>
       </FormControl>

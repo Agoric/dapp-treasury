@@ -1,6 +1,59 @@
+// @ts-check
+
 // The code in this file requires an understanding of Autodux.
 // See: https://github.com/ericelliott/autodux
 import autodux from 'autodux';
+
+export const initial = {
+  approved: true,
+  connected: false,
+  account: null,
+  purses: /** @type {PursesJSONState[] | null} */ (null),
+  brandToInfo: /** @type {Array<[Brand, BrandInfo]>} */ ([]),
+
+  // Autoswap state
+  autoswap: /** @type { AutoswapState } */ ({}),
+  // Vault state
+  treasury: /** @type { VaultState | null } */ (null),
+  vaultCollateral: /** @type { CollateralInfo | null } */ (null),
+  vaultConfiguration: null,
+  vaults: /** @type {Record<string, VaultData> | null} */ (null),
+  collaterals: /** @type { Collaterals | null } */ (null),
+  runLoCTerms: /** @type { CollateralInfo | null } */ (null),
+  vaultToManageId: /** @type {string | null} */ (null),
+  useRloc: false,
+  loadTreasuryError: /** @type {string | null} */ null,
+};
+
+/**
+ * @type {{
+ *   reducer: TreasuryReducer,
+ *   initial: TreasuryState,
+ *   actions: TreasuryActions,
+ * }}
+ *
+ * @typedef {{
+ *    setApproved: (payload: boolean) => TreasuryReducer,
+ *    setConnected: (payload: boolean) => TreasuryReducer,
+ *    setPurses: (payload: typeof initial.purses) => TreasuryReducer,
+ *    createVault: (payload: { id: string, vault: VaultData }) => TreasuryReducer,
+ *    mergeBrandToInfo: (payload: typeof initial.brandToInfo ) => TreasuryReducer,
+ *    addToBrandToInfo: (payload: typeof initial.brandToInfo) => TreasuryReducer,
+ *    setCollaterals: (payload: typeof initial.collaterals) => TreasuryReducer,
+ *    setRunLoCTerms: (payload: typeof initial.runLoCTerms) => TreasuryReducer,
+ *    resetState: () => TreasuryReducer,
+ *    setTreasury: (payload: typeof initial.treasury) => TreasuryReducer,
+ *    setVaultCollateral: (payload: typeof initial.vaultCollateral) => TreasuryReducer,
+ *    setVaultConfiguration: (payload: typeof initial.vaultConfiguration) => TreasuryReducer,
+ *    setVaultToManageId: (payload: typeof initial.vaultToManageId) => TreasuryReducer,
+ *    updateVault: (v: { id: string, vault: VaultData }) => TreasuryReducer,
+ *    resetVault: () => TreasuryReducer,
+ *    initVaults: () => TreasuryReducer,
+ *    setAutoswap: (payload: typeof initial.autoswap) => TreasuryReducer,
+ *    setUseRloc: (payload: boolean) => TreasuryReducer,
+ *    setLoadTreasuryError: (payload: string | null) => TreasuryReducer,
+ * }} TreasuryActions
+ */
 
 export const {
   reducer,
@@ -12,35 +65,30 @@ export const {
     mergeBrandToInfo,
     addToBrandToInfo,
     setCollaterals,
+    setRunLoCTerms,
     resetState,
     setTreasury,
     setVaultCollateral,
     setVaultConfiguration,
     createVault,
+    initVaults,
     setVaultToManageId,
     updateVault,
     resetVault,
     setAutoswap,
+    setUseRloc,
+    setLoadTreasuryError,
   },
+  // @ts-ignore tsc can't tell that autodux is callable
 } = autodux({
   slice: 'treasury',
-  initial: {
-    approved: true,
-    connected: false,
-    account: null,
-    purses: null,
-    brandToInfo: [], // [[brand, infoObj] ...]
-    // Autoswap state
-    autoswap: {},
-    // Vault state
-    treasury: null,
-    vaultCollateral: null,
-    vaultConfiguration: null,
-    vaults: {},
-    collaterals: null,
-    vaultToManageId: null,
-  },
+  initial,
   actions: {
+    /** @type {(state: TreasuryState) => TreasuryState} */
+    initVaults: state => {
+      return { ...state, vaults: {} };
+    },
+    /** @type {(state: TreasuryState, v: { id: string, vault: VaultData }) => TreasuryState} */
     createVault: (state, { id, vault }) => {
       return {
         ...state,
@@ -50,19 +98,22 @@ export const {
         },
       };
     },
+    /** @type {(state: TreasuryState, v: { id: string, vault: VaultData }) => TreasuryState} */
     updateVault: ({ vaults, ...state }, { id, vault }) => {
-      const oldVaultData = vaults[id];
+      const oldVaultData = vaults && vaults[id];
       const status = vault.liquidated ? 'Liquidated' : vault.status;
       return {
         ...state,
         vaults: { ...vaults, [id]: { ...oldVaultData, ...vault, status } },
       };
     },
+    /** @type {(state: TreasuryState) => TreasuryState} */
     resetVault: state => ({
       ...state,
       vaultCollateral: null,
       vaultConfiguration: null,
     }),
+    /** @type {(state: TreasuryState) => TreasuryState} */
     resetState: state => ({
       ...state,
       purses: null,
@@ -72,6 +123,7 @@ export const {
       inputAmount: null,
       outputAmount: null,
     }),
+    /** @type {(state: TreasuryState, newBrandToInfo: Array<[Brand, BrandInfo]>) => TreasuryState} */
     mergeBrandToInfo: (state, newBrandToInfo) => {
       const merged = new Map([...state.brandToInfo, ...newBrandToInfo]);
 

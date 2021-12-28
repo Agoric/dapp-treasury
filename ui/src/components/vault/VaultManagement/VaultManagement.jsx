@@ -5,12 +5,13 @@ import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
 import {
-  multiplyBy,
+  floorMultiplyBy,
   makeRatioFromAmounts,
 } from '@agoric/zoe/src/contractSupport';
-import { amountMath } from '@agoric/ertp';
+import { AmountMath } from '@agoric/ertp';
 import { Nat } from '@agoric/nat';
 import { E } from '@agoric/eventual-send';
+import { assert } from '@agoric/assert';
 
 import AdjustVaultForm from './AdjustVaultForm';
 import UnchangeableValues from './UnchangeableValues';
@@ -59,6 +60,7 @@ const VaultManagement = () => {
     autoswap: { ammAPI },
   } = state;
 
+  /** @type { VaultData } */
   let vaultToManage = {
     collateralizationRatio: null,
     debt: null,
@@ -79,14 +81,19 @@ const VaultManagement = () => {
     // status,
   } = vaultToManage;
 
+  assert(locked, 'locked missing from vaultToManage???');
+  assert(debt, 'debt missing from vaultToManage???');
+
   const [lockedAfterDelta, setLockedAfterDelta] = useState(locked);
   const [debtAfterDelta, setDebtAfterDelta] = useState(debt);
-  const [newCollateralizationRatio, setNewCollateralizationRatio] = useState(
-    null,
-  );
-  const [marketPrice, setMarketPrice] = useState(null);
+  const makeRatioState = () => useState(/** @type { Ratio | null } */ (null));
+  const [
+    newCollateralizationRatio,
+    setNewCollateralizationRatio,
+  ] = makeRatioState();
+  const [marketPrice, setMarketPrice] = makeRatioState();
   // calculate based on market price
-  const [collateralizationRatio, setCollateralizationRatio] = useState(null);
+  const [collateralizationRatio, setCollateralizationRatio] = makeRatioState();
 
   if (vaultToManage.locked === null) {
     return <div>Please select a vault to manage.</div>;
@@ -99,9 +106,15 @@ const VaultManagement = () => {
   } = makeDisplayFunctions(brandToInfo);
   const lockedPetname = displayBrandPetname(locked.brand);
 
-  // Collateralization ratio is the value of collateral to debt.
+  /**
+   * Collateralization ratio is the value of collateral to debt.
+   *
+   * @param {Ratio} priceRate
+   * @param {Amount} newLock
+   * @param {Amount} newBorrow
+   */
   const calcRatio = (priceRate, newLock, newBorrow) => {
-    const lockPrice = multiplyBy(newLock, priceRate);
+    const lockPrice = floorMultiplyBy(newLock, priceRate);
     const newRatio = makeRatioFromAmounts(lockPrice, newBorrow);
     return newRatio;
   };
@@ -112,13 +125,14 @@ const VaultManagement = () => {
     const decimalPlaces = getDecimalPlaces(locked.brand);
 
     // Make what would display as 1 unit of collateral
-    const inputAmount = amountMath.make(
-      10n ** Nat(decimalPlaces),
+    const inputAmount = AmountMath.make(
       locked.brand,
+      10n ** Nat(decimalPlaces),
     );
-    const quoteP = E(ammAPI).getPriceGivenAvailableInput(
+    assert(ammAPI, 'ammAPI missing');
+    const quoteP = E(ammAPI).getInputPrice(
       inputAmount,
-      debt.brand,
+      AmountMath.makeEmpty(debt.brand),
     );
 
     quoteP.then(({ amountIn, amountOut }) => {
@@ -150,6 +164,7 @@ const VaultManagement = () => {
   };
 
   const checkIfOfferInvalid = () => {
+    if (!liquidationRatio) return false;
     const ratio = calcRatio(marketPrice, lockedAfterDelta, debtAfterDelta);
     const approxCollateralizationRatio =
       Number(ratio.numerator.value) / Number(ratio.denominator.value);

@@ -12,8 +12,8 @@
     "lint:eslint": "eslint '**/*.{js,jsx}'",
     "lint-fix": "eslint --fix '**/*.{js,jsx}'",
     "start": "react-scripts start",
-    "test": "exit 0",
-    "configure": "node use-on-chain-config",
+    "test": "react-scripts test",
+    "test:debug": "react-scripts --inspect-brk test --runInBand --no-cache",
     "build": "yarn build:react",
     "build:ses": "cp ../node_modules/ses/dist/lockdown.umd.js public/",
     "build:react": "yarn configure; yarn build:pre-patch; react-scripts build; yarn build:post-patch",
@@ -43,6 +43,7 @@
     "@agoric/notifier": "*",
     "@agoric/same-structure": "*",
     "@agoric/ui-components": "*",
+    "@agoric/wallet-connection": "*",
     "@agoric/zoe": "*",
     "@material-ui/core": "^4.11.3",
     "@material-ui/icons": "^4.11.2",
@@ -68,7 +69,17 @@
     "eslint-plugin-react-hooks": "^4",
     "prettier": "^1.19.1",
     "react-scripts": "^4.0.3",
-    "rimraf": "^3.0.2"
+    "rimraf": "^3.0.2",
+    "@testing-library/jest-dom": "^5.11.4",
+    "@testing-library/react": "^11.1.0",
+    "enzyme": "^3.11.0",
+    "enzyme-adapter-react-16": "^1.15.6",
+    "eslint-plugin-jest": "^24.5.2"
+  },
+  "jest": {
+    "transformIgnorePatterns": [
+      "/node_modules/(?!@lit-labs)/"
+    ]
   },
   "eslintConfig": {
     "ignorePatterns": [
@@ -84,13 +95,16 @@
       "sourceType": "module"
     },
     "plugins": [
-      "react"
+      "react",
+      "jest"
     ],
     "rules": {
-      "react/prop-types": "off"
+      "react/prop-types": "off",
+      "react/react-in-jsx-scope": "off"
     },
     "env": {
-      "browser": true
+      "browser": true,
+      "jest/globals": true
     },
     "settings": {
       "import/resolver": {
