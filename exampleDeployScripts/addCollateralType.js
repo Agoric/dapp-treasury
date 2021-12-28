@@ -4,6 +4,8 @@ export const makeAddCollateralType = ({
   stablecoinMachine,
   zoe,
   emptyGovernanceAmount,
+  amm
+
 }) => {
   const addCollateralType = async ({
     keyword,

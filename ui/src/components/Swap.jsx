@@ -19,9 +19,10 @@ import {
   Typography,
   IconButton,
   InputLabel,
+  CircularProgress,
 } from '@material-ui/core';
 import ArrowDownIcon from '@material-ui/icons/ArrowDownward';
-import { amountMath } from '@agoric/ertp';
+import { AmountMath } from '@agoric/ertp';
 
 import { sameStructure } from '@agoric/same-structure';
 import AssetInput from './AssetInput';
@@ -70,7 +71,7 @@ const composeRatio = (x, y) =>
 export default function Swap() {
   const classes = useStyles();
   const { state, walletP } = useApplicationContext();
-  // const { purses, connected, ammAPI, centralBrand, otherBrands } = state;
+
   const {
     purses: unfilteredPurses,
     connected,
@@ -116,7 +117,9 @@ export default function Swap() {
   // See marketPrice comment below
   const centralOnlyRate = {
     brand: centralBrand,
-    ratio: makeRatio(100000000n, centralBrand, 100000000n, centralBrand),
+    ratio: centralBrand
+      ? makeRatio(100000000n, centralBrand, 100000000n, centralBrand)
+      : null,
   };
 
   /**
@@ -194,7 +197,7 @@ export default function Swap() {
 
   const getMarketQuote = async (isInput, brand, amount) => {
     console.log('QUOTING', isInput, brand, amount);
-    if (amountMath.isEmpty(amount)) {
+    if (AmountMath.isEmpty(amount)) {
       return;
     }
     if (brand === amount.brand) {
@@ -205,8 +208,8 @@ export default function Swap() {
     // Remember the current amount that we want a quote for
     setQuote({ amount, rate: null });
     const quoteResult = isInput
-      ? E(ammAPI).getPriceGivenAvailableInput(amount, brand)
-      : E(ammAPI).getPriceGivenRequiredOutput(brand, amount);
+      ? E(ammAPI).getInputPrice(amount, AmountMath.makeEmpty(brand))
+      : E(ammAPI).getOutputPrice(AmountMath.makeEmpty(brand), amount);
     const { amountIn, amountOut } = await quoteResult;
     const rate = isInput
       ? makeRatioFromAmounts(amountOut, amountIn)
@@ -243,6 +246,10 @@ export default function Swap() {
     );
   }
 
+  if (!centralBrand || !purses) {
+    return <CircularProgress style={{ marginTop: 48 }} />;
+  }
+
   const inputAmountError =
     inputAmount &&
     (inputAmount.value < 0n ||
@@ -260,7 +267,7 @@ export default function Swap() {
       const wantInfo = getInfoForBrand(brandToInfo, outputRate.brand);
       const oneDisplayUnit = 10n ** Nat(wantInfo.decimalPlaces);
       const wantPrice = divideBy(
-        amountMath.make(outputRate.brand, oneDisplayUnit),
+        AmountMath.make(outputRate.brand, oneDisplayUnit),
         marketRate,
       );
       const exchangeRate = stringifyAmountValue(
@@ -371,13 +378,13 @@ export default function Swap() {
   function handleChangeInputAmount(value) {
     if (inputPurse) {
       setOutputAmount(null);
-      setInputAmount(amountMath.make(inputPurse.brand, value));
+      setInputAmount(AmountMath.make(inputPurse.brand, value));
     }
   }
 
   function handleChangeOutputAmount(value) {
     if (outputPurse) {
-      setOutputAmount(amountMath.make(outputPurse.brand, value));
+      setOutputAmount(AmountMath.make(outputPurse.brand, value));
       setInputAmount(null);
     }
   }

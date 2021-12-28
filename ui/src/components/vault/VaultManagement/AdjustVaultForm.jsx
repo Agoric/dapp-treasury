@@ -12,7 +12,7 @@ import { Grid } from '@material-ui/core';
 
 import { makeStyles } from '@material-ui/core/styles';
 
-import { amountMath } from '@agoric/ertp';
+import { AmountMath } from '@agoric/ertp';
 
 import NatPurseAmountInput from './NatPurseAmountInput';
 import CollateralActionChoice from './CollateralActionChoice';
@@ -104,9 +104,9 @@ const AdjustVaultForm = ({
   const [runPurseSelected, setRunPurseSelected] = useState(null);
 
   const [lockedDelta, setLockedDelta] = useState(
-    amountMath.make(0n, locked.brand),
+    AmountMath.make(locked.brand, 0n),
   );
-  const [debtDelta, setDebtDelta] = useState(amountMath.make(0n, debt.brand));
+  const [debtDelta, setDebtDelta] = useState(AmountMath.make(debt.brand, 0n));
 
   const [needToAddOfferToWallet, setNeedToAddOfferToWallet] = useState(false);
   const [redirect, setRedirect] = useState(false);
@@ -117,8 +117,8 @@ const AdjustVaultForm = ({
     setDebtAction('noaction');
     setCollateralPurseSelected(null);
     setRunPurseSelected(null);
-    setLockedDelta(amountMath.make(0n, locked.brand));
-    setDebtDelta(amountMath.make(0n, debt.brand));
+    setLockedDelta(AmountMath.make(locked.brand, 0n));
+    setDebtDelta(AmountMath.make(debt.brand, 0n));
     setNeedToAddOfferToWallet(false);
     setRedirect(false);
   };
@@ -179,30 +179,30 @@ const AdjustVaultForm = ({
 
   const updateLockedDelta = (collAction, collDelta) => {
     if (collAction === 'deposit') {
-      onLockedDeltaChange(amountMath.add(locked, collDelta));
+      onLockedDeltaChange(AmountMath.add(locked, collDelta));
     }
     if (collAction === 'withdraw') {
-      onLockedDeltaChange(amountMath.subtract(locked, collDelta));
+      onLockedDeltaChange(AmountMath.subtract(locked, collDelta));
     }
   };
 
   const updateDebtDelta = (dAction, dDelta) => {
     if (dAction === 'borrow') {
-      onDebtDeltaChange(amountMath.add(debt, dDelta));
+      onDebtDeltaChange(AmountMath.add(debt, dDelta));
     }
     if (dAction === 'repay') {
-      onDebtDeltaChange(amountMath.subtract(debt, dDelta));
+      onDebtDeltaChange(AmountMath.subtract(debt, dDelta));
     }
   };
 
   const handleCollateralAmountChange = value => {
-    const newLockedDelta = amountMath.make(value, locked.brand);
+    const newLockedDelta = AmountMath.make(locked.brand, value);
     setLockedDelta(newLockedDelta);
     updateLockedDelta(collateralAction, newLockedDelta);
   };
 
   const handleDebtAmountChange = value => {
-    const newDebtDelta = amountMath.make(value, debt.brand);
+    const newDebtDelta = AmountMath.make(debt.brand, value);
     setDebtDelta(newDebtDelta);
     updateDebtDelta(debtAction, newDebtDelta);
   };

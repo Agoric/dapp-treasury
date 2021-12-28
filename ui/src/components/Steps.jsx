@@ -11,7 +11,6 @@ const useStyles = makeStyles(theme => ({
 
 /* eslint-disable react/prop-types */
 export default function TransactionSummary({
-  connected,
   inputPurse,
   outputPurse,
   inputAmount,
@@ -19,21 +18,19 @@ export default function TransactionSummary({
 }) {
   const classes = useStyles();
 
-  const steps = ['Connect', 'Select Currencies', 'Enter Amounts', 'Swap'];
+  const steps = ['Select Currencies', 'Enter Amounts', 'Swap'];
 
   const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
-    if (!connected) {
+    if (!inputPurse || !outputPurse) {
       setActiveStep(0);
-    } else if (!inputPurse || !outputPurse) {
-      setActiveStep(1);
     } else if (!(inputAmount > 0n) || !(outputAmount > 0n)) {
-      setActiveStep(2);
+      setActiveStep(1);
     } else {
-      setActiveStep(3);
+      setActiveStep(2);
     }
-  }, [connected, inputPurse, outputPurse, inputAmount, outputAmount]);
+  }, [inputPurse, outputPurse, inputAmount, outputAmount]);
 
   return (
     <Stepper
