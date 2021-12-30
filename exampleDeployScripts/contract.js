@@ -11,17 +11,17 @@ export default async function deployContract(homePromise, endowments) {
   // This installs the contract code on Zoe and adds the installation
   // to the contract developer's wallet and the board
   const helpers = await makeHelpers(homePromise, endowments);
-  const CONTRACT_NAME = 'Treasury';
+  const CONTRACT_NAME = 'VaultFactory';
 
   const DEPLOY_NAME = `${CONTRACT_NAME}Deploy`;
   console.log('Waiting for you to approve', DEPLOY_NAME, 'in your wallet...');
   await E(E(wallet).getScopedBridge(DEPLOY_NAME, 'deploy')).getBoard();
   console.log('Approved!');
 
-  // Install Treasury
-  const treasuryInstallP = helpers.install(
+  // Install vaultFactory
+  const vaultFactoryInstallP = helpers.install(
     helpers.resolvePathForPackagedContract(
-      '@agoric/treasury/src/stablecoinMachine',
+      '@agoric/run-protocol/src/vaultFactory/vaultFactory.js',
     ),
     DEPLOY_NAME,
   );
@@ -31,7 +31,7 @@ export default async function deployContract(homePromise, endowments) {
   const AMM_NAME = 'autoswap';
   const ammInstallP = helpers.install(
     helpers.resolvePathForPackagedContract(
-      '@agoric/zoe/src/contracts/multipoolAutoswap/multipoolAutoswap',
+      '@agoric/run-protocol/src/vpool-xyx-amm/multipoolMarketMaker.js',
     ),
     [DEPLOY_NAME, AMM_NAME],
   );
@@ -41,7 +41,7 @@ export default async function deployContract(homePromise, endowments) {
   const LIQ_NAME = 'liquidate';
   const liqInstallP = helpers.install(
     helpers.resolvePathForPackagedContract(
-      '@agoric/treasury/src/liquidateMinimum.js',
+      '@agoric/run-protocol/src/vaultFactory/liquidateMinimum.js',
     ),
     [DEPLOY_NAME, LIQ_NAME],
   );
@@ -50,7 +50,7 @@ export default async function deployContract(homePromise, endowments) {
     { id: INSTALLATION_BOARD_ID },
     { id: AMM_INSTALLATION_BOARD_ID },
     { id: LIQ_INSTALLATION_BOARD_ID },
-  ] = await Promise.all([treasuryInstallP, ammInstallP, liqInstallP]);
+  ] = await Promise.all([vaultFactoryInstallP, ammInstallP, liqInstallP]);
 
   // Save the constants somewhere where the UI and api can find it.
   const dappConstants = {

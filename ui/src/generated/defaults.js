@@ -3,10 +3,10 @@ export default {
     "getAgoricNames",
     [
       "uiConfig",
-      "Treasury"
+      "VaultFactory"
     ]
   ],
   "AMM_NAME": "amm",
   "BRIDGE_URL": "http://127.0.0.1:8000",
-  "CONTRACT_NAME": "Treasury"
+  "CONTRACT_NAME": "VaultFactory"
 };
