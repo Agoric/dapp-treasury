@@ -4,15 +4,15 @@ const fs = require('fs');
 
 const uiConfig = JSON.stringify(
   {
-    ON_CHAIN_CONFIG: ['getAgoricNames', ['uiConfig', 'Treasury']],
+    ON_CHAIN_CONFIG: ['getAgoricNames', ['uiConfig', 'VaultFactory']],
     AMM_NAME: 'amm',
     BRIDGE_URL: 'http://127.0.0.1:8000',
-    CONTRACT_NAME: 'Treasury',
+    CONTRACT_NAME: 'VaultFactory',
   },
   undefined,
   2,
 );
 
 const defaults = `src/generated/defaults.js`;
-console.log('configuring', defaults, 'for on-chain treasury');
+console.log('configuring', defaults, 'for on-chain vaultFactory');
 fs.writeFileSync(`${__dirname}/${defaults}`, `export default ${uiConfig};\n`);

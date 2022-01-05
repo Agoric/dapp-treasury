@@ -114,7 +114,7 @@ function watchOffers(dispatch, INSTANCE_BOARD_ID) {
 const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
   /** @type { Instance } */
   const instance = await E(board).getValue(instanceID);
-  /** @type { ERef<StablecoinMachine> } */
+  /** @type { ERef<VaultFactory> } */
   const treasuryAPIP = E(zoe).getPublicFacet(instance);
   const [treasuryAPI, terms, collaterals] = await Promise.all([
     treasuryAPIP,
