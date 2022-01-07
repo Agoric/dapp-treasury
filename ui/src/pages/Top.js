@@ -12,6 +12,7 @@ import NavDrawer from '../components/NavDrawer';
 import Swap from '../components/Swap';
 import NewVault from '../components/vault/NewVault';
 import Treasury from '../components/Treasury';
+import GetRun from '../components/getRUN/GetRUN';
 import VaultManagement from '../components/vault/VaultManagement/VaultManagement';
 
 const navigationDrawerWidth = 240;
@@ -24,12 +25,11 @@ const useStyles = makeStyles(theme => ({
   body: {
     display: 'flex',
     flexDirection: 'row',
-    margin: '0 auto !important',
+    margin: '0',
     float: 'none !important',
   },
   content: {
     flexGrow: 1,
-    backgroundColor: theme.palette.background.default,
     padding: theme.spacing(1),
   },
 }));
@@ -69,6 +69,9 @@ function Top() {
               </Route>
               <Route path="/manageVault">
                 <VaultManagement />
+              </Route>
+              <Route path="/getRUN">
+                <GetRun />
               </Route>
               <Route path="/">
                 <NewVault />

@@ -25,7 +25,8 @@ const useStyles = makeStyles(theme => ({
       marginBottom: theme.spacing(6),
       padding: theme.spacing(3),
     },
-    maxWidth: '100%',
+    width: 'fit-content',
+    margin: 'auto',
   },
   grid: {
     padding: theme.spacing(2),
@@ -51,7 +52,6 @@ export default function NewVault() {
       vaultCollateral,
       treasury,
       collaterals,
-      runLoCTerms,
       purses,
       vaultConfiguration,
       approved,
@@ -93,7 +93,6 @@ export default function NewVault() {
           collaterals={collaterals}
           purses={purses}
           brandToInfo={brandToInfo}
-          runLoCTerms={runLoCTerms}
         />
       );
     }

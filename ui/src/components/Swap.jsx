@@ -37,6 +37,10 @@ import { useApplicationContext } from '../contexts/Application';
 import { makeSwapOffer } from '../contexts/makeSwapOffer';
 
 const useStyles = makeStyles(theme => ({
+  root: {
+    width: 'fit-content',
+    margin: 'auto',
+  },
   paper: {
     marginTop: theme.spacing(3),
     marginBottom: theme.spacing(3),
@@ -247,7 +251,11 @@ export default function Swap() {
   }
 
   if (!centralBrand || !purses) {
-    return <CircularProgress style={{ marginTop: 48 }} />;
+    return (
+      <div className={classes.root}>
+        <CircularProgress style={{ marginTop: 48 }} />
+      </div>
+    );
   }
 
   const inputAmountError =
@@ -407,7 +415,7 @@ export default function Swap() {
     isValid,
   });
   return (
-    <div>
+    <div className={classes.root}>
       <Paper className={classes.paper}>
         <Typography component="h1" variant="h4" align="center">
           Swap
