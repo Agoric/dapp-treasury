@@ -13,6 +13,7 @@ import Swap from '../components/Swap';
 import NewVault from '../components/vault/NewVault';
 import Treasury from '../components/Treasury';
 import VaultManagement from '../components/vault/VaultManagement/VaultManagement';
+import GetRun from '../components/getRun/GetRun';
 
 const navigationDrawerWidth = 240;
 
@@ -69,6 +70,9 @@ function Top() {
               </Route>
               <Route path="/manageVault">
                 <VaultManagement />
+              </Route>
+              <Route path="/getRUN">
+                <GetRun />
               </Route>
               <Route path="/">
                 <NewVault />
