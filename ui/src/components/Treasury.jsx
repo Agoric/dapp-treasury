@@ -105,7 +105,7 @@ function VaultList() {
       <div className={classes.root}>
         <Paper className={classes.paper}>
           <div>
-            To continue, please approve the Treasury Dapp in your wallet.
+            To continue, please approve the VaultFactory Dapp in your wallet.
           </div>
         </Paper>
       </div>
