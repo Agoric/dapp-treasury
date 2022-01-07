@@ -35,7 +35,7 @@ test('renders a message when the dapp needs approval', () => {
   const component = mount(<VaultList />);
 
   expect(component.text()).toContain(
-    'To continue, please approve the Treasury Dapp in your wallet.',
+    'To continue, please approve the VaultFactory Dapp in your wallet.',
   );
 });
 
