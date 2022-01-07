@@ -22,6 +22,10 @@ import { setVaultToManageId, setLoadTreasuryError } from '../store';
 
 const useStyles = makeStyles(theme => {
   return {
+    root: {
+      width: 'fit-content',
+      margin: 'auto',
+    },
     paper: {
       marginTop: theme.spacing(3),
       marginBottom: theme.spacing(3),
@@ -75,19 +79,21 @@ function VaultList() {
   };
 
   const loadTreasuryErrorAlert = (
-    <Paper className={classes.paper}>
-      <Alert
-        action={
-          <Button onClick={onRetryClicked} color="inherit" size="small">
-            Retry
-          </Button>
-        }
-        severity="error"
-      >
-        A problem occured while loading your vaults — make sure you have RUN in
-        your Zoe fees purse.
-      </Alert>
-    </Paper>
+    <div className={classes.root}>
+      <Paper className={classes.paper}>
+        <Alert
+          action={
+            <Button onClick={onRetryClicked} color="inherit" size="small">
+              Retry
+            </Button>
+          }
+          severity="error"
+        >
+          A problem occured while loading your vaults — make sure you have RUN
+          in your Zoe fees purse.
+        </Alert>
+      </Paper>
+    </div>
   );
 
   if (redirect) {
@@ -96,9 +102,13 @@ function VaultList() {
 
   if (!approved) {
     return (
-      <Paper className={classes.paper}>
-        <div>To continue, please approve the Treasury Dapp in your wallet.</div>
-      </Paper>
+      <div className={classes.root}>
+        <Paper className={classes.paper}>
+          <div>
+            To continue, please approve the Treasury Dapp in your wallet.
+          </div>
+        </Paper>
+      </div>
     );
   }
 
@@ -107,19 +117,25 @@ function VaultList() {
   }
 
   if (vaults === null) {
-    return <CircularProgress style={{ marginTop: 48 }} />;
+    return (
+      <div className={classes.root}>
+        <CircularProgress style={{ marginTop: 48 }} />
+      </div>
+    );
   }
 
   if (vaultsList.length === 0) {
     return (
-      <Paper className={classes.loading}>
-        <Typography>No vaults available yet</Typography>
-      </Paper>
+      <div className={classes.root}>
+        <Paper className={classes.loading}>
+          <Typography>No vaults available yet</Typography>
+        </Paper>
+      </div>
     );
   }
 
   return (
-    <div>
+    <div className={classes.root}>
       <ErrorBoundary>
         <Grid container className={classes.grid} alignItems="stretch">
           {vaultsList.map(([key, v]) => {

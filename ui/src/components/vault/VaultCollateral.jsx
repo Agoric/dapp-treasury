@@ -14,6 +14,7 @@ import {
   TableHead,
   TableRow,
 } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
 
 import { Alert } from '@material-ui/lab';
 
@@ -22,6 +23,12 @@ import '../../types/types';
 import { setVaultCollateral, setLoadTreasuryError } from '../../store';
 import { makeDisplayFunctions } from '../helpers';
 import { useApplicationContext } from '../../contexts/Application';
+
+const useStyles = makeStyles(theme => ({
+  root: {
+    marginBottom: theme.spacing(3),
+  },
+}));
 
 /** @param { unknown } c */
 const collateralAvailable = c => Array.isArray(c) && c.length > 0;
@@ -61,6 +68,7 @@ function VaultCollateral({
   runLoCTerms,
   brandToInfo,
 }) {
+  const classes = useStyles();
   const { state, retrySetup } = useApplicationContext();
   const { useRloc, loadTreasuryError } = state;
 
@@ -157,7 +165,7 @@ function VaultCollateral({
   };
 
   return (
-    <div>
+    <div className={classes.root}>
       <FormControl component="fieldset">
         <FormLabel component="legend">Choose collateral</FormLabel>{' '}
         <TableContainer>

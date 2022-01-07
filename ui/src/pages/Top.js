@@ -24,7 +24,7 @@ const useStyles = makeStyles(theme => ({
   body: {
     display: 'flex',
     flexDirection: 'row',
-    margin: '0 auto !important',
+    margin: '0',
     float: 'none !important',
   },
   content: {
