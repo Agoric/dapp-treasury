@@ -87,7 +87,7 @@ function ListItemLink(props) {
 function NavDrawer() {
   const classes = useStyles();
   const {
-    state: { useRloc },
+    state: { useGetRUN },
   } = useApplicationContext();
 
   return (
@@ -117,7 +117,7 @@ function NavDrawer() {
           to="/treasury"
           replace
         />
-        {useRloc && (
+        {useGetRUN && (
           <ListItemLink
             icon={<AccountBalanceWallet />}
             primary="getRUN"

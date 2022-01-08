@@ -12,11 +12,11 @@ const useApplicationContext = () => ({
 jest.mock('../../contexts/Application', () => ({ useApplicationContext }));
 
 beforeEach(() => {
-  state.useRloc = false;
+  state.useGetRUN = false;
 });
 
 test('renders the getRUN link if getRUN is enabled', () => {
-  state.useRloc = true;
+  state.useGetRUN = true;
   const component = mount(
     <MemoryRouter initialEntries={['/']}>
       <NavDrawer />

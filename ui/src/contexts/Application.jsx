@@ -17,7 +17,7 @@ import {
   setTreasury,
   setAutoswap,
   mergeBrandToInfo,
-  setUseRloc,
+  setUseGetRUN,
   setLoadTreasuryError,
 } from '../store';
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
@@ -170,8 +170,8 @@ export default function Provider({ children }) {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const useRloc = urlParams.get('rloc') === 'true';
-    dispatch(setUseRloc(useRloc));
+    const useGetRUN = urlParams.get('gr') === 'true';
+    dispatch(setUseGetRUN(useGetRUN));
   }, []);
 
   const retrySetup = async () => {
