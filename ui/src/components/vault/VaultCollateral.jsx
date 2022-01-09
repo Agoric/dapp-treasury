@@ -14,6 +14,7 @@ import {
   TableHead,
   TableRow,
 } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
 
 import { Alert } from '@material-ui/lab';
 
@@ -22,6 +23,12 @@ import '../../types/types';
 import { setVaultCollateral, setLoadTreasuryError } from '../../store';
 import { makeDisplayFunctions } from '../helpers';
 import { useApplicationContext } from '../../contexts/Application';
+
+const useStyles = makeStyles(theme => ({
+  root: {
+    marginBottom: theme.spacing(3),
+  },
+}));
 
 /** @param { unknown } c */
 const collateralAvailable = c => Array.isArray(c) && c.length > 0;
@@ -51,18 +58,17 @@ const makeHeaderCell = data => (
  * @param {TreasuryDispatch} info.dispatch
  * @param {PursesJSONState[] | null} info.purses
  * @param {Collaterals | null} info.collaterals
- * @param {CollateralInfo | null} info.runLoCTerms
  * @param {Iterable<[Brand, BrandInfo]>} info.brandToInfo
  */
 function VaultCollateral({
   dispatch,
   purses,
   collaterals: collateralsRaw,
-  runLoCTerms,
   brandToInfo,
 }) {
+  const classes = useStyles();
   const { state, retrySetup } = useApplicationContext();
-  const { useRloc, loadTreasuryError } = state;
+  const { loadTreasuryError } = state;
 
   const onRetryClicked = () => {
     dispatch(setLoadTreasuryError(null));
@@ -136,28 +142,8 @@ function VaultCollateral({
     );
   };
 
-  /** @param {CollateralInfo} row */
-  const makeRunLoCRow = row => {
-    const marketPriceDisplay = displayRatio(row.marketPrice);
-    const collateralPetnameDisplay = displayBrandPetname(row.brand);
-    return (
-      <TableRow key="RUNLoC">
-        <TableCell padding="checkbox">
-          <Radio onClick={makeOnClick(row)} />
-        </TableCell>
-        <TableCell>{collateralPetnameDisplay}</TableCell>
-        <TableCell align="right">${marketPriceDisplay}</TableCell>
-        {percentCell(row.initialMargin)}
-        <TableCell align="right">
-          <span title="RUN Line of Credit">0%*</span>
-        </TableCell>
-        {percentCell(row.stabilityFee)}
-      </TableRow>
-    );
-  };
-
   return (
-    <div>
+    <div className={classes.root}>
       <FormControl component="fieldset">
         <FormLabel component="legend">Choose collateral</FormLabel>{' '}
         <TableContainer>
@@ -168,10 +154,7 @@ function VaultCollateral({
                 {headCells.map(makeHeaderCell)}
               </TableRow>
             </TableHead>
-            <TableBody>
-              {useRloc && runLoCTerms && makeRunLoCRow(runLoCTerms)}
-              {collaterals.map(makeCollateralRow)}
-            </TableBody>
+            <TableBody>{collaterals.map(makeCollateralRow)}</TableBody>
           </Table>
         </TableContainer>
       </FormControl>

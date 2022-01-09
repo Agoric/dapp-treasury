@@ -12,6 +12,8 @@ import ListItemText from '@material-ui/core/ListItemText';
 import MonetizationIcon from '@material-ui/icons/MonetizationOn';
 import AccountBalanceIcon from '@material-ui/icons/AccountBalance';
 import SwapIcon from '@material-ui/icons/SwapHoriz';
+import AccountBalanceWallet from '@material-ui/icons/AccountBalanceWallet';
+import { useApplicationContext } from '../contexts/Application';
 import { AGORIC_LOGO_URL } from '../constants';
 // import TrendingUpIcon from '@material-ui/icons/TrendingUp';
 // import HowToVoteIcon from '@material-ui/icons/HowToVote';
@@ -84,6 +86,9 @@ function ListItemLink(props) {
 
 function NavDrawer() {
   const classes = useStyles();
+  const {
+    state: { useGetRUN },
+  } = useApplicationContext();
 
   return (
     <div>
@@ -112,6 +117,14 @@ function NavDrawer() {
           to="/treasury"
           replace
         />
+        {useGetRUN && (
+          <ListItemLink
+            icon={<AccountBalanceWallet />}
+            primary="getRUN"
+            to="/getRUN"
+            replace
+          />
+        )}
         {/* <ListItemLink
           icon={<FlightTakeoffIcon />}
           primary="Pegasus"
