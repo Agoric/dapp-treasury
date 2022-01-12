@@ -1,8 +1,10 @@
 import { React } from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
-
 import { Typography } from '@material-ui/core';
+
+import MarketDetails from './MarketDetails';
+import { useApplicationContext } from '../../contexts/Application';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -29,6 +31,12 @@ const useStyles = makeStyles(theme => ({
 
 const GetRun = () => {
   const classes = useStyles();
+  const {
+    state: { runLoCTerms, brandToInfo },
+  } = useApplicationContext();
+
+  const { initialMargin = undefined, marketPrice = undefined } =
+    runLoCTerms ?? {};
 
   const header = (
     <div className={classes.header}>
@@ -36,7 +44,16 @@ const GetRun = () => {
     </div>
   );
 
-  return <div className={classes.root}>{header}</div>;
+  return (
+    <div className={classes.root}>
+      {header}
+      <MarketDetails
+        marketPrice={marketPrice}
+        initialMargin={initialMargin}
+        brandToInfo={brandToInfo}
+      />{' '}
+    </div>
+  );
 };
 
 export default GetRun;
