@@ -27,6 +27,7 @@ export const getRunLoCTerms = async issuers => {
 
   const terms = {
     brand: bldBrand,
+    debtBrand: runBrand,
     initialMargin: makeRatio(750n, bldBrand),
     liquidationMargin: makeRatio(0n, bldBrand),
     marketPrice: makeRatio(123n, runBrand, 100n, bldBrand),

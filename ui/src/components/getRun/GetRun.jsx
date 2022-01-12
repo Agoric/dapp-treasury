@@ -4,6 +4,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import { Typography } from '@material-ui/core';
 
 import MarketDetails from './MarketDetails';
+import AdjustRunForm from './AdjustRunForm';
+import History from './History';
 import { useApplicationContext } from '../../contexts/Application';
 
 const useStyles = makeStyles(theme => ({
@@ -32,11 +34,16 @@ const useStyles = makeStyles(theme => ({
 const GetRun = () => {
   const classes = useStyles();
   const {
-    state: { runLoCTerms, brandToInfo },
+    state: { runLoCTerms, brandToInfo, purses },
   } = useApplicationContext();
 
-  const { initialMargin = undefined, marketPrice = undefined } =
-    runLoCTerms ?? {};
+  const {
+    initialMargin = undefined,
+    marketPrice = undefined,
+    interestRate = undefined,
+    brand = undefined,
+    debtBrand = undefined,
+  } = runLoCTerms ?? {};
 
   const header = (
     <div className={classes.header}>
@@ -51,7 +58,15 @@ const GetRun = () => {
         marketPrice={marketPrice}
         initialMargin={initialMargin}
         brandToInfo={brandToInfo}
-      />{' '}
+        interestRate={interestRate}
+      />
+      <AdjustRunForm
+        purses={purses}
+        brandToInfo={brandToInfo}
+        brand={brand}
+        debtBrand={debtBrand}
+      />
+      <History />
     </div>
   );
 };

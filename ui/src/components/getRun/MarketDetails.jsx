@@ -18,9 +18,6 @@ const useStyles = makeStyles(theme => ({
     fontSize: '22px',
     lineHeight: '27px',
     padding: theme.spacing(4),
-    width: 'fit-content',
-    margin: 'auto',
-    minWidth: '400px',
   },
   card: {},
   cardTitle: {
@@ -63,14 +60,18 @@ const ValueCard = ({ title, text }) => {
   );
 };
 
-const MarketDetails = ({ marketPrice, initialMargin, brandToInfo }) => {
+const MarketDetails = ({
+  marketPrice,
+  initialMargin,
+  interestRate,
+  brandToInfo,
+}) => {
   const { displayPercent, displayRatio } = makeDisplayFunctions(brandToInfo);
   const classes = useStyles();
 
   const values =
-    !marketPrice || !initialMargin ? (
+    !marketPrice || !initialMargin || !interestRate ? (
       <div className={classes.loadingPlaceholder}>
-        {' '}
         <CircularProgress />
       </div>
     ) : (
@@ -80,8 +81,12 @@ const MarketDetails = ({ marketPrice, initialMargin, brandToInfo }) => {
           text={`${displayRatio(marketPrice)} RUN`}
         />
         <ValueCard
-          title="Min. Collateralization"
+          title="Min. Collateral"
           text={`${displayPercent(initialMargin)}%`}
+        />
+        <ValueCard
+          title="Interest Rate"
+          text={`${displayPercent(interestRate)}%`}
         />
       </>
     );
