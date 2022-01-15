@@ -36,38 +36,42 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const MarketDetails = ({
-  marketPrice,
-  initialMargin,
-  interestRate,
+const MyGetRun = ({
+  lockedBld,
+  outstandingDebt,
+  collateralization,
   brandToInfo,
 }) => {
-  const { displayPercent, displayRatio } = makeDisplayFunctions(brandToInfo);
+  const { displayRatio, displayPercent } = makeDisplayFunctions(brandToInfo);
   const classes = useStyles();
+
   const rows =
-    marketPrice && initialMargin && interestRate
+    lockedBld && outstandingDebt && collateralization
       ? [
-          makeRow('BLD Price', `${displayRatio(marketPrice)} RUN`),
-          makeRow('Min. Collateral', `${displayPercent(initialMargin)}%`),
-          makeRow('Interest Rate', `${displayPercent(interestRate)}%`),
+          makeRow('Locked BLD', displayRatio(lockedBld)),
+          makeRow('Outstanding Debt', `${displayRatio(outstandingDebt)} RUN`),
+          makeRow(
+            'Collateralization',
+            `${displayPercent(collateralization)} %`,
+          ),
         ]
       : [];
-  const values =
-    !marketPrice || !initialMargin || !interestRate ? (
-      <div className={classes.loadingPlaceholder}>
-        <CircularProgress />
-      </div>
-    ) : (
-      <NameValueTable rows={rows} />
-    );
+
+  const values = !rows.length ? (
+    <div className={classes.loadingPlaceholder}>
+      <CircularProgress />
+    </div>
+  ) : (
+    <NameValueTable rows={rows} />
+  );
 
   return (
     <Paper className={classes.root} elevation={4}>
-      <Typography className={classes.title}>Market Details</Typography>
+      <Typography className={classes.title}>My RUN</Typography>
       <hr className={classes.break} />
       {values}
     </Paper>
   );
 };
 
-export default MarketDetails;
+export default MyGetRun;

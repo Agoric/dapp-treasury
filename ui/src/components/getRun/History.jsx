@@ -40,10 +40,6 @@ const useStyles = makeStyles(theme => ({
       lineHeight: '24px',
       color: '#707070',
     },
-    '&:first-of-type > td': {
-      fontWeight: '800',
-      color: 'rgb(34, 34, 34)',
-    },
   },
   left: {
     paddingLeft: 0,
@@ -60,18 +56,17 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-function createData(date, locked, borrowed, collateralization, status) {
-  return { date, locked, borrowed, collateralization, status };
+function createData(date, locked, borrowed) {
+  return { date, locked, borrowed };
 }
 
 const History = () => {
   const classes = useStyles();
 
   const rows = [
-    createData('CURRENT', '20 BLD', '2 RUN', '1000%', '-'),
-    createData('2022-01-12 13:15:12', '0 BLD', '3 RUN', '500%', 'Pending'),
-    createData('2022-01-12 13:15:12', '5 BLD', '1 RUN', '1000%', 'Approved'),
-    createData('2022-01-12 13:15:12', '15 BLD', '1 RUN', '1500%', 'Approved'),
+    createData('2022-01-12 13:15:12', '0 BLD', '3 RUN'),
+    createData('2022-01-12 13:15:12', '5 BLD', '1 RUN'),
+    createData('2022-01-12 13:15:12', '15 BLD', '1 RUN'),
   ];
 
   return (
@@ -85,8 +80,6 @@ const History = () => {
               <TableCell>Date</TableCell>
               <TableCell align="right">Locked</TableCell>
               <TableCell align="right">Borrowed</TableCell>
-              <TableCell align="right">Collateralization</TableCell>
-              <TableCell align="right">Status</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -96,7 +89,6 @@ const History = () => {
                 <TableCell align="right">{row.locked}</TableCell>
                 <TableCell align="right">{row.borrowed}</TableCell>
                 <TableCell align="right">{row.collateralization}</TableCell>
-                <TableCell align="right">{row.status}</TableCell>
               </TableRow>
             ))}
           </TableBody>
