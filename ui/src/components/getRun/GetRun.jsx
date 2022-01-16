@@ -1,4 +1,4 @@
-import { React } from 'react';
+import { React, useEffect, useState } from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -48,8 +48,10 @@ const useStyles = makeStyles(theme => ({
 const GetRun = () => {
   const classes = useStyles();
   const {
-    state: { runLoCTerms, brandToInfo, purses },
+    state: { runLoCTerms, brandToInfo, purses, getRunHistory },
   } = useApplicationContext();
+  const [totalLocked, setTotalLocked] = useState(0n);
+  const [totalDebt, setTotalDebt] = useState(0n);
 
   const {
     initialMargin = undefined,
@@ -59,25 +61,41 @@ const GetRun = () => {
     debtBrand = undefined,
   } = runLoCTerms ?? {};
 
-  const lockedBld = brand ? makeRatio(1000n, brand) : null;
-  const outstandingDebt = debtBrand ? makeRatio(100n, debtBrand) : null;
+  useEffect(() => {
+    let newTotalLocked = 0n;
+    let newTotalDebt = 0n;
+    if (getRunHistory?.length) {
+      for (const { locked, debt } of getRunHistory) {
+        newTotalLocked += locked.numerator.value;
+        newTotalDebt += debt.numerator.value;
+      }
+      setTotalLocked(newTotalLocked);
+      setTotalDebt(newTotalDebt);
+    }
+  }, [getRunHistory]);
+
+  const lockedRatio = brand && makeRatio(totalLocked, brand);
+  const debtRatio = debtBrand && makeRatio(totalDebt, debtBrand);
+
   const collateralization =
-    lockedBld && outstandingDebt
-      ? makeRatio(
-          lockedBld.numerator.value,
-          brand,
-          outstandingDebt.numerator.value,
-          debtBrand,
-        )
-      : null;
+    lockedRatio &&
+    debtRatio &&
+    debtRatio.numerator.value > 0n &&
+    makeRatio(
+      (lockedRatio.numerator.value * marketPrice.numerator.value) /
+        marketPrice.denominator.value,
+      brand,
+      debtRatio.numerator.value,
+      debtBrand,
+    );
 
   return (
     <div className={classes.root}>
       <div className={classes.container}>
         <div className={classes.item}>
           <MyGetRun
-            lockedBld={lockedBld}
-            outstandingDebt={outstandingDebt}
+            lockedBld={lockedRatio}
+            outstandingDebt={debtRatio}
             collateralization={collateralization}
             brandToInfo={brandToInfo}
           />
@@ -96,6 +114,7 @@ const GetRun = () => {
             brandToInfo={brandToInfo}
             brand={brand}
             debtBrand={debtBrand}
+            hasLockedBld={lockedRatio && lockedRatio.numerator.value > 0n}
           />
         </div>
         <div className={classes.item}>

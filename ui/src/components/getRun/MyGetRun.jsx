@@ -46,13 +46,13 @@ const MyGetRun = ({
   const classes = useStyles();
 
   const rows =
-    lockedBld && outstandingDebt && collateralization
+    lockedBld && outstandingDebt
       ? [
           makeRow('Locked BLD', displayRatio(lockedBld)),
           makeRow('Outstanding Debt', `${displayRatio(outstandingDebt)} RUN`),
           makeRow(
-            'Collateralization',
-            `${displayPercent(collateralization)} %`,
+            'Collateral',
+            `${collateralization ? displayPercent(collateralization) : '-'} %`,
           ),
         ]
       : [];

@@ -14,6 +14,7 @@ import {
   updateVault,
   setCollaterals,
   setRunLoCTerms,
+  setGetRunHistory,
   setTreasury,
   setAutoswap,
   mergeBrandToInfo,
@@ -22,7 +23,7 @@ import {
 } from '../store';
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
 import WalletConnection from '../components/WalletConnection';
-import { getRunLoCTerms } from '../runLoCStub';
+import { getRunLoCTerms, makeGetRunNotifer } from '../runLoCStub';
 
 // eslint-disable-next-line import/no-mutable-exports
 let walletP;
@@ -163,6 +164,14 @@ const setupAMM = async (dispatch, brandToInfo, zoe, board, instanceID) => {
   });
 };
 
+const watchGetRun = (issuers, dispatch) => {
+  const watch = makeGetRunNotifer(issuers);
+  watch(history => {
+    console.log('history received!');
+    dispatch(setGetRunHistory(history));
+  });
+};
+
 /* eslint-disable complexity, react/prop-types */
 export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, defaultState);
@@ -221,6 +230,8 @@ export default function Provider({ children }) {
         const { brandInfo, terms: runLoCTerms } = await getRunLoCTerms(issuers);
         dispatch(mergeBrandToInfo([[brandInfo.brand, brandInfo]]));
         dispatch(setRunLoCTerms(runLoCTerms));
+
+        watchGetRun(issuers, dispatch);
       }
     }
     watchBrands().catch(err => {

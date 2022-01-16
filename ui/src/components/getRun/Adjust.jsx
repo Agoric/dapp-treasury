@@ -10,9 +10,11 @@ import SendIcon from '@material-ui/icons/Send';
 import { Grid } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import { makeRatio } from '@agoric/zoe/src/contractSupport';
 
 import GetStarted from './GetStarted';
 import NatPurseAmountInput from '../vault/VaultManagement/NatPurseAmountInput';
+import { adjust } from '../../runLoCStub';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -85,13 +87,14 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const Adjust = ({ purses, brandToInfo, brand, debtBrand }) => {
+const Adjust = ({ purses, brandToInfo, brand, debtBrand, hasLockedBld }) => {
   const [runPurseSelected, setRunPurseSelected] = useState(null);
   const [bldPurseSelected, setBldPurseSelected] = useState(null);
   const [collateralAction, setCollateralAction] = useState(null);
   const [debtAction, setDebtAction] = useState(null);
   const [debtDelta, setDebtDelta] = useState(null);
   const [lockedDelta, setLockedDelta] = useState(null);
+  const [getStartedClicked] = useState(false);
   const classes = useStyles();
 
   if (!purses || !brand || !debtBrand) {
@@ -110,13 +113,16 @@ const Adjust = ({ purses, brandToInfo, brand, debtBrand }) => {
     );
   }
 
-  const hasLockedBld = false;
-  if (!hasLockedBld) {
+  if (!hasLockedBld && !getStartedClicked) {
     return (
       <Paper elevation={3} className={classes.root}>
         <Typography className={classes.title}>getRUN</Typography>
         <hr className={classes.break} />
-        <GetStarted onGetStarted={() => console.log('get started')} />
+        <GetStarted
+          onGetStarted={() =>
+            adjust(makeRatio(1000n, brand), makeRatio(100n, debtBrand))
+          }
+        />
       </Paper>
     );
   }
