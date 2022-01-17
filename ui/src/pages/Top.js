@@ -25,13 +25,16 @@ const useStyles = makeStyles(theme => ({
   body: {
     display: 'flex',
     flexDirection: 'row',
-    margin: '0',
+    margin: 0,
     float: 'none !important',
   },
   content: {
     flexGrow: 1,
     backgroundColor: theme.palette.background.default,
     padding: theme.spacing(1),
+    [theme.breakpoints.down('sm')]: {
+      padding: 0,
+    },
   },
 }));
 

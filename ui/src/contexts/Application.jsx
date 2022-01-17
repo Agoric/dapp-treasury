@@ -164,9 +164,8 @@ const setupAMM = async (dispatch, brandToInfo, zoe, board, instanceID) => {
   });
 };
 
-const watchGetRun = (issuers, dispatch) => {
-  const watch = makeGetRunNotifer(issuers);
-  watch(history => {
+const watchGetRun = dispatch => {
+  makeGetRunNotifer(history => {
     console.log('history received!');
     dispatch(setGetRunHistory(history));
   });
@@ -231,7 +230,7 @@ export default function Provider({ children }) {
         dispatch(mergeBrandToInfo([[brandInfo.brand, brandInfo]]));
         dispatch(setRunLoCTerms(runLoCTerms));
 
-        watchGetRun(issuers, dispatch);
+        watchGetRun(dispatch);
       }
     }
     watchBrands().catch(err => {

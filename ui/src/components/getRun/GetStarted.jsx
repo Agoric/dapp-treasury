@@ -12,6 +12,9 @@ const useStyles = makeStyles(theme => ({
     margin: 'auto',
   },
   graphicContainer: {
+    [theme.breakpoints.down('sm')]: {
+      display: 'none',
+    },
     height: theme.spacing(45),
     width: theme.spacing(45),
   },

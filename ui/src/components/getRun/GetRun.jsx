@@ -11,7 +11,6 @@ import { useApplicationContext } from '../../contexts/Application';
 
 const useStyles = makeStyles(theme => ({
   root: {
-    marginBottom: theme.spacing(3),
     width: '100%',
   },
   container: {
@@ -20,7 +19,11 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'space-between',
     maxWidth: '100%',
     flexWrap: 'wrap',
-    padding: 32,
+    padding: theme.spacing(4),
+    [theme.breakpoints.down('sm')]: {
+      padding: 0,
+      paddingTop: theme.spacing(4),
+    },
   },
   item: {
     margin: `0 ${theme.spacing(2)}px`,
@@ -118,7 +121,7 @@ const GetRun = () => {
           />
         </div>
         <div className={classes.item}>
-          <History />
+          <History history={getRunHistory} brandToInfo={brandToInfo} />
         </div>
       </div>
     </div>

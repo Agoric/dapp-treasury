@@ -52,16 +52,7 @@ export const adjust = (locked, debt) => {
   onNotifierState([...history]);
 };
 
-export const makeGetRunNotifer = issuers => onState => {
-  const [_1, { brand: runBrand }] =
-    issuers.find(([_2, { brand }]) => `${brand}`.match(/\bRUN\b/)) ||
-    assert.fail();
-  const [_4, { brand: bldBrand }] =
-    issuers.find(([_3, { brand }]) => `${brand}`.match(/\bBLD\b/)) ||
-    assert.fail();
-
-  const locked = 0n;
-  const debt = 0n;
+export const makeGetRunNotifer = onState => {
   onNotifierState = onState;
-  adjust(makeRatio(locked, bldBrand), makeRatio(debt, runBrand));
+  onNotifierState([...history]);
 };
