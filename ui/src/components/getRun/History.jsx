@@ -67,18 +67,34 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-function createData(date, locked, borrowed) {
-  return { date, locked, borrowed };
+function createData(date, locked, borrowed, id) {
+  return { date, locked, borrowed, id };
 }
 
 const History = ({ history, brandToInfo }) => {
   const { displayRatio } = makeDisplayFunctions(brandToInfo);
   const classes = useStyles();
 
+  console.log('HISTORY', history);
   const rows =
     history &&
+    brandToInfo &&
     history.map(item =>
-      createData(item.date, displayRatio(item.locked), displayRatio(item.debt)),
+      createData(
+        item.date,
+        `${
+          (item.locked?.numerator?.value ?? 0) > 0 &&
+          item.lockedAction === 'unlock'
+            ? '-'
+            : ''
+        }${displayRatio(item.locked)}`,
+        `${
+          (item.debt?.numerator?.value ?? 0) > 0 && item.debtAction === 'repay'
+            ? '-'
+            : ''
+        }${displayRatio(item.debt)}`,
+        item.id,
+      ),
     );
 
   const content = history?.length ? (
@@ -93,7 +109,7 @@ const History = ({ history, brandToInfo }) => {
         </TableHead>
         <TableBody>
           {rows.map(row => (
-            <TableRow key={row.date} className={classes.row}>
+            <TableRow key={row.id} className={classes.row}>
               <TableCell className={classes.left}>{row.date}</TableCell>
               <TableCell align="right">{row.locked} BLD</TableCell>
               <TableCell align="right">{row.borrowed} RUN</TableCell>

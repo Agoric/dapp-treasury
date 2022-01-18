@@ -42,13 +42,28 @@ export const getRunLoCTerms = async issuers => {
 const history = [];
 let onNotifierState;
 
-export const adjust = (locked, debt) => {
+export const formatDateNow = stamp => {
+  if (!stamp) {
+    return 'unknown time';
+  }
+  const date = new Date(stamp);
+  const isoStamp = date.getTime() - date.getTimezoneOffset() * 60 * 1000;
+  const isoDate = new Date(isoStamp);
+  const isoStr = isoDate.toISOString();
+  const match = isoStr.match(/^(.*)T(.*)\..*/);
+  return `${match[1]} ${match[2]}`;
+};
+
+export const adjust = (locked, debt, lockedAction, debtAction) => {
+  const id = history.length;
   history.push({
-    date: '2022-01-12 13:15:12',
+    date: formatDateNow(Date.now()),
     locked,
     debt,
+    lockedAction,
+    debtAction,
+    id,
   });
-  console.log('adjust', locked, debt);
   onNotifierState([...history]);
 };
 

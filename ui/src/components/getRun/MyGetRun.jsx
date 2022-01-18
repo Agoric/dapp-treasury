@@ -39,6 +39,7 @@ const useStyles = makeStyles(theme => ({
 const MyGetRun = ({
   lockedBld,
   outstandingDebt,
+  maxDebt,
   collateralization,
   brandToInfo,
 }) => {
@@ -48,11 +49,14 @@ const MyGetRun = ({
   const rows =
     lockedBld && outstandingDebt
       ? [
-          makeRow('Locked BLD', displayRatio(lockedBld)),
-          makeRow('Outstanding Debt', `${displayRatio(outstandingDebt)} RUN`),
+          makeRow('Locked', `${displayRatio(lockedBld)} BLD`),
+          makeRow(
+            'Debt',
+            `${displayRatio(outstandingDebt)} / ${displayRatio(maxDebt)} RUN`,
+          ),
           makeRow(
             'Collateral',
-            `${collateralization ? displayPercent(collateralization) : '-'} %`,
+            `${collateralization ? displayPercent(collateralization) : '-'}%`,
           ),
         ]
       : [];

@@ -68,9 +68,17 @@ const GetRun = () => {
     let newTotalLocked = 0n;
     let newTotalDebt = 0n;
     if (getRunHistory?.length) {
-      for (const { locked, debt } of getRunHistory) {
-        newTotalLocked += locked.numerator.value;
-        newTotalDebt += debt.numerator.value;
+      for (const { locked, debt, lockedAction, debtAction } of getRunHistory) {
+        if (lockedAction === 'lock') {
+          newTotalLocked += locked.numerator.value;
+        } else {
+          newTotalLocked -= locked.numerator.value;
+        }
+        if (debtAction === 'borrow') {
+          newTotalDebt += debt.numerator.value;
+        } else {
+          newTotalDebt -= debt.numerator.value;
+        }
       }
       setTotalLocked(newTotalLocked);
       setTotalDebt(newTotalDebt);
@@ -79,6 +87,15 @@ const GetRun = () => {
 
   const lockedRatio = brand && makeRatio(totalLocked, brand);
   const debtRatio = debtBrand && makeRatio(totalDebt, debtBrand);
+  const maxDebtRatio =
+    lockedRatio &&
+    marketPrice &&
+    initialMargin &&
+    makeRatio(
+      (lockedRatio.numerator.value * marketPrice.numerator.value) /
+        initialMargin.numerator.value,
+      brand,
+    );
 
   const collateralization =
     lockedRatio &&
@@ -99,6 +116,7 @@ const GetRun = () => {
           <MyGetRun
             lockedBld={lockedRatio}
             outstandingDebt={debtRatio}
+            maxDebt={maxDebtRatio}
             collateralization={collateralization}
             brandToInfo={brandToInfo}
           />
@@ -117,7 +135,10 @@ const GetRun = () => {
             brandToInfo={brandToInfo}
             brand={brand}
             debtBrand={debtBrand}
-            hasLockedBld={lockedRatio && lockedRatio.numerator.value > 0n}
+            locked={lockedRatio}
+            borrowed={debtRatio}
+            collateralization={collateralization}
+            marketPrice={marketPrice}
           />
         </div>
         <div className={classes.item}>

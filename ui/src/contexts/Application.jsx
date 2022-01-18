@@ -166,7 +166,6 @@ const setupAMM = async (dispatch, brandToInfo, zoe, board, instanceID) => {
 
 const watchGetRun = dispatch => {
   makeGetRunNotifer(history => {
-    console.log('history received!');
     dispatch(setGetRunHistory(history));
   });
 };

@@ -1,4 +1,5 @@
 import Button from '@material-ui/core/Button';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -39,22 +40,31 @@ const useStyles = makeStyles(theme => ({
 const GetStarted = ({ onGetStarted }) => {
   const classes = useStyles();
 
+  const message = onGetStarted ? (
+    <>
+      <div>No BLD locked</div>
+      <Button
+        onClick={() => onGetStarted()}
+        className={classes.button}
+        variant="contained"
+        color="primary"
+      >
+        Get Started
+      </Button>
+    </>
+  ) : (
+    <>
+      <div>Loading chain data</div>
+      <CircularProgress />
+    </>
+  );
+
   return (
     <div className={classes.getStarted}>
       <div className={classes.graphicContainer}>
         <img className={classes.graphic} src="/assets/boats.png" />
       </div>
-      <div className={classes.getStartedAction}>
-        <div>No BLD locked</div>
-        <Button
-          onClick={() => onGetStarted()}
-          className={classes.button}
-          variant="contained"
-          color="primary"
-        >
-          Get Started
-        </Button>
-      </div>
+      <div className={classes.getStartedAction}>{message}</div>
     </div>
   );
 };
