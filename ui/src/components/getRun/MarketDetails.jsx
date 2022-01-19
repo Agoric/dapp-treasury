@@ -49,7 +49,7 @@ const MarketDetails = ({
       ? [
           makeRow('BLD Price', `${displayRatio(marketPrice)} RUN`),
           makeRow('Interest Rate', `${displayPercent(interestRate)}%`),
-          makeRow('Min. Collateral', `${displayPercent(initialMargin)}%`),
+          makeRow('Min. Ratio', `${displayPercent(initialMargin)}%`),
         ]
       : [];
   const values =

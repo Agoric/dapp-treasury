@@ -31,6 +31,7 @@ const useStyles = makeStyles(theme => ({
     fontSize: '22px',
     lineHeight: '27px',
     padding: theme.spacing(4),
+    paddingTop: theme.spacing(2),
     minWidth: '50vw',
   },
   settingsToolbar: {
@@ -146,8 +147,6 @@ const Adjust = ({
     return (
       <div>
         <Paper elevation={3} className={classes.root}>
-          <Typography className={classes.title}>getRUN</Typography>
-          <hr className={classes.break} />
           <Grid container>
             <GetStarted />
           </Grid>
@@ -159,8 +158,6 @@ const Adjust = ({
   if (!hasLockedBld && !getStartedClicked) {
     return (
       <Paper elevation={3} className={classes.root}>
-        <Typography className={classes.title}>getRUN</Typography>
-        <hr className={classes.break} />
         <GetStarted onGetStarted={() => setGetStartedClicked(true)} />
       </Paper>
     );
@@ -346,8 +343,6 @@ const Adjust = ({
   return (
     <>
       <Paper elevation={3} className={classes.root}>
-        <Typography className={classes.title}>getRUN</Typography>
-        <hr className={classes.break} />
         <Tabs
           value={currentTab}
           onChange={handleTabChange}

@@ -55,7 +55,7 @@ const MyGetRun = ({
             `${displayRatio(outstandingDebt)} / ${displayRatio(maxDebt)} RUN`,
           ),
           makeRow(
-            'Collateral',
+            'Ratio',
             `${collateralization ? displayPercent(collateralization) : '-'}%`,
           ),
         ]
