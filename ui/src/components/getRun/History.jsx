@@ -67,35 +67,52 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-function createData(date, locked, borrowed, id) {
-  return { date, locked, borrowed, id };
-}
+const createData = (date, locked, borrowed, id) => ({
+  date,
+  locked,
+  borrowed,
+  id,
+});
+
+const formatDateNow = stamp => {
+  if (!stamp) {
+    return 'unknown time';
+  }
+  const date = new Date(stamp);
+  const isoStamp = date.getTime() - date.getTimezoneOffset() * 60 * 1000;
+  const isoDate = new Date(isoStamp);
+  const isoStr = isoDate.toISOString();
+  const match = isoStr.match(/^(.*)T(.*)\..*/);
+  return `${match[1]} ${match[2]}`;
+};
 
 const History = ({ history, brandToInfo }) => {
   const { displayRatio } = makeDisplayFunctions(brandToInfo);
   const classes = useStyles();
 
-  console.log('HISTORY', history);
   const rows =
     history &&
     brandToInfo &&
-    history.map(item =>
-      createData(
-        item.date,
-        `${
-          (item.locked?.numerator?.value ?? 0) > 0 &&
-          item.lockedAction === 'unlock'
-            ? '-'
-            : ''
-        }${displayRatio(item.locked)}`,
-        `${
-          (item.debt?.numerator?.value ?? 0) > 0 && item.debtAction === 'repay'
-            ? '-'
-            : ''
-        }${displayRatio(item.debt)}`,
-        item.id,
-      ),
-    );
+    history
+      .map(item =>
+        createData(
+          item.date,
+          `${
+            (item.locked?.numerator?.value ?? 0) > 0 &&
+            item.lockedAction === 'unlock'
+              ? '-'
+              : ''
+          }${displayRatio(item.locked)}`,
+          `${
+            (item.debt?.numerator?.value ?? 0) > 0 &&
+            item.debtAction === 'repay'
+              ? '-'
+              : ''
+          }${displayRatio(item.debt)}`,
+          item.id,
+        ),
+      )
+      ?.sort((a, b) => b.date - a.date);
 
   const content = history?.length ? (
     <TableContainer>
@@ -110,7 +127,9 @@ const History = ({ history, brandToInfo }) => {
         <TableBody>
           {rows.map(row => (
             <TableRow key={row.id} className={classes.row}>
-              <TableCell className={classes.left}>{row.date}</TableCell>
+              <TableCell className={classes.left}>
+                {formatDateNow(row.date)}
+              </TableCell>
               <TableCell align="right">{row.locked} BLD</TableCell>
               <TableCell align="right">{row.borrowed} RUN</TableCell>
             </TableRow>

@@ -129,8 +129,8 @@ const Adjust = ({
       setCollateralAction('lock');
       setDebtAction('borrow');
     } else {
-      setDebtAction('unlock');
-      setCollateralAction('repay');
+      setCollateralAction('unlock');
+      setDebtAction('repay');
     }
   }, [currentTab]);
 
