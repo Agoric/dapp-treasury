@@ -63,7 +63,7 @@ function Top() {
           <main className={classes.content}>
             <Switch>
               {/* <Route path="/pegasus">Pegasus</Route> */}
-              <Route path="/treasury">
+              <Route path="/vaults">
                 <Treasury />
               </Route>
               {/* <Route path="/rewards">Rewards</Route> */}

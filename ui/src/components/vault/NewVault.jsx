@@ -71,7 +71,7 @@ export default function NewVault() {
 
   const handleOfferMade = () => {
     dispatch(resetVault());
-    setRedirect('/treasury');
+    setRedirect('/vaults');
   };
 
   if (!approved) {

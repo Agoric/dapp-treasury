@@ -52,6 +52,7 @@ const ConfirmOfferTable = ({
   lockedDelta,
   debtDelta,
   collateralAction,
+  runPercent,
   debtAction,
   brandToInfo,
   collateralization,
@@ -60,30 +61,41 @@ const ConfirmOfferTable = ({
   const { displayRatio, displayPercent } = makeDisplayFunctions(brandToInfo);
   const classes = useStyles();
 
-  const newLocked = makeRatio(
+  let newLockedValue =
     collateralAction === 'lock'
       ? locked.numerator.value + (lockedDelta?.value ?? 0n) / 10n ** 4n
-      : locked.numerator.value - (lockedDelta?.value ?? 0n) / 10n ** 4n,
-    locked.numerator.brand,
-  );
+      : locked.numerator.value - (lockedDelta?.value ?? 0n) / 10n ** 4n;
+  let newLockedSignum = '';
+  if (newLockedValue < 0) {
+    newLockedSignum = '-';
+    newLockedValue *= -1n;
+  }
 
-  const newBorrowed = makeRatio(
+  let newBorrowedValue =
     debtAction === 'borrow'
       ? borrowed.numerator.value + (debtDelta?.value ?? 0n) / 10n ** 4n
-      : borrowed.numerator.value - (debtDelta?.value ?? 0n) / 10n ** 4n,
-    borrowed.numerator.brand,
-  );
+      : borrowed.numerator.value - (debtDelta?.value ?? 0n) / 10n ** 4n;
+  let newBorrowedSignum = '';
+  if (newBorrowedValue < 0) {
+    newBorrowedSignum = '-';
+    newBorrowedValue *= -1n;
+  }
 
-  const newCollateralization =
+  const newLocked = makeRatio(newLockedValue, locked.numerator.brand);
+
+  const newBorrowed = makeRatio(newBorrowedValue, borrowed.numerator.brand);
+
+  const newRunPercent =
     newLocked &&
     newBorrowed &&
     newBorrowed.numerator.value > 0n &&
+    !(newLockedSignum || newBorrowedSignum) &&
     makeRatio(
+      newBorrowed.numerator.value,
+      newBorrowed.numerator.brand,
       (newLocked.numerator.value * marketPrice.numerator.value) /
         marketPrice.denominator.value,
       newLocked.numerator.brand,
-      newBorrowed.numerator.value,
-      newBorrowed.numerator.brand,
     );
 
   return (
@@ -93,7 +105,7 @@ const ConfirmOfferTable = ({
           <TableRow className={[classes.rowHeader, classes.row].join(' ')}>
             <TableCell>Locked</TableCell>
             <TableCell>Debt</TableCell>
-            <TableCell>Ratio</TableCell>
+            <TableCell>RUN Percent</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -106,6 +118,7 @@ const ConfirmOfferTable = ({
                   classes.new
                 }
               >
+                {newLockedSignum}
                 {displayRatio(newLocked)} BLD
               </span>
             </TableCell>
@@ -117,26 +130,22 @@ const ConfirmOfferTable = ({
                   classes.new
                 }
               >
+                {newBorrowedSignum}
                 {displayRatio(newBorrowed)} RUN
               </span>
             </TableCell>
             <TableCell>
-              {collateralization ? displayPercent(collateralization) : '-'}%
-              -&gt;{' '}
+              {runPercent ? displayPercent(runPercent) : '-'}% -&gt;{' '}
               <span
                 className={
                   (collateralization
                     ? displayPercent(collateralization)
                     : '-') !==
-                    (newCollateralization
-                      ? displayPercent(newCollateralization)
-                      : '-') && classes.new
+                    (newRunPercent ? displayPercent(newRunPercent) : '-') &&
+                  classes.new
                 }
               >
-                {newCollateralization
-                  ? displayPercent(newCollateralization)
-                  : '-'}
-                %
+                {newRunPercent ? displayPercent(newRunPercent) : '-'}%
               </span>
             </TableCell>
           </TableRow>

@@ -40,7 +40,7 @@ const MyGetRun = ({
   lockedBld,
   outstandingDebt,
   maxDebt,
-  collateralization,
+  runPercent,
   brandToInfo,
 }) => {
   const { displayRatio, displayPercent } = makeDisplayFunctions(brandToInfo);
@@ -55,8 +55,8 @@ const MyGetRun = ({
             `${displayRatio(outstandingDebt)} / ${displayRatio(maxDebt)} RUN`,
           ),
           makeRow(
-            'Ratio',
-            `${collateralization ? displayPercent(collateralization) : '-'}%`,
+            'RUN Percent',
+            `${runPercent ? displayPercent(runPercent) : '-'}%`,
           ),
         ]
       : [];

@@ -38,22 +38,22 @@ const useStyles = makeStyles(theme => ({
 
 const MarketDetails = ({
   marketPrice,
-  initialMargin,
+  maxRunPercent,
   interestRate,
   brandToInfo,
 }) => {
   const { displayPercent, displayRatio } = makeDisplayFunctions(brandToInfo);
   const classes = useStyles();
   const rows =
-    marketPrice && initialMargin && interestRate
+    marketPrice && maxRunPercent && interestRate
       ? [
           makeRow('BLD Price', `${displayRatio(marketPrice)} RUN`),
           makeRow('Interest Rate', `${displayPercent(interestRate)}%`),
-          makeRow('Min. Ratio', `${displayPercent(initialMargin)}%`),
+          makeRow('Max RUN Percent', `${displayPercent(maxRunPercent)}%`),
         ]
       : [];
   const values =
-    !marketPrice || !initialMargin || !interestRate ? (
+    !marketPrice || !maxRunPercent || !interestRate ? (
       <div className={classes.loadingPlaceholder}>
         <CircularProgress />
       </div>

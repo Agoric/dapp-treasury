@@ -62,6 +62,7 @@ const GetRun = () => {
     interestRate = undefined,
     brand = undefined,
     debtBrand = undefined,
+    maxRunPercent = undefined,
   } = runLoCTerms ?? {};
 
   useEffect(() => {
@@ -97,6 +98,18 @@ const GetRun = () => {
       brand,
     );
 
+  const runPercent =
+    lockedRatio &&
+    debtRatio &&
+    debtRatio.numerator.value > 0n &&
+    makeRatio(
+      debtRatio.numerator.value,
+      debtBrand,
+      (lockedRatio.numerator.value * marketPrice.numerator.value) /
+        marketPrice.denominator.value,
+      brand,
+    );
+
   const collateralization =
     lockedRatio &&
     debtRatio &&
@@ -117,6 +130,8 @@ const GetRun = () => {
             lockedBld={lockedRatio}
             outstandingDebt={debtRatio}
             maxDebt={maxDebtRatio}
+            maxRunPercent={maxRunPercent}
+            runPercent={runPercent}
             collateralization={collateralization}
             brandToInfo={brandToInfo}
           />
@@ -124,7 +139,7 @@ const GetRun = () => {
         <div className={classes.item}>
           <MarketDetails
             marketPrice={marketPrice}
-            initialMargin={initialMargin}
+            maxRunPercent={maxRunPercent}
             brandToInfo={brandToInfo}
             interestRate={interestRate}
           />
@@ -136,6 +151,7 @@ const GetRun = () => {
             brand={brand}
             debtBrand={debtBrand}
             locked={lockedRatio}
+            runPercent={runPercent}
             borrowed={debtRatio}
             collateralization={collateralization}
             marketPrice={marketPrice}

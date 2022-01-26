@@ -113,8 +113,8 @@ function NavDrawer() {
         />
         <ListItemLink
           icon={<AccountBalanceIcon />}
-          primary="Treasury"
-          to="/treasury"
+          primary="Vaults"
+          to="/vaults"
           replace
         />
         {useGetRUN && (
@@ -131,12 +131,7 @@ function NavDrawer() {
           to="/pegasus"
           replace
         /> */}
-        <ListItemLink
-          icon={<SwapIcon />}
-          primary="Autoswap"
-          to="/swap"
-          replace
-        />
+        <ListItemLink icon={<SwapIcon />} primary="Swap" to="/swap" replace />
         {/* <ListItemLink
           icon={<TrendingUpIcon />}
           primary="Rewards"

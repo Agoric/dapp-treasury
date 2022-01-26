@@ -99,6 +99,7 @@ const Adjust = ({
   locked,
   borrowed,
   collateralization,
+  runPercent,
   marketPrice,
 }) => {
   const [runPurseSelected, setRunPurseSelected] = useState(null);
@@ -263,6 +264,7 @@ const Adjust = ({
                   collateralization={collateralization}
                   collateralAction={collateralAction}
                   debtAction={debtAction}
+                  runPercent={runPercent}
                   marketPrice={marketPrice}
                 />
               </Grid>
