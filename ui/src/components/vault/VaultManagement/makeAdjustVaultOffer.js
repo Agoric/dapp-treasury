@@ -1,4 +1,4 @@
-import { E } from '@agoric/eventual-send';
+import { E } from '@endo/eventual-send';
 import { dappConfig } from '../../../utils/config';
 
 export const makeAdjustVaultOffer = ({

@@ -9,8 +9,8 @@ import {
   makeRatioFromAmounts,
 } from '@agoric/zoe/src/contractSupport';
 import { AmountMath } from '@agoric/ertp';
-import { Nat } from '@agoric/nat';
-import { E } from '@agoric/eventual-send';
+import { Nat } from '@endo/nat';
+import { E } from '@endo/eventual-send';
 import { assert } from '@agoric/assert';
 
 import AdjustVaultForm from './AdjustVaultForm';

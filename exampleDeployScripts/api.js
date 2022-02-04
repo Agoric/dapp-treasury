@@ -3,7 +3,7 @@
 // Agoric Dapp api deployment script
 
 import fs from 'fs';
-import { E } from '@agoric/eventual-send';
+import { E } from '@endo/eventual-send';
 import '@agoric/zoe/exported';
 import { makeHelpers } from '@agoric/deploy-script-support';
 import { assert } from '@agoric/assert';

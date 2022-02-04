@@ -1,5 +1,5 @@
 import 'ses/lockdown';
-import '@agoric/eventual-send/shim';
+import '@endo/eventual-send/shim';
 
 lockdown({
   __allowUnsafeMonkeyPatching__: 'unsafe',
