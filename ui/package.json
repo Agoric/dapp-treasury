@@ -38,7 +38,6 @@
     "@endo/captp": "^1.10.12",
     "@agoric/ertp": "dev",
     "@endo/eventual-send": "^0.14.4",
-    "@endo/init": "^0.5.33",
     "@endo/nat": "^4.1.4",
     "@agoric/notifier": "dev",
     "@agoric/same-structure": "dev",
