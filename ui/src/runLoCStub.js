@@ -1,8 +1,8 @@
 // @ts-check
+/// <reference types="ses"/>
 
 import { E } from '@endo/eventual-send';
 import { makeRatio } from '@agoric/zoe/src/contractSupport';
-import { assert } from '@agoric/assert';
 
 /**
  * @param {[string, { brand: Brand, issuer: Issuer }][]} issuers

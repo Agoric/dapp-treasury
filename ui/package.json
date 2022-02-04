@@ -34,7 +34,6 @@
     ]
   },
   "dependencies": {
-    "@agoric/assert": "dev",
     "@endo/captp": "^1.10.12",
     "@agoric/ertp": "dev",
     "@endo/eventual-send": "^0.14.4",

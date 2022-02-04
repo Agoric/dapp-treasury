@@ -1,4 +1,5 @@
 // @ts-check
+/// <reference types="ses"/>
 
 import React, { useEffect, useState } from 'react';
 import { Typography } from '@material-ui/core';
@@ -11,7 +12,6 @@ import {
 import { AmountMath } from '@agoric/ertp';
 import { Nat } from '@endo/nat';
 import { E } from '@endo/eventual-send';
-import { assert } from '@agoric/assert';
 
 import AdjustVaultForm from './AdjustVaultForm';
 import UnchangeableValues from './UnchangeableValues';
