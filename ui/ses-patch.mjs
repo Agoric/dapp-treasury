@@ -1,5 +1,8 @@
-/* global process, require, module */
+/* global process */
 // @ts-check
+
+import * as ambientFs from 'fs';
+
 const pagePatch = {
   target: '<link name="unprocessed-script" content="lockdown.umd.js"/>',
   replacement: `
@@ -55,9 +58,6 @@ async function main(args, { readFile, writeFile }) {
   }
 }
 
-if (require.main === module) {
-  // eslint-disable-next-line global-require
-  main(process.argv.slice(2), require('fs').promises).catch(err =>
-    console.error(err),
-  );
-}
+main(process.argv.slice(2), ambientFs.promises).catch(err =>
+  console.error(err),
+);
