@@ -3,7 +3,6 @@
   "version": "0.0.1",
   "private": true,
   "useWorkspaces": true,
-  "main": "index.js",
   "workspaces": [
     "ui",
     "_agstate/agoric-servers"
