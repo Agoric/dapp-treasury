@@ -1,4 +1,4 @@
-import 'ses/lockdown';
+import 'ses';
 import '@endo/eventual-send/shim';
 
 lockdown({
