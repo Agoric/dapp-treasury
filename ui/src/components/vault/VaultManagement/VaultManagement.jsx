@@ -1,4 +1,5 @@
 // @ts-check
+/// <reference types="ses"/>
 
 import React, { useEffect, useState } from 'react';
 import { Typography } from '@material-ui/core';
@@ -9,9 +10,8 @@ import {
   makeRatioFromAmounts,
 } from '@agoric/zoe/src/contractSupport';
 import { AmountMath } from '@agoric/ertp';
-import { Nat } from '@agoric/nat';
-import { E } from '@agoric/eventual-send';
-import { assert } from '@agoric/assert';
+import { Nat } from '@endo/nat';
+import { E } from '@endo/eventual-send';
 
 import AdjustVaultForm from './AdjustVaultForm';
 import UnchangeableValues from './UnchangeableValues';

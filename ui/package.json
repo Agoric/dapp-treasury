@@ -17,8 +17,8 @@
     "build": "yarn build:react",
     "build:ses": "cp ../node_modules/ses/dist/lockdown.umd.js public/",
     "build:react": "yarn configure; yarn build:pre-patch; react-scripts build; yarn build:post-patch",
-    "build:pre-patch": "node -r esm ./ses-patch.js src/install-ses-lockdown.js",
-    "build:post-patch": "node -r esm ./ses-patch.js build/index.html",
+    "build:pre-patch": "node ./ses-patch.mjs src/install-ses-lockdown.js",
+    "build:post-patch": "node ./ses-patch.mjs build/index.html",
     "eject": "react-scripts eject"
   },
   "browserslist": {
@@ -34,17 +34,15 @@
     ]
   },
   "dependencies": {
-    "@agoric/assert": "*",
-    "@agoric/captp": "*",
-    "@agoric/ertp": "*",
-    "@agoric/eventual-send": "*",
-    "@agoric/install-ses": "*",
-    "@agoric/nat": "^4.0.0",
-    "@agoric/notifier": "*",
-    "@agoric/same-structure": "*",
-    "@agoric/ui-components": "*",
-    "@agoric/wallet-connection": "*",
-    "@agoric/zoe": "*",
+    "@endo/captp": "^1.10.12",
+    "@agoric/ertp": "dev",
+    "@endo/eventual-send": "^0.14.4",
+    "@endo/nat": "^4.1.4",
+    "@agoric/notifier": "dev",
+    "@agoric/same-structure": "dev",
+    "@agoric/ui-components": "dev",
+    "@agoric/wallet-connection": "dev",
+    "@agoric/zoe": "dev",
     "@material-ui/core": "^4.11.3",
     "@material-ui/icons": "^4.11.2",
     "@material-ui/lab": "^4.0.0-alpha.57",
@@ -58,11 +56,11 @@
     "react-dom": "^16.14.0",
     "react-number-format": "^4.4.3",
     "react-router-dom": "^5.2.0",
-    "ses": "^0.12.7"
+    "ses": "^0.15.7"
   },
   "devDependencies": {
     "@babel/eslint-plugin": "^7.12.1",
-    "@endo/eslint-plugin": "^0.3.10",
+    "@endo/eslint-plugin": "^0.3.20",
     "@jessie.js/eslint-plugin": "^0.1.3",
     "babel-eslint": "^10.1.0",
     "eslint-plugin-react": "^7.21.5",

@@ -1,5 +1,5 @@
 import { React, useState, useEffect } from 'react';
-import { E } from '@agoric/captp';
+import { E } from '@endo/captp';
 import {
   divideBy,
   invertRatio,
@@ -7,7 +7,7 @@ import {
   makeRatioFromAmounts,
   multiplyBy,
 } from '@agoric/zoe/src/contractSupport';
-import { Nat } from '@agoric/nat';
+import { Nat } from '@endo/nat';
 import { stringifyAmountValue } from '@agoric/ui-components';
 
 import { makeStyles } from '@material-ui/core/styles';

@@ -1,7 +1,7 @@
 // @ts-check
+/// <reference types="ses"/>
 
-import { E } from '@agoric/eventual-send';
-import { assert } from 'ses/src/error/assert';
+import { E } from '@endo/eventual-send';
 
 import { mergeBrandToInfo } from '../store';
 

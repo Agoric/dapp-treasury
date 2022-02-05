@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
 
-import { E } from '@agoric/captp';
+import { E } from '@endo/captp';
 import { makeAsyncIterableFromNotifier as iterateNotifier } from '@agoric/notifier';
 
 import { dappConfig, refreshConfigFromWallet } from '../utils/config';
