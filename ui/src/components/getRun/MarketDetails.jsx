@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
@@ -41,15 +42,25 @@ const MarketDetails = ({
   maxRunPercent,
   interestRate,
   brandToInfo,
+  collateralPrice,
+  collateralizationRatio,
 }) => {
   const { displayPercent, displayRatio } = makeDisplayFunctions(brandToInfo);
+  console.log(
+    'market details',
+    displayRatio(collateralPrice),
+    displayRatio(collateralizationRatio),
+  );
   const classes = useStyles();
   const rows =
-    marketPrice && maxRunPercent && interestRate
+    collateralPrice && collateralizationRatio && interestRate
       ? [
-          makeRow('BLD Price', `${displayRatio(marketPrice)} RUN`),
+          makeRow('RUN Price', `${displayRatio(collateralPrice)} BLD`),
           makeRow('Interest Rate', `${displayPercent(interestRate)}%`),
-          makeRow('Max RUN Percent', `${displayPercent(maxRunPercent)}%`),
+          makeRow(
+            'Min BLD:RUN Ratio',
+            `${displayPercent(collateralizationRatio)}%`,
+          ),
         ]
       : [];
   const values =

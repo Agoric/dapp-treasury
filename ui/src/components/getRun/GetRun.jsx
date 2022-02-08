@@ -51,11 +51,18 @@ const useStyles = makeStyles(theme => ({
 const GetRun = () => {
   const classes = useStyles();
   const {
-    state: { runLoCTerms, brandToInfo, purses, getRunHistory },
+    state: { runLoCTerms, brandToInfo, purses, getRunHistory, getRun },
   } = useApplicationContext();
   const [totalLocked, setTotalLocked] = useState(0n);
   const [totalDebt, setTotalDebt] = useState(0n);
 
+  const {
+    CollateralPrice: { value: collateralPrice = undefined },
+    CollateralizationRatio: { value: collateralizationRatio = undefined },
+  } = getRun?.governedParams ?? {
+    CollateralPrice: {},
+    CollateralizationRatio: {},
+  };
   const {
     initialMargin = undefined,
     marketPrice = undefined,
@@ -142,6 +149,8 @@ const GetRun = () => {
             maxRunPercent={maxRunPercent}
             brandToInfo={brandToInfo}
             interestRate={interestRate}
+            collateralPrice={collateralPrice}
+            collateralizationRatio={collateralizationRatio}
           />
         </div>
         <div className={classes.item}>

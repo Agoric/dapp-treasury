@@ -23,6 +23,7 @@ export const initial = {
   getRunHistory: /** @type {[] | null} */ (null),
   vaultToManageId: /** @type {string | null} */ (null),
   useGetRUN: false,
+  getRun: /** @type { GetRunState | null } */ (null),
   loadTreasuryError: /** @type {string | null} */ null,
 };
 
@@ -52,6 +53,7 @@ export const initial = {
  *    resetVault: () => TreasuryReducer,
  *    initVaults: () => TreasuryReducer,
  *    setAutoswap: (payload: typeof initial.autoswap) => TreasuryReducer,
+ *    setGetRun: (payload: typeof initial.getRun) => TreasuryReducer,
  *    setUseGetRUN: (payload: boolean) => TreasuryReducer,
  *    setLoadTreasuryError: (payload: string | null) => TreasuryReducer,
  * }} TreasuryActions
@@ -79,6 +81,7 @@ export const {
     updateVault,
     resetVault,
     setAutoswap,
+    setGetRun,
     setUseGetRUN,
     setLoadTreasuryError,
   },

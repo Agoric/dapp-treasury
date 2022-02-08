@@ -100,3 +100,10 @@
  *   runBrand: Brand,
  * }} VaultState
  */
+
+/**
+ * @typedef {{
+ *   getRunApi: unknown,
+ *   governedParams: unknown
+ * }} GetRunState
+ */

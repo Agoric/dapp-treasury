@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
 
 import { E } from '@agoric/captp';
@@ -17,6 +18,7 @@ import {
   setGetRunHistory,
   setTreasury,
   setAutoswap,
+  setGetRun,
   mergeBrandToInfo,
   setUseGetRUN,
   setLoadTreasuryError,
@@ -164,6 +166,38 @@ const setupAMM = async (dispatch, brandToInfo, zoe, board, instanceID) => {
   });
 };
 
+const setupGetRun = async (dispatch, instance, zoe, brandToInfo) => {
+  const getRunApi = await E(zoe).getPublicFacet(instance);
+  const governedParams = await E(getRunApi).getGovernedParams();
+
+  const collateralPriceValue = governedParams.CollateralPrice.value;
+  const brands = [
+    collateralPriceValue.numerator.brand,
+    collateralPriceValue.denominator.brand,
+  ];
+  const keywords = ['RUN', 'BLD'];
+  const displayInfos = await Promise.all(
+    brands.map(b => E(b).getDisplayInfo()),
+  );
+  const newBrandToInfo = brands.map((brand, i) => {
+    const decimalPlaces = displayInfos[i] && displayInfos[i].decimalPlaces;
+    /** @type { [Brand, BrandInfo]} */
+    const entry = [
+      brand,
+      {
+        assetKind: displayInfos[i].assetKind,
+        decimalPlaces,
+        petname: keywords[i],
+        brand,
+      },
+    ];
+    return entry;
+  });
+  dispatch(mergeBrandToInfo(newBrandToInfo));
+  // TODO: Get notifier for governedParams.
+  dispatch(setGetRun({ getRunApi, governedParams }));
+};
+
 const watchGetRun = dispatch => {
   makeGetRunNotifer(history => {
     dispatch(setGetRunHistory(history));
@@ -175,14 +209,15 @@ export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, defaultState);
   const { brandToInfo } = state;
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const useGetRun = urlParams.get('gr') === 'true';
+
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const useGetRUN = urlParams.get('gr') === 'true';
-    dispatch(setUseGetRUN(useGetRUN));
+    dispatch(setUseGetRUN(useGetRun));
   }, []);
 
   const retrySetup = async () => {
-    await refreshConfigFromWallet(walletP);
+    await refreshConfigFromWallet(walletP, useGetRun);
     const {
       INSTALLATION_BOARD_ID,
       INSTANCE_BOARD_ID,
@@ -190,15 +225,23 @@ export default function Provider({ children }) {
       AMM_INSTALLATION_BOARD_ID,
       AMM_INSTANCE_BOARD_ID,
       AMM_NAME,
+      getRunInstance,
     } = dappConfig;
-
     const zoe = E(walletP).getZoe();
     const board = E(walletP).getBoard();
     try {
-      await Promise.all([
-        setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID),
-        setupAMM(dispatch, brandToInfo, zoe, board, AMM_INSTANCE_BOARD_ID),
-      ]);
+      if (useGetRun) {
+        await Promise.all([
+          setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID),
+          setupAMM(dispatch, brandToInfo, zoe, board, AMM_INSTANCE_BOARD_ID),
+          setupGetRun(dispatch, getRunInstance, zoe, brandToInfo),
+        ]);
+      } else {
+        await Promise.all([
+          setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID),
+          setupAMM(dispatch, brandToInfo, zoe, board, AMM_INSTANCE_BOARD_ID),
+        ]);
+      }
     } catch (e) {
       console.log('Couldnt load collaterals');
       dispatch(setLoadTreasuryError(e));
