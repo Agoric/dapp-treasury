@@ -43,6 +43,7 @@ const PurseAmountInput = ({
   onAmountChange,
   brandToFilter,
   brandToInfo,
+  error = null,
   purseSelectorDisabled = false,
   amountInputDisabled = false,
 }) => {
@@ -75,6 +76,8 @@ const PurseAmountInput = ({
           decimalPlaces={decimalPlaces}
           placesToShow={placesToShow}
           disabled={amountInputDisabled}
+          error={error !== null}
+          helperText={error ?? ' '}
         />
       </Grid>
     </Grid>

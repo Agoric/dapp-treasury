@@ -5,7 +5,6 @@ import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 
-import DeleteIcon from '@material-ui/icons/Delete';
 import SendIcon from '@material-ui/icons/Send';
 
 import { Grid } from '@material-ui/core';
@@ -100,6 +99,9 @@ const AdjustVaultForm = ({
   // borrow, repay, noaction
   const [debtAction, setDebtAction] = React.useState('noaction');
 
+  const [lockedInputError, setLockedInputError] = useState(null);
+  const [debtInputError, setDebtInputError] = useState(null);
+
   const [collateralPurseSelected, setCollateralPurseSelected] = useState(null);
   const [runPurseSelected, setRunPurseSelected] = useState(null);
 
@@ -179,19 +181,37 @@ const AdjustVaultForm = ({
 
   const updateLockedDelta = (collAction, collDelta) => {
     if (collAction === 'deposit') {
+      setLockedInputError(null);
       onLockedDeltaChange(AmountMath.add(locked, collDelta));
     }
     if (collAction === 'withdraw') {
-      onLockedDeltaChange(AmountMath.subtract(locked, collDelta));
+      let newAmount;
+      try {
+        newAmount = AmountMath.subtract(locked, collDelta);
+      } catch {
+        setLockedInputError('Insufficient locked balance');
+        return;
+      }
+      setLockedInputError(null);
+      onLockedDeltaChange(newAmount);
     }
   };
 
   const updateDebtDelta = (dAction, dDelta) => {
     if (dAction === 'borrow') {
+      setDebtInputError(null);
       onDebtDeltaChange(AmountMath.add(debt, dDelta));
     }
     if (dAction === 'repay') {
-      onDebtDeltaChange(AmountMath.subtract(debt, dDelta));
+      let newAmount;
+      try {
+        newAmount = AmountMath.subtract(debt, dDelta);
+      } catch {
+        setDebtInputError('Insufficient debt balance');
+        return;
+      }
+      setDebtInputError(null);
+      onDebtDeltaChange(newAmount);
     }
   };
 
@@ -246,6 +266,7 @@ const AdjustVaultForm = ({
                 setCollateralAction={handleCollateralAction}
               />
               <NatPurseAmountInput
+                error={lockedInputError}
                 purses={purses}
                 purseSelected={collateralPurseSelected}
                 amountValue={lockedDelta && lockedDelta.value}
@@ -272,6 +293,7 @@ const AdjustVaultForm = ({
                 setDebtAction={handleDebtAction}
               />
               <NatPurseAmountInput
+                error={debtInputError}
                 purses={purses}
                 purseSelected={runPurseSelected}
                 amountValue={debtDelta && debtDelta.value}
@@ -291,22 +313,18 @@ const AdjustVaultForm = ({
           justify="flex-end"
         >
           <Grid item>
-            <Button
-              className={classes.button}
-              variant="contained"
-              color="primary"
-              startIcon={<DeleteIcon />}
-              onClick={() => setRedirect('/treasury')}
-            >
-              Cancel
-            </Button>
+            <Button onClick={() => setRedirect('/treasury')}>Cancel</Button>
           </Grid>
           <Grid item>
             <Button
               className={classes.button}
               variant="contained"
               color="primary"
-              disabled={invalidOffer}
+              disabled={
+                invalidOffer ||
+                debtInputError !== null ||
+                lockedInputError !== null
+              }
               startIcon={<SendIcon />}
               onClick={handleSubmission}
             >
