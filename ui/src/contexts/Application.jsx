@@ -44,19 +44,33 @@ export function useApplicationContext() {
 /**
  * @param {string} id
  * @param {TreasuryDispatch} dispatch
+ * @param {string} offerStatus
  */
-function watchVault(id, dispatch) {
+function watchVault(id, dispatch, offerStatus) {
   console.log('vaultWatched', id);
 
   // There is no UINotifier for offers that haven't been accepted, but
   // we still want to show that the offer exists
-  const status = 'Pending Wallet Acceptance';
-  dispatch(
-    updateVault({
-      id,
-      vault: { status },
-    }),
-  );
+  if (offerStatus !== 'accept') {
+    dispatch(
+      updateVault({
+        id,
+        vault: { status: 'Pending Wallet Acceptance' },
+      }),
+    );
+  } else {
+    // Eagerly show closed vaults as closed, else show loading state
+    // until notifier returns data.
+    dispatch(
+      updateVault({
+        id,
+        vault: {
+          status:
+            window.localStorage.getItem(id) === 'Closed' ? 'Closed' : 'Loading',
+        },
+      }),
+    );
+  }
 
   async function vaultUpdater() {
     const uiNotifier = E(walletP).getUINotifier(id);
@@ -66,6 +80,9 @@ function watchVault(id, dispatch) {
         updateVault({ id, vault: { ...value, status: 'Loan Initiated' } }),
       );
     }
+    console.log('Vault closed', id);
+    dispatch(updateVault({ id, vault: { status: 'Closed' } }));
+    window.localStorage.setItem(id, 'Closed');
   }
 
   vaultUpdater().catch(err => {
@@ -84,14 +101,23 @@ function watchOffers(dispatch, INSTANCE_BOARD_ID) {
         id,
         instanceHandleBoardId,
         continuingInvitation,
+        status,
       } of offers) {
         if (
           instanceHandleBoardId === INSTANCE_BOARD_ID &&
-          !watchedVaults.has(id) &&
           continuingInvitation === undefined // AdjustBalances and CloseVault offers use continuingInvitation
         ) {
-          watchedVaults.add(id);
-          watchVault(id, dispatch);
+          if (status === 'decline') {
+            dispatch(
+              updateVault({
+                id,
+                vault: { status: 'Declined' },
+              }),
+            );
+          } else if (!watchedVaults.has(id)) {
+            watchedVaults.add(id);
+            watchVault(id, dispatch, status);
+          }
         }
       }
       if (!watchedVaults.size) {
