@@ -72,9 +72,16 @@ function VaultCreate({
           vaultConfiguration={vaultConfiguration}
           brandToInfo={brandToInfo}
         ></VaultConfirmation>
-        <Grid container justify="flex-end">
-          <Button onClick={() => dispatch(resetVault())}>Cancel</Button>
-          <Button onClick={handleCreate}>Create</Button>
+        <Grid container justify="flex-end" style={{ marginTop: '16px' }}>
+          <Button
+            style={{ marginRight: '8px' }}
+            onClick={() => dispatch(resetVault())}
+          >
+            Cancel
+          </Button>
+          <Button color="primary" variant="contained" onClick={handleCreate}>
+            Create
+          </Button>
         </Grid>
       </ErrorBoundary>
     </div>

@@ -49,6 +49,7 @@ const useStyles = makeStyles(theme => {
     },
     grid: {
       marginTop: theme.spacing(2),
+      justifyContent: 'center',
     },
     button: {
       marginRight: theme.spacing(1),

@@ -13,6 +13,8 @@ const EnterButton = ({
   const formHasError = balanceExceeded || belowMinError;
   return (
     <Button
+      color="primary"
+      variant="contained"
       onClick={() => {
         if (!formHasError) {
           dispatch(setVaultConfiguration(vaultConfig));
