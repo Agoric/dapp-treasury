@@ -18,6 +18,32 @@ const useStyles = makeStyles(theme => {
       color: theme.palette.primary.main,
       fontWeight: 'bold',
     },
+    loadingShimmer: {
+      display: 'inline-block',
+      height: '15px',
+      width: '100%',
+      position: 'relative',
+      overflow: 'hidden',
+      backgroundColor: '#e9e9e9',
+
+      '&::after': {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        transform: 'translateX(-100%)',
+        backgroundImage:
+          'linear-gradient(90deg, #fff0 0, #fff2 20%, #fff8 60%, #fff0)',
+        animation: `$shimmer 2.4s infinite`,
+        content: '""',
+      },
+    },
+    '@keyframes shimmer': {
+      '100%': {
+        transform: 'translateX(100%)',
+      },
+    },
   };
 });
 
@@ -71,6 +97,51 @@ export function VaultSummary({ vault, brandToInfo, id }) {
                   {vault.err && vault.err.toString()}
                 </details>
               </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  }
+
+  if (vault.status === 'Loading') {
+    return (
+      <TableContainer>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell className={classes.header}>Id</TableCell>
+              <TableCell className={classes.header} align="right">
+                {id}
+              </TableCell>
+            </TableRow>
+            {[...Array(6).keys()].map(i => (
+              <TableRow key={i}>
+                <TableCell colSpan={3}>
+                  <div className={classes.loadingShimmer}></div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  }
+
+  if (vault.status === 'Closed') {
+    return (
+      <TableContainer>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell className={classes.header}>Id</TableCell>
+              <TableCell className={classes.header} align="right">
+                {id}
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Status</TableCell>
+              <TableCell align="right">Closed</TableCell>
             </TableRow>
           </TableBody>
         </Table>
