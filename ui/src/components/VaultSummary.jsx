@@ -10,6 +10,7 @@ import {
   TableRow,
 } from '@material-ui/core';
 
+import LoadingBlocks from './LoadingBlocks';
 import { makeDisplayFunctions } from './helpers';
 
 const useStyles = makeStyles(theme => {
@@ -44,6 +45,19 @@ const useStyles = makeStyles(theme => {
         transform: 'translateX(100%)',
       },
     },
+    pending: {
+      height: 368,
+      display: 'flex',
+      flexDirection: 'column',
+    },
+    acceptOfferMessage: {
+      marginTop: theme.spacing(2),
+      flexGrow: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
   };
 });
 
@@ -52,27 +66,28 @@ export function VaultSummary({ vault, brandToInfo, id }) {
 
   if (vault.status === 'Pending Wallet Acceptance') {
     return (
-      <TableContainer>
-        <Table>
-          <TableBody>
-            <TableRow>
-              <TableCell className={classes.header}>Id</TableCell>
-              <TableCell className={classes.header} align="right">
-                {id}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Status</TableCell>
-              <TableCell align="right">{vault.status}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell colSpan={3}>
-                Please accept the offer in your wallet.
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <div className={classes.pending}>
+        <TableContainer>
+          <Table>
+            <TableBody>
+              <TableRow>
+                <TableCell className={classes.header}>Id</TableCell>
+                <TableCell className={classes.header} align="right">
+                  {id}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Status</TableCell>
+                <TableCell align="right">{vault.status}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <div className={classes.acceptOfferMessage}>
+          <LoadingBlocks />
+          <p> Please accept the offer in your wallet.</p>
+        </div>
+      </div>
     );
   }
 
