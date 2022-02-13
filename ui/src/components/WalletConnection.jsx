@@ -47,7 +47,7 @@ const WalletConnection = ({ setWalletP, dispatch }) => {
   return (
     <AgoricWalletConnection
       onState={onWalletState}
-      style={{ visibility: 'hidden' }}
+      style={{ display: 'none' }}
     />
   );
 };
