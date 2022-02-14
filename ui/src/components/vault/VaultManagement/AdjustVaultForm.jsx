@@ -313,7 +313,7 @@ const AdjustVaultForm = ({
           justify="flex-end"
         >
           <Grid item>
-            <Button onClick={() => setRedirect('/treasury')}>Cancel</Button>
+            <Button onClick={() => setRedirect('/vaults')}>Cancel</Button>
           </Grid>
           <Grid item>
             <Button

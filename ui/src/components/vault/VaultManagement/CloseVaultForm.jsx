@@ -90,7 +90,7 @@ const CloseVaultForm = ({
         collateralPurseSelected,
         collateralValue,
       });
-      setRedirect('/treasury');
+      setRedirect('/vaults');
     }
     setNeedToAddOfferToWallet(false);
   }, [needToAddOfferToWallet]);

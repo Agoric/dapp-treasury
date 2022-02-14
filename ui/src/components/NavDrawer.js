@@ -113,8 +113,8 @@ function NavDrawer() {
         />
         <ListItemLink
           icon={<AccountBalanceIcon />}
-          primary="Treasury"
-          to="/treasury"
+          primary="Vaults"
+          to="/vaults"
           replace
         />
         {useGetRUN && (
