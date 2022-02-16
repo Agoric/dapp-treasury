@@ -7,7 +7,7 @@ const ApproveOfferSB = ({
   handleClose,
   message = 'Please approve the offer in your wallet',
 }) => (
-  <Snackbar open={open} autoHideDuration={6000}>
+  <Snackbar open={open} onClose={handleClose} autoHideDuration={6000}>
     <Alert onClose={handleClose} severity="success">
       {message}
     </Alert>

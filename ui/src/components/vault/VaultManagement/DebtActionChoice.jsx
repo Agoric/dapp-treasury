@@ -19,7 +19,9 @@ const useStyles = makeStyles(theme => ({
 const debtActionChoice = ({ debtAction, setDebtAction }) => {
   const classes = useStyles();
   const handleDebtAction = (_event, newDebtAction) => {
-    setDebtAction(newDebtAction);
+    if (newDebtAction !== null) {
+      setDebtAction(newDebtAction);
+    }
   };
   return (
     <ToggleButtonGroup
