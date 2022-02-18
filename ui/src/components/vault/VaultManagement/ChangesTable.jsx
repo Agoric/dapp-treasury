@@ -107,6 +107,17 @@ const ChangesTable = ({
 
   const debtDeltaString = getDeltaString(debt, debtAfterDelta);
 
+  const collateralizationDeltaString =
+    newCollateralizationRatio &&
+    !(
+      newCollateralizationRatio?.numerator?.value ===
+        collateralizationRatio?.numerator?.value &&
+      newCollateralizationRatio?.denominator?.value ===
+        collateralizationRatio?.denominator?.value
+    )
+      ? `${displayPercent(newCollateralizationRatio)}%`
+      : '...';
+
   const rows = [
     createData(
       'Collateral Locked',
@@ -116,9 +127,7 @@ const ChangesTable = ({
     createData(
       'Collateralization Ratio',
       `${displayPercent(collateralizationRatio)}%`,
-      newCollateralizationRatio
-        ? `${displayPercent(newCollateralizationRatio)}%`
-        : '...',
+      collateralizationDeltaString,
     ),
     createData(
       'Outstanding Debt',

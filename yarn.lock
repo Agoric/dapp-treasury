@@ -10,7 +10,7 @@
     "@agoric/assert" "0.3.16-dev-0c5d62c.0+0c5d62c"
     n-readlines "^1.0.0"
 
-"@agoric/assert@0.3.16-dev-0c5d62c.0+0c5d62c", "@agoric/assert@dev":
+"@agoric/assert@0.3.16-dev-0c5d62c.0+0c5d62c":
   version "0.3.16-dev-0c5d62c.0"
   resolved "https://registry.yarnpkg.com/@agoric/assert/-/assert-0.3.16-dev-0c5d62c.0.tgz#3673e0ecc2eacd4d5bb84f6ed315af384793a862"
   integrity sha512-SYpANSBpupJZnydwDDLeXN9q+cHJboJ5L4sM71uTa+146SG2Dv7hraUTOjE4B3Ocxx/vH6qTBtT9xos6P2mvFA==
@@ -7947,7 +7947,7 @@ esm@3.2.25:
   resolved "https://registry.yarnpkg.com/esm/-/esm-3.2.25.tgz#342c18c29d56157688ba5ce31f8431fbb795cc10"
   integrity sha512-U1suiZ2oDVWv4zPO56S0NcR5QriEahGtdN2OR6FiOG4WJvcjBVFB0qI4+eKoWFH483PKGuLuu6V8Z4T5g63UVA==
 
-"esm@github:agoric-labs/esm#Agoric-built":
+esm@agoric-labs/esm#Agoric-built:
   version "3.2.25"
   resolved "https://codeload.github.com/agoric-labs/esm/tar.gz/3603726ad4636b2f865f463188fcaade6375638e"
 

@@ -1,11 +1,10 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import { act } from '@testing-library/react';
 import { mount } from 'enzyme';
-import { AmountMath } from '@agoric/ertp';
+
+import Button from '@material-ui/core/Button';
+
 import AdjustVaultForm from '../VaultManagement/AdjustVaultForm';
 import NatPurseAmountInput from '../VaultManagement/NatPurseAmountInput';
-import CollateralActionChoice from '../VaultManagement/CollateralActionChoice';
-import DebtActionChoice from '../VaultManagement/DebtActionChoice';
 
 jest.mock('@agoric/ertp', () => ({
   AmountMath: {
@@ -19,46 +18,52 @@ jest.mock('../VaultManagement/NatPurseAmountInput', () => () =>
   'NatPurseAmountInput',
 );
 
-jest.mock('../VaultManagement/makeAdjustVaultOffer', () => ({
-  makeAdjustVaultOffer: jest.fn(),
-}));
+test('enables the button when a valid offer can be made', () => {
+  const component = mount(
+    <AdjustVaultForm collateralAction="noaction" debtAction="noaction" />,
+  );
+  let button = component.find(Button).at(1);
+  expect(button.props().disabled).toBeTruthy();
+
+  component.setProps({
+    collateralAction: 'borrow',
+    debtAction: 'repay',
+    lockedDelta: { brand: 'BLD', value: 100n },
+    debtDelta: { brand: 'RUN', value: 100n },
+    runPurseSelected: 'purse1',
+    collateralPurseSelected: 'purse2',
+  });
+  component.update();
+
+  button = component.find(Button).at(1);
+  expect(button.props().disabled).toBeFalsy();
+});
 
 test('shows an error when withdrawing more than locked', () => {
-  const locked = { brand: 'BLD', value: 100n };
-  const debt = { brand: 'RUN', value: 50n };
-  AmountMath.subtract.mockImplementation(() => {
-    throw new Error();
-  });
+  const component = mount(
+    <AdjustVaultForm lockedInputError="Insufficient locked balance" />,
+  );
 
-  const component = mount(<AdjustVaultForm locked={locked} debt={debt} />);
-  const collateralActionChoice = component.find(CollateralActionChoice);
-  act(() => collateralActionChoice.props().setCollateralAction('withdraw'));
-
-  let lockedInput = component.find(NatPurseAmountInput).at(0);
-  expect(lockedInput.props().error).toEqual(null);
-
-  act(() => lockedInput.props().onAmountChange(0n));
-  component.update();
-  lockedInput = component.find(NatPurseAmountInput).at(0);
+  const lockedInput = component.find(NatPurseAmountInput).at(0);
+  const button = component.find(Button).at(1);
   expect(lockedInput.props().error).toEqual('Insufficient locked balance');
+  expect(button.props().disabled).toBeTruthy();
 });
 
 test('shows an error when repaying more than borrowed', () => {
-  const locked = { brand: 'BLD', value: 100n };
-  const debt = { brand: 'RUN', value: 50n };
-  AmountMath.subtract.mockImplementation(() => {
-    throw new Error();
-  });
+  const component = mount(
+    <AdjustVaultForm debtInputError="Insufficient debt balance" />,
+  );
 
-  const component = mount(<AdjustVaultForm locked={locked} debt={debt} />);
-  const debtActionChoice = component.find(DebtActionChoice);
-  act(() => debtActionChoice.props().setDebtAction('repay'));
-
-  let debtInput = component.find(NatPurseAmountInput).at(1);
-  expect(debtInput.props().error).toEqual(null);
-
-  act(() => debtInput.props().onAmountChange(0n));
-  component.update();
-  debtInput = component.find(NatPurseAmountInput).at(1);
+  const debtInput = component.find(NatPurseAmountInput).at(1);
+  const button = component.find(Button).at(1);
   expect(debtInput.props().error).toEqual('Insufficient debt balance');
+  expect(button.props().disabled).toBeTruthy();
+});
+
+test('disables the button when the offer is invalid', () => {
+  const component = mount(<AdjustVaultForm invalidOffer={true} />);
+
+  const button = component.find(Button).at(1);
+  expect(button.props().disabled).toBeTruthy();
 });

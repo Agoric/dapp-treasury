@@ -19,7 +19,9 @@ const useStyles = makeStyles(theme => ({
 const collateralActionChoice = ({ collateralAction, setCollateralAction }) => {
   const classes = useStyles();
   const handleCollateralAction = (_event, newCollateralAction) => {
-    setCollateralAction(newCollateralAction);
+    if (newCollateralAction !== null) {
+      setCollateralAction(newCollateralAction);
+    }
   };
   return (
     <ToggleButtonGroup

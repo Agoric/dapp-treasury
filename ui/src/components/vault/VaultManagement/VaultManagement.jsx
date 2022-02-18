@@ -2,6 +2,7 @@
 /// <reference types="ses"/>
 
 import React, { useEffect, useState } from 'react';
+import { Redirect } from 'react-router-dom';
 import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -18,7 +19,9 @@ import UnchangeableValues from './UnchangeableValues';
 import ChangesTable from './ChangesTable';
 import CloseVaultForm from './CloseVaultForm';
 import ErrorBoundary from '../../ErrorBoundary';
+import ApproveOfferSB from '../../ApproveOfferSB';
 
+import { makeAdjustVaultOffer } from './makeAdjustVaultOffer';
 import { useApplicationContext } from '../../../contexts/Application';
 import { makeDisplayFunctions } from '../../helpers';
 
@@ -62,7 +65,6 @@ const VaultManagement = () => {
 
   /** @type { VaultData } */
   let vaultToManage = {
-    collateralizationRatio: null,
     debt: null,
     interestRate: null,
     liquidationRatio: null,
@@ -72,17 +74,26 @@ const VaultManagement = () => {
     vaultToManage = vaults[vaultToManageId];
   }
 
-  const {
-    debt,
-    interestRate,
-    // liquidated,
-    liquidationRatio,
-    locked,
-    // status,
-  } = vaultToManage;
+  const { debt, interestRate, liquidationRatio, locked } = vaultToManage;
 
-  assert(locked, 'locked missing from vaultToManage???');
-  assert(debt, 'debt missing from vaultToManage???');
+  if (locked === null || debt === null) {
+    return <Redirect to="/vaults" />;
+  }
+  assert(locked && debt);
+
+  // deposit, withdraw, noaction
+  const [collateralAction, setCollateralAction] = useState('noaction');
+  // borrow, repay, noaction
+  const [debtAction, setDebtAction] = React.useState('noaction');
+  const [lockedInputError, setLockedInputError] = useState(null);
+  const [debtInputError, setDebtInputError] = useState(null);
+  const [lockedDelta, setLockedDelta] = useState(
+    AmountMath.make(locked.brand, 0n),
+  );
+  const [debtDelta, setDebtDelta] = useState(AmountMath.make(debt.brand, 0n));
+  const [collateralPurseSelected, setCollateralPurseSelected] = useState(null);
+  const [runPurseSelected, setRunPurseSelected] = useState(null);
+  const [offerInvalid, setOfferInvalid] = useState(true);
 
   const [lockedAfterDelta, setLockedAfterDelta] = useState(locked);
   const [debtAfterDelta, setDebtAfterDelta] = useState(debt);
@@ -92,12 +103,8 @@ const VaultManagement = () => {
     setNewCollateralizationRatio,
   ] = makeRatioState();
   const [marketPrice, setMarketPrice] = makeRatioState();
-  // calculate based on market price
   const [collateralizationRatio, setCollateralizationRatio] = makeRatioState();
-
-  if (vaultToManage.locked === null) {
-    return <div>Please select a vault to manage.</div>;
-  }
+  // calculate based on market price
 
   const {
     displayBrandPetname,
@@ -105,6 +112,32 @@ const VaultManagement = () => {
     getDecimalPlaces,
   } = makeDisplayFunctions(brandToInfo);
   const lockedPetname = displayBrandPetname(locked.brand);
+
+  const [openApproveOfferSB, setOpenApproveOfferSB] = React.useState(false);
+
+  const handleApproveOfferSBClose = () => {
+    setOpenApproveOfferSB(false);
+  };
+
+  const resetState = () => {
+    setCollateralAction('noaction');
+    setDebtAction('noaction');
+  };
+
+  const makeOffer = () => {
+    makeAdjustVaultOffer({
+      vaultToManageId,
+      walletP,
+      runPurseSelected,
+      runValue: debtDelta && debtDelta.value,
+      collateralPurseSelected,
+      collateralValue: lockedDelta && lockedDelta.value,
+      collateralAction,
+      debtAction,
+    });
+    resetState();
+    setOpenApproveOfferSB(true);
+  };
 
   /**
    * Collateralization ratio is the value of collateral to debt.
@@ -141,30 +174,77 @@ const VaultManagement = () => {
         amountIn, // 1 unit of collateral
       );
       setMarketPrice(newMarketPrice);
-      setCollateralizationRatio(calcRatio(newMarketPrice, locked, debt));
     });
-  }, []);
+  }, [vaultToManage]);
 
-  if (!marketPrice) {
-    return <div>Finding the market price...</div>;
-  }
+  useEffect(() => {
+    if (marketPrice && locked && debt) {
+      setCollateralizationRatio(calcRatio(marketPrice, locked, debt));
+    }
+  }, [marketPrice, locked, debt]);
 
-  const onLockedDeltaChange = newLockedAfterDelta => {
-    setLockedAfterDelta(newLockedAfterDelta);
+  useEffect(() => {
+    if (!marketPrice) return;
+
     setNewCollateralizationRatio(
-      calcRatio(marketPrice, newLockedAfterDelta, debtAfterDelta),
+      calcRatio(marketPrice, lockedAfterDelta, debtAfterDelta),
     );
-  };
+  }, [marketPrice, lockedAfterDelta, debtAfterDelta]);
 
-  const onDebtDeltaChange = newDebtAfterDelta => {
-    setDebtAfterDelta(newDebtAfterDelta);
-    setNewCollateralizationRatio(
-      calcRatio(marketPrice, lockedAfterDelta, newDebtAfterDelta),
-    );
-  };
+  useEffect(() => {
+    if (collateralAction === 'noaction' && locked) {
+      const newLockedDelta = AmountMath.makeEmpty(locked.brand);
+      setLockedDelta(newLockedDelta);
+      setLockedAfterDelta(AmountMath.add(locked, newLockedDelta));
+    }
+  }, [collateralAction, locked]);
+
+  useEffect(() => {
+    if (debtAction === 'noaction' && debt) {
+      const newDebtDelta = AmountMath.makeEmpty(debt.brand);
+      setDebtDelta(newDebtDelta);
+      setDebtAfterDelta(AmountMath.add(debt, newDebtDelta));
+    }
+  }, [debtAction, debt]);
+
+  useEffect(() => {
+    if (collateralAction === 'deposit') {
+      setLockedInputError(null);
+      setLockedAfterDelta(AmountMath.add(locked, lockedDelta));
+    }
+    if (collateralAction === 'withdraw') {
+      let newAmount;
+      try {
+        newAmount = AmountMath.subtract(locked, lockedDelta);
+      } catch {
+        setLockedInputError('Insufficient locked balance');
+        return;
+      }
+      setLockedInputError(null);
+      setLockedAfterDelta(newAmount);
+    }
+  }, [locked, lockedDelta, collateralAction]);
+
+  useEffect(() => {
+    if (debtAction === 'borrow') {
+      setDebtInputError(null);
+      setDebtAfterDelta(AmountMath.add(debt, debtDelta));
+    }
+    if (debtAction === 'repay') {
+      let newAmount;
+      try {
+        newAmount = AmountMath.subtract(debt, debtDelta);
+      } catch {
+        setDebtInputError('Insufficient debt balance');
+        return;
+      }
+      setDebtInputError(null);
+      setDebtAfterDelta(newAmount);
+    }
+  }, [debt, debtDelta, debtAction]);
 
   const checkIfOfferInvalid = () => {
-    if (!liquidationRatio) return false;
+    if (!liquidationRatio || !marketPrice) return false;
     const ratio = calcRatio(marketPrice, lockedAfterDelta, debtAfterDelta);
     const approxCollateralizationRatio =
       Number(ratio.numerator.value) / Number(ratio.denominator.value);
@@ -173,6 +253,14 @@ const VaultManagement = () => {
       Number(liquidationRatio.denominator.value);
     return approxCollateralizationRatio < approxLiquidationRatio;
   };
+
+  useEffect(() => {
+    setOfferInvalid(checkIfOfferInvalid);
+  }, [lockedAfterDelta, debtAfterDelta, liquidationRatio, marketPrice]);
+
+  if (!marketPrice) {
+    return <div>Finding the market price...</div>;
+  }
 
   const header = (
     <div className={classes.header}>
@@ -186,7 +274,7 @@ const VaultManagement = () => {
   return (
     <div className={classes.root}>
       <ErrorBoundary>
-        {header}{' '}
+        {header}
         <UnchangeableValues
           marketPrice={marketPrice}
           liquidationRatio={liquidationRatio}
@@ -208,15 +296,26 @@ const VaultManagement = () => {
         </div>
         <AdjustVaultForm
           purses={purses}
-          walletP={walletP}
-          vaultToManageId={vaultToManageId}
-          debt={debt}
-          locked={locked}
-          onLockedDeltaChange={onLockedDeltaChange}
-          onDebtDeltaChange={onDebtDeltaChange}
           brandToInfo={brandToInfo}
-          invalidOffer={checkIfOfferInvalid()}
-        />{' '}
+          invalidOffer={offerInvalid}
+          collateralAction={collateralAction}
+          setCollateralAction={setCollateralAction}
+          debtAction={debtAction}
+          setDebtAction={setDebtAction}
+          lockedInputError={lockedInputError}
+          debtInputError={debtInputError}
+          lockedDelta={lockedDelta}
+          setLockedDelta={setLockedDelta}
+          debtDelta={debtDelta}
+          setDebtDelta={setDebtDelta}
+          lockedBrand={locked.brand}
+          debtBrand={debt.brand}
+          makeOffer={makeOffer}
+          collateralPurseSelected={collateralPurseSelected}
+          setCollateralPurseSelected={setCollateralPurseSelected}
+          runPurseSelected={runPurseSelected}
+          setRunPurseSelected={setRunPurseSelected}
+        />
         <CloseVaultForm
           purses={purses}
           walletP={walletP}
@@ -226,6 +325,10 @@ const VaultManagement = () => {
           brandToInfo={brandToInfo}
         />
       </ErrorBoundary>
+      <ApproveOfferSB
+        open={openApproveOfferSB}
+        handleClose={handleApproveOfferSBClose}
+      />
     </div>
   );
 };
