@@ -105,7 +105,8 @@ function VaultConfigure({
 
   const [collateralPercent, setCollateralPercent] = useState(
     makeRatio(
-      vaultCollateral.liquidationMargin.numerator.value + 25n,
+      vaultCollateral.liquidationMargin.numerator.value +
+        vaultCollateral.liquidationMargin.denominator.value / 4n,
       vaultCollateral.liquidationMargin.numerator.brand,
       vaultCollateral.liquidationMargin.denominator.value,
       vaultCollateral.liquidationMargin.denominator.brand,
