@@ -45,7 +45,7 @@ const headCells = [
   { id: 'petname', label: 'Asset' },
   { id: 'marketPrice', label: 'Market Price' },
   { id: 'liqMargin', label: 'Liquidation Ratio' },
-  { id: 'stabilityFee', label: 'Interest Rate' },
+  { id: 'interestRate', label: 'Interest Rate' },
 ];
 
 const makeHeaderCell = data => (
@@ -135,7 +135,7 @@ function VaultCollateral({
         <TableCell>{collateralPetnameDisplay}</TableCell>
         <TableCell align="right">${marketPriceDisplay}</TableCell>
         {percentCell(row.liquidationMargin)}
-        {percentCell(row.stabilityFee)}
+        {percentCell(row.interestRate)}
       </TableRow>
     );
   };
@@ -143,7 +143,7 @@ function VaultCollateral({
   return (
     <div className={classes.root}>
       <FormControl component="fieldset">
-        <FormLabel component="legend">Choose collateral</FormLabel>{' '}
+        <FormLabel component="legend">Choose collateral</FormLabel>
         <TableContainer>
           <Table>
             <TableHead>

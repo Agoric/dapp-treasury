@@ -3,8 +3,8 @@ import { mount } from 'enzyme';
 
 import Button from '@material-ui/core/Button';
 
-import AdjustVaultForm from '../VaultManagement/AdjustVaultForm';
-import NatPurseAmountInput from '../VaultManagement/NatPurseAmountInput';
+import AdjustVaultForm from '../AdjustVaultForm';
+import NatPurseAmountInput from '../NatPurseAmountInput';
 
 jest.mock('@agoric/ertp', () => ({
   AmountMath: {
@@ -14,9 +14,7 @@ jest.mock('@agoric/ertp', () => ({
   },
 }));
 
-jest.mock('../VaultManagement/NatPurseAmountInput', () => () =>
-  'NatPurseAmountInput',
-);
+jest.mock('../NatPurseAmountInput', () => () => 'NatPurseAmountInput');
 
 test('enables the button when a valid offer can be made', () => {
   const component = mount(
