@@ -3,10 +3,6 @@
  *
  * @property {Brand} brand - the brand of the potential collateral
  *
- * @property {Ratio} initialMargin - the required
- * over-collateralization ratio required to open a loan. Example:
- * RUN150/RUN100
- *
  * @property {Ratio} liquidationMargin - the ratio below which
  * collateral will be liquidated to satisfy the debt. Example:
  * RUN125/RUN100

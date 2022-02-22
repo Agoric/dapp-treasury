@@ -44,7 +44,6 @@ const noCollateralAvailableDiv = (
 const headCells = [
   { id: 'petname', label: 'Asset' },
   { id: 'marketPrice', label: 'Market Price' },
-  { id: 'initialMargin', label: 'Min Collateralization Ratio' },
   { id: 'liqMargin', label: 'Liquidation Ratio' },
   { id: 'stabilityFee', label: 'Interest Rate' },
 ];
@@ -135,7 +134,6 @@ function VaultCollateral({
         </TableCell>
         <TableCell>{collateralPetnameDisplay}</TableCell>
         <TableCell align="right">${marketPriceDisplay}</TableCell>
-        {percentCell(row.initialMargin)}
         {percentCell(row.liquidationMargin)}
         {percentCell(row.stabilityFee)}
       </TableRow>
