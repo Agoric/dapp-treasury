@@ -8,6 +8,7 @@ import { stringifyPurseValue } from '@agoric/ui-components';
 import {
   floorMultiplyBy,
   floorDivideBy,
+  makeRatio,
 } from '@agoric/zoe/src/contractSupport';
 import { AmountMath } from '@agoric/ertp';
 
@@ -101,8 +102,15 @@ function VaultConfigure({
   const [toLock, setToLock] = useState(
     AmountMath.makeEmpty(vaultCollateral.brand),
   );
+
   const [collateralPercent, setCollateralPercent] = useState(
-    vaultCollateral.initialMargin,
+    makeRatio(
+      vaultCollateral.liquidationMargin.numerator.value +
+        vaultCollateral.liquidationMargin.denominator.value / 4n,
+      vaultCollateral.liquidationMargin.numerator.brand,
+      vaultCollateral.liquidationMargin.denominator.value,
+      vaultCollateral.liquidationMargin.denominator.brand,
+    ),
   );
 
   const [belowMinError, setBelowMinError] = useState(false);
@@ -198,7 +206,7 @@ function VaultConfigure({
             <CollateralizationPercentInput
               collateralPercent={collateralPercent}
               onChange={onCollateralPercentChange}
-              initialMargin={vaultCollateral.initialMargin}
+              liquidationMargin={vaultCollateral.liquidationMargin}
               onError={handlePercentInputError}
               belowMinError={belowMinError}
               brandToInfo={brandToInfo}
