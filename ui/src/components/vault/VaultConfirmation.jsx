@@ -19,6 +19,7 @@ function VaultConfirmation({ vaultConfiguration, brandToInfo }) {
     toBorrow,
     collateralPercent,
     toLock,
+    interestRate,
     stabilityFee,
     liquidationMargin,
   } = vaultConfiguration;
@@ -49,7 +50,13 @@ function VaultConfirmation({ vaultConfiguration, brandToInfo }) {
             <TableRow>
               <TableCell>Interest Rate</TableCell>
               <TableCell align="right">
-                {displayPercent(stabilityFee)}%
+                {displayPercent(interestRate)}%
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Stability Fee</TableCell>
+              <TableCell align="right">
+                {displayPercent(stabilityFee, 2)}%
               </TableCell>
             </TableRow>
             <TableRow>
