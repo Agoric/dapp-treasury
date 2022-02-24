@@ -1,7 +1,13 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
+import { AmountMath } from '@agoric/ertp';
+import {
+  floorMultiplyBy,
+  makeRatioFromAmounts,
+} from '@agoric/zoe/src/contractSupport';
+import { Nat } from '@endo/nat';
+import { E } from '@endo/eventual-send';
 import { makeStyles } from '@material-ui/core/styles';
-
 import {
   Table,
   TableBody,
@@ -12,6 +18,7 @@ import {
 
 import LoadingBlocks from './LoadingBlocks';
 import { makeDisplayFunctions } from './helpers';
+import { useApplicationContext } from '../contexts/Application';
 
 const useStyles = makeStyles(theme => {
   return {
@@ -61,8 +68,67 @@ const useStyles = makeStyles(theme => {
   };
 });
 
+const calcRatio = (priceRate, newLock, newBorrow) => {
+  const lockPrice = floorMultiplyBy(newLock, priceRate);
+  const newRatio = makeRatioFromAmounts(lockPrice, newBorrow);
+  return newRatio;
+};
+
 export function VaultSummary({ vault, brandToInfo, id }) {
   const classes = useStyles();
+
+  const { state } = useApplicationContext();
+  const {
+    treasury: { priceAuthority },
+  } = state;
+
+  const makeRatioState = () => useState(/** @type { Ratio | null } */ (null));
+  const [marketPrice, setMarketPrice] = makeRatioState();
+  const [collateralizationRatio, setCollateralizationRatio] = makeRatioState();
+
+  const {
+    displayPercent,
+    displayAmount,
+    displayBrandPetname,
+    getDecimalPlaces,
+  } = makeDisplayFunctions(brandToInfo);
+
+  const {
+    debt, // amount
+    interestRate, // ratio
+    liquidationRatio, // ratio
+    locked, // amount
+    status, // string
+  } = vault;
+
+  useEffect(() => {
+    if (marketPrice && locked && debt) {
+      setCollateralizationRatio(calcRatio(marketPrice, locked, debt));
+    }
+  }, [marketPrice, locked, debt]);
+
+  useEffect(() => {
+    if (!(locked && debt)) return;
+
+    const decimalPlaces = getDecimalPlaces(locked.brand);
+
+    // Make what would display as 1 unit of collateral
+    const inputAmount = AmountMath.make(
+      locked.brand,
+      10n ** Nat(decimalPlaces),
+    );
+    assert(priceAuthority, 'priceAuthority missing');
+    const quoteP = E(priceAuthority).quoteGiven(inputAmount, debt.brand);
+
+    quoteP.then(({ quoteAmount }) => {
+      const [{ amountIn, amountOut }] = quoteAmount.value;
+      const newMarketPrice = makeRatioFromAmounts(
+        amountOut, // RUN
+        amountIn, // 1 unit of collateral
+      );
+      setMarketPrice(newMarketPrice);
+    });
+  }, [vault]);
 
   if (vault.status === 'Pending Wallet Acceptance') {
     return (
@@ -164,23 +230,6 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     );
   }
 
-  const {
-    collateralizationRatio, // ratio
-    debt, // amount
-    interestRate, // ratio
-    _liquidated, // boolean
-    liquidationRatio, // ratio
-    locked, // amount
-    status, // string
-    // liquidationPenalty, // not present?
-  } = vault;
-
-  const {
-    displayPercent,
-    displayAmount,
-    displayBrandPetname,
-  } = makeDisplayFunctions(brandToInfo);
-
   return (
     <TableContainer>
       <Table>
@@ -225,12 +274,6 @@ export function VaultSummary({ vault, brandToInfo, id }) {
               {displayPercent(collateralizationRatio)}%
             </TableCell>
           </TableRow>
-          {/* <TableRow>
-            <TableCell>Liquidation Penalty</TableCell>
-            <TableCell align="right">
-              {displayPercent(liquidationPenalty)}%
-            </TableCell>
-          </TableRow> */}
         </TableBody>
       </Table>
     </TableContainer>

@@ -110,7 +110,7 @@ const useStyles = makeStyles(theme => {
 function VaultList() {
   const classes = useStyles();
   const {
-    state: { approved, vaults, brandToInfo, loadTreasuryError },
+    state: { approved, vaults, brandToInfo, loadTreasuryError, treasury },
     dispatch,
     retrySetup,
   } = useApplicationContext();
@@ -186,7 +186,7 @@ function VaultList() {
     return loadTreasuryErrorAlert;
   }
 
-  if (vaults === null) {
+  if (vaults === null || !treasury) {
     return (
       <div className={classes.root}>
         <CircularProgress style={{ marginTop: 48 }} />

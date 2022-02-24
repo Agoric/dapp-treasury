@@ -32,6 +32,7 @@ beforeEach(() => {
   state.approved = false;
   state.vaults = null;
   state.brandToInfo = [];
+  state.treasury = null;
 });
 
 test('renders a message when the dapp needs approval', () => {
@@ -66,6 +67,7 @@ test('renders a loading indicator when vaults are null', () => {
 test('renders a message when no vaults are available', () => {
   state.approved = true;
   state.vaults = {};
+  state.treasury = {};
 
   const component = mount(<VaultList />);
 
@@ -79,6 +81,7 @@ test('renders the vaults', () => {
     },
   };
   state.approved = true;
+  state.treasury = { priceAuthority: { quoteGiven: jest.fn() } };
 
   const component = mount(<VaultList />);
 
@@ -95,6 +98,7 @@ test('hides closed vaults by default', () => {
     },
   };
   state.approved = true;
+  state.treasury = { priceAuthority: { quoteGiven: jest.fn() } };
 
   const component = mount(<VaultList />);
 
@@ -109,6 +113,7 @@ test('shows closed vaults when enabled', () => {
     },
   };
   state.approved = true;
+  state.treasury = { priceAuthority: { quoteGiven: jest.fn() } };
 
   const component = mount(<VaultList />);
   const showClosedCheckbox = component.find(Checkbox);
@@ -128,6 +133,7 @@ test('shows loading vaults', () => {
     },
   };
   state.approved = true;
+  state.treasury = { priceAuthority: { quoteGiven: jest.fn() } };
 
   const component = mount(<VaultList />);
 

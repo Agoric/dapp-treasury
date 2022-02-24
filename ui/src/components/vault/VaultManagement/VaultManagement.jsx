@@ -60,7 +60,7 @@ const VaultManagement = () => {
     vaults,
     vaultToManageId,
     brandToInfo,
-    autoswap: { ammAPI },
+    treasury: { priceAuthority },
   } = state;
 
   /** @type { VaultData } */
@@ -104,7 +104,6 @@ const VaultManagement = () => {
   ] = makeRatioState();
   const [marketPrice, setMarketPrice] = makeRatioState();
   const [collateralizationRatio, setCollateralizationRatio] = makeRatioState();
-  // calculate based on market price
 
   const {
     displayBrandPetname,
@@ -162,13 +161,11 @@ const VaultManagement = () => {
       locked.brand,
       10n ** Nat(decimalPlaces),
     );
-    assert(ammAPI, 'ammAPI missing');
-    const quoteP = E(ammAPI).getInputPrice(
-      inputAmount,
-      AmountMath.makeEmpty(debt.brand),
-    );
+    assert(priceAuthority, 'priceAuthority missing');
+    const quoteP = E(priceAuthority).quoteGiven(inputAmount, debt.brand);
 
-    quoteP.then(({ amountIn, amountOut }) => {
+    quoteP.then(({ quoteAmount }) => {
+      const [{ amountIn, amountOut }] = quoteAmount.value;
       const newMarketPrice = makeRatioFromAmounts(
         amountOut, // RUN
         amountIn, // 1 unit of collateral
