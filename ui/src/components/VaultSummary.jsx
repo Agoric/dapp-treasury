@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { AmountMath } from '@agoric/ertp';
-import {
-  floorMultiplyBy,
-  makeRatioFromAmounts,
-} from '@agoric/zoe/src/contractSupport';
+import { makeRatioFromAmounts } from '@agoric/zoe/src/contractSupport';
 import { Nat } from '@endo/nat';
 import { E } from '@endo/eventual-send';
 import { makeStyles } from '@material-ui/core/styles';
@@ -68,11 +65,14 @@ const useStyles = makeStyles(theme => {
   };
 });
 
-const calcRatio = (priceRate, newLock, newBorrow) => {
-  const lockPrice = floorMultiplyBy(newLock, priceRate);
-  const newRatio = makeRatioFromAmounts(lockPrice, newBorrow);
-  return newRatio;
-};
+const calcRatio = (priceRate, newLock, newBorrow) =>
+  makeRatioFromAmounts(
+    AmountMath.make(newLock.brand, newLock.value * priceRate.numerator.value),
+    AmountMath.make(
+      newBorrow.brand,
+      newBorrow.value * priceRate.denominator.value,
+    ),
+  );
 
 export function VaultSummary({ vault, brandToInfo, id }) {
   const classes = useStyles();

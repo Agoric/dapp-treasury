@@ -6,10 +6,7 @@ import { Redirect } from 'react-router-dom';
 import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
-import {
-  floorMultiplyBy,
-  makeRatioFromAmounts,
-} from '@agoric/zoe/src/contractSupport';
+import { makeRatioFromAmounts } from '@agoric/zoe/src/contractSupport';
 import { AmountMath } from '@agoric/ertp';
 import { Nat } from '@endo/nat';
 import { E } from '@endo/eventual-send';
@@ -138,18 +135,14 @@ const VaultManagement = () => {
     setOpenApproveOfferSB(true);
   };
 
-  /**
-   * Collateralization ratio is the value of collateral to debt.
-   *
-   * @param {Ratio} priceRate
-   * @param {Amount} newLock
-   * @param {Amount} newBorrow
-   */
-  const calcRatio = (priceRate, newLock, newBorrow) => {
-    const lockPrice = floorMultiplyBy(newLock, priceRate);
-    const newRatio = makeRatioFromAmounts(lockPrice, newBorrow);
-    return newRatio;
-  };
+  const calcRatio = (priceRate, newLock, newBorrow) =>
+    makeRatioFromAmounts(
+      AmountMath.make(newLock.brand, newLock.value * priceRate.numerator.value),
+      AmountMath.make(
+        newBorrow.brand,
+        newBorrow.value * priceRate.denominator.value,
+      ),
+    );
 
   // run once when component loaded.
   // TODO: use makeQuoteNotifier
