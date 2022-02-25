@@ -149,16 +149,20 @@ const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
   const instance = await E(board).getValue(instanceID);
   /** @type { ERef<VaultFactory> } */
   const treasuryAPIP = E(zoe).getPublicFacet(instance);
-  const [treasuryAPI, terms, collaterals] = await Promise.all([
+  const termsP = E(zoe).getTerms(instance);
+  const [treasuryAPI, terms, collaterals, priceAuthority] = await Promise.all([
     treasuryAPIP,
-    E(zoe).getTerms(instance),
+    termsP,
     E(treasuryAPIP).getCollaterals(),
+    E.get(termsP).priceAuthority,
   ]);
   const {
     issuers: { RUN: runIssuer },
     brands: { RUN: runBrand },
   } = terms;
-  dispatch(setTreasury({ instance, treasuryAPI, runIssuer, runBrand }));
+  dispatch(
+    setTreasury({ instance, treasuryAPI, runIssuer, runBrand, priceAuthority }),
+  );
   await storeAllBrandsFromTerms({
     dispatch,
     terms,

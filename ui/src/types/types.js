@@ -94,5 +94,6 @@
  *   treasuryAPI: unknown,
  *   runIssuer: Issuer,
  *   runBrand: Brand,
+ *   priceAuthority: unknown,
  * }} VaultState
  */

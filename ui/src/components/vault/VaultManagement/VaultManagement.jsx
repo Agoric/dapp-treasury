@@ -6,10 +6,7 @@ import { Redirect } from 'react-router-dom';
 import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
-import {
-  floorMultiplyBy,
-  makeRatioFromAmounts,
-} from '@agoric/zoe/src/contractSupport';
+import { makeRatioFromAmounts } from '@agoric/zoe/src/contractSupport';
 import { AmountMath } from '@agoric/ertp';
 import { Nat } from '@endo/nat';
 import { E } from '@endo/eventual-send';
@@ -60,7 +57,7 @@ const VaultManagement = () => {
     vaults,
     vaultToManageId,
     brandToInfo,
-    autoswap: { ammAPI },
+    treasury: { priceAuthority },
   } = state;
 
   /** @type { VaultData } */
@@ -104,7 +101,6 @@ const VaultManagement = () => {
   ] = makeRatioState();
   const [marketPrice, setMarketPrice] = makeRatioState();
   const [collateralizationRatio, setCollateralizationRatio] = makeRatioState();
-  // calculate based on market price
 
   const {
     displayBrandPetname,
@@ -139,18 +135,14 @@ const VaultManagement = () => {
     setOpenApproveOfferSB(true);
   };
 
-  /**
-   * Collateralization ratio is the value of collateral to debt.
-   *
-   * @param {Ratio} priceRate
-   * @param {Amount} newLock
-   * @param {Amount} newBorrow
-   */
-  const calcRatio = (priceRate, newLock, newBorrow) => {
-    const lockPrice = floorMultiplyBy(newLock, priceRate);
-    const newRatio = makeRatioFromAmounts(lockPrice, newBorrow);
-    return newRatio;
-  };
+  const calcRatio = (priceRate, newLock, newBorrow) =>
+    makeRatioFromAmounts(
+      AmountMath.make(newLock.brand, newLock.value * priceRate.numerator.value),
+      AmountMath.make(
+        newBorrow.brand,
+        newBorrow.value * priceRate.denominator.value,
+      ),
+    );
 
   // run once when component loaded.
   // TODO: use makeQuoteNotifier
@@ -162,13 +154,11 @@ const VaultManagement = () => {
       locked.brand,
       10n ** Nat(decimalPlaces),
     );
-    assert(ammAPI, 'ammAPI missing');
-    const quoteP = E(ammAPI).getInputPrice(
-      inputAmount,
-      AmountMath.makeEmpty(debt.brand),
-    );
+    assert(priceAuthority, 'priceAuthority missing');
+    const quoteP = E(priceAuthority).quoteGiven(inputAmount, debt.brand);
 
-    quoteP.then(({ amountIn, amountOut }) => {
+    quoteP.then(({ quoteAmount }) => {
+      const [{ amountIn, amountOut }] = quoteAmount.value;
       const newMarketPrice = makeRatioFromAmounts(
         amountOut, // RUN
         amountIn, // 1 unit of collateral
