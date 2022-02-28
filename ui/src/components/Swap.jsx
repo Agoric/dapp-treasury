@@ -1,11 +1,11 @@
 import { React, useState, useEffect } from 'react';
-import { E } from '@agoric/captp';
+import { E } from '@endo/captp';
 import {
-  divideBy,
+  floorDivideBy,
   invertRatio,
   makeRatio,
   makeRatioFromAmounts,
-  multiplyBy,
+  floorMultiplyBy,
 } from '@agoric/zoe/src/contractSupport';
 import { Nat } from '@agoric/nat';
 import { stringifyAmountValue } from '@agoric/ui-components';
@@ -69,7 +69,7 @@ const useStyles = makeStyles(theme => ({
 
 const makeInverseFromAmounts = (x, y) => makeRatioFromAmounts(y, x);
 const composeRatio = (x, y) =>
-  makeRatioFromAmounts(multiplyBy(x.numerator, y), x.denominator);
+  makeRatioFromAmounts(floorMultiplyBy(x.numerator, y), x.denominator);
 
 /* eslint-disable complexity */
 export default function Swap() {
@@ -278,7 +278,7 @@ export default function Swap() {
       const giveInfo = getInfoForBrand(brandToInfo, inputRate.brand);
       const wantInfo = getInfoForBrand(brandToInfo, outputRate.brand);
       const oneDisplayUnit = 10n ** Nat(wantInfo.decimalPlaces);
-      const wantPrice = divideBy(
+      const wantPrice = floorDivideBy(
         AmountMath.make(outputRate.brand, oneDisplayUnit),
         marketRate,
       );
@@ -305,11 +305,11 @@ export default function Swap() {
       // and so depends on whether the user entered the In or
       // the Out amount most recently
       if (quote.rate && sameStructure(source, quote.amount)) {
-        const value = multiplyBy(source, quote.rate).value;
+        const value = floorMultiplyBy(source, quote.rate).value;
         return { amount: value, label: `Quoted ${label}` };
       }
       if (marketRatio) {
-        const value = multiplyBy(source, marketRatio).value;
+        const value = floorMultiplyBy(source, marketRatio).value;
         return { amount: value, label: `Estimated ${label}` };
       }
     }

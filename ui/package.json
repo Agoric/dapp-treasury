@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@agoric/assert": "*",
-    "@agoric/captp": "*",
+    "@endo/captp": "^1.10.12",
     "@agoric/ertp": "*",
     "@agoric/eventual-send": "*",
     "@agoric/install-ses": "*",

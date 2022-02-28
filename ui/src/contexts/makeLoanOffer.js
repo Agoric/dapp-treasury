@@ -1,4 +1,4 @@
-import { E } from '@agoric/captp';
+import { E } from '@endo/captp';
 
 import { dappConfig } from '../utils/config';
 

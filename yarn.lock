@@ -56,17 +56,6 @@
     ses "^0.12.3"
     source-map "^0.7.3"
 
-"@agoric/captp@*", "@agoric/captp@^1.7.3":
-  version "1.7.3"
-  resolved "https://registry.yarnpkg.com/@agoric/captp/-/captp-1.7.3.tgz#f9e9ecfda513b0f8f65cd10d3045a4cb36d9f168"
-  integrity sha512-kaCeplFRa1PvpxBmFlZu0PCdnRrrN8gjhoGpUV5ASmgBQvpIg7ukE7tjvGOBj+70J/e32MmKOGOjCe/UoGHnYw==
-  dependencies:
-    "@agoric/eventual-send" "^0.13.3"
-    "@agoric/marshal" "^0.4.0"
-    "@agoric/nat" "^4.0.0"
-    "@agoric/promise-kit" "^0.2.3"
-    esm "^3.2.5"
-
 "@agoric/captp@^1.10.6":
   version "1.10.6"
   resolved "https://registry.yarnpkg.com/@agoric/captp/-/captp-1.10.6.tgz#7d4030f613230f666c2ef7b40c0684ac21a11d3a"
@@ -77,6 +66,17 @@
     "@agoric/marshal" "^0.4.28"
     "@agoric/nat" "^4.1.0"
     "@agoric/promise-kit" "^0.2.28"
+
+"@agoric/captp@^1.7.3":
+  version "1.7.3"
+  resolved "https://registry.yarnpkg.com/@agoric/captp/-/captp-1.7.3.tgz#f9e9ecfda513b0f8f65cd10d3045a4cb36d9f168"
+  integrity sha512-kaCeplFRa1PvpxBmFlZu0PCdnRrrN8gjhoGpUV5ASmgBQvpIg7ukE7tjvGOBj+70J/e32MmKOGOjCe/UoGHnYw==
+  dependencies:
+    "@agoric/eventual-send" "^0.13.3"
+    "@agoric/marshal" "^0.4.0"
+    "@agoric/nat" "^4.0.0"
+    "@agoric/promise-kit" "^0.2.3"
+    esm "^3.2.5"
 
 "@agoric/compartment-mapper@^0.2.3":
   version "0.2.3"
@@ -1720,12 +1720,48 @@
   resolved "https://registry.yarnpkg.com/@emotion/hash/-/hash-0.8.0.tgz#bbbff68978fefdbe68ccb533bc8cbe1d1afb5413"
   integrity sha512-kBJtf7PH6aWwZ6fka3zQ0p6SBYzx4fl1LoZXE2RrnYST9Xljm7WfKJrU4g/Xr3Beg72MLrp1AWNUmuYJTL7Cow==
 
+"@endo/captp@^1.10.12":
+  version "1.10.12"
+  resolved "https://registry.yarnpkg.com/@endo/captp/-/captp-1.10.12.tgz#69ce23a49ecfdf0bad84f931a55df797d2cfd0ed"
+  integrity sha512-tdughHAu1V8+NyXikrEXJfyyq/+CIcsAx9dQ3ZWf34c7gYJPSQtaDFCheDmNwDoVBn1SMGg+8cVjSmbJe8pWtw==
+  dependencies:
+    "@endo/eventual-send" "^0.14.4"
+    "@endo/marshal" "^0.5.4"
+    "@endo/nat" "^4.1.4"
+    "@endo/promise-kit" "^0.2.33"
+
 "@endo/eslint-plugin@^0.3.10":
   version "0.3.10"
   resolved "https://registry.yarnpkg.com/@endo/eslint-plugin/-/eslint-plugin-0.3.10.tgz#e51f4ef8dae474d396b6a98a9ea9bbc983e90c57"
   integrity sha512-zr0S9NVxY+MiHKmc5m+O5mydm2owfkp15W9JP7EQvZ4qMDlOy30qns0o7dKrk4WGloQHfMqqLdOkCYeKUGKSAQ==
   dependencies:
     requireindex "~1.1.0"
+
+"@endo/eventual-send@^0.14.4":
+  version "0.14.6"
+  resolved "https://registry.yarnpkg.com/@endo/eventual-send/-/eventual-send-0.14.6.tgz#62f8acd44baa4ea0a319111c528cabea10c8984b"
+  integrity sha512-NAImlJSV6g0JA6yxSpZyn/FCxdWkyPvnn1Xhn3RFDWf4rKziGeTxuyvlqFroXXocWOr8f7++5hH7BqnKrijFIA==
+
+"@endo/marshal@^0.5.4":
+  version "0.5.4"
+  resolved "https://registry.yarnpkg.com/@endo/marshal/-/marshal-0.5.4.tgz#3e96a421afe56846086fcee569be41f80e7e2ec5"
+  integrity sha512-ojcScWANmoiWfFH7iRUak+QOviXVS6Ubznj3fzXPizszjX8/M/67/XSbzbRdLYlevChzEtP60xhbYZPxzJSHRw==
+  dependencies:
+    "@endo/eventual-send" "^0.14.4"
+    "@endo/nat" "^4.1.4"
+    "@endo/promise-kit" "^0.2.33"
+
+"@endo/nat@^4.1.4":
+  version "4.1.6"
+  resolved "https://registry.yarnpkg.com/@endo/nat/-/nat-4.1.6.tgz#91bd20376503c08f29e667f8ec5cf92511a06155"
+  integrity sha512-JfMeocAr9GyhQ2pFFibweIbIpgF9qV6xm7luOQ/JtB6n9mzAG9NVK+y6wAdLaIy3Ma/LONSHvF0PLZGwz5HvZQ==
+
+"@endo/promise-kit@^0.2.33":
+  version "0.2.35"
+  resolved "https://registry.yarnpkg.com/@endo/promise-kit/-/promise-kit-0.2.35.tgz#a32af869993dd74e2c9626afe9de34c802be67e4"
+  integrity sha512-FgG6V5JowgLsSqTIILn80yHn6Zp9JR7FzkN5Tvz4BI7faAVG7ywk7rhE+DKg71HJMvypy/2l1ptx7fbZ//y2zg==
+  dependencies:
+    ses "^0.15.9"
 
 "@eslint/eslintrc@^0.4.0":
   version "0.4.0"
@@ -15101,6 +15137,11 @@ ses@^0.14.3:
   version "0.14.4"
   resolved "https://registry.yarnpkg.com/ses/-/ses-0.14.4.tgz#17d753d5fca460bfb362c2ed77e0bf7700f00e24"
   integrity sha512-0ydKzChzQ/SgVn/rkzQ+sflYrxWRihtH2r7t5Vl92JFQbIJjJvp6vprs/1fwSsJppJg5drh8v6bTyaB6IizUCg==
+
+ses@^0.15.9:
+  version "0.15.9"
+  resolved "https://registry.yarnpkg.com/ses/-/ses-0.15.9.tgz#0dab638298a6af5e910c44c8a3700e596e9e3ac5"
+  integrity sha512-OgNR4u9csFywovs10qq9qwy/TTldS3m8K/y6xHavLbuEJOnHYFD62Jf1fVbR1VgtTYnlYjQd8nyBASFSjSkvpA==
 
 set-blocking@^2.0.0, set-blocking@~2.0.0:
   version "2.0.0"
