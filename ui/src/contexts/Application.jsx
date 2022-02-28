@@ -167,18 +167,21 @@ const setupAMM = async (dispatch, brandToInfo, zoe, board, instanceID) => {
 };
 
 const setupGetRun = async (dispatch, instance, zoe, brandToInfo) => {
-  const getRunApi = await E(zoe).getPublicFacet(instance);
-  const governedParams = await E(getRunApi).getGovernedParams();
+  const [getRunApi, getRunTerms] = await Promise.all([
+    E(zoe).getPublicFacet(instance),
+    E(zoe).getTerms(instance),
+  ]);
 
-  const collateralPriceValue = governedParams.CollateralPrice.value;
   const brands = [
-    collateralPriceValue.numerator.brand,
-    collateralPriceValue.denominator.brand,
+    getRunTerms.brands.BldLienAtt,
+    getRunTerms.brands.RUN,
+    getRunTerms.brands.Stake,
   ];
-  const keywords = ['RUN', 'BLD'];
+  const keywords = ['LIEN', 'RUN', 'BLD'];
   const displayInfos = await Promise.all(
     brands.map(b => E(b).getDisplayInfo()),
   );
+
   const newBrandToInfo = brands.map((brand, i) => {
     const decimalPlaces = displayInfos[i] && displayInfos[i].decimalPlaces;
     /** @type { [Brand, BrandInfo]} */
@@ -193,9 +196,10 @@ const setupGetRun = async (dispatch, instance, zoe, brandToInfo) => {
     ];
     return entry;
   });
+
   dispatch(mergeBrandToInfo(newBrandToInfo));
   // TODO: Get notifier for governedParams.
-  dispatch(setGetRun({ getRunApi, governedParams }));
+  dispatch(setGetRun({ getRunApi, getRunTerms }));
 };
 
 const watchGetRun = dispatch => {

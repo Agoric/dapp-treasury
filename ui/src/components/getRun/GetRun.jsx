@@ -1,8 +1,7 @@
-import { React, useEffect, useState } from 'react';
+import { React } from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
 
-import { makeRatio } from '@agoric/zoe/src/contractSupport';
 import MarketDetails from './MarketDetails';
 import MyGetRun from './MyGetRun';
 import Adjust from './Adjust';
@@ -51,120 +50,42 @@ const useStyles = makeStyles(theme => ({
 const GetRun = () => {
   const classes = useStyles();
   const {
-    state: { runLoCTerms, brandToInfo, purses, getRunHistory, getRun },
+    state: { brandToInfo, purses, getRunHistory, getRun },
   } = useApplicationContext();
-  const [totalLocked, setTotalLocked] = useState(0n);
-  const [totalDebt, setTotalDebt] = useState(0n);
+  /* const [totalLocked, setTotalLocked] = useState(0n);
+  const [totalDebt, setTotalDebt] = useState(0n); */
 
   const {
     CollateralPrice: { value: collateralPrice = undefined },
     CollateralizationRatio: { value: collateralizationRatio = undefined },
-  } = getRun?.governedParams ?? {
+  } = getRun?.getRunTerms?.main ?? {
     CollateralPrice: {},
     CollateralizationRatio: {},
   };
-  const {
-    initialMargin = undefined,
-    marketPrice = undefined,
-    interestRate = undefined,
-    brand = undefined,
-    debtBrand = undefined,
-    maxRunPercent = undefined,
-  } = runLoCTerms ?? {};
 
-  useEffect(() => {
-    let newTotalLocked = 0n;
-    let newTotalDebt = 0n;
-    if (getRunHistory?.length) {
-      for (const { locked, debt, lockedAction, debtAction } of getRunHistory) {
-        if (lockedAction === 'lock') {
-          newTotalLocked += locked.numerator.value;
-        } else {
-          newTotalLocked -= locked.numerator.value;
-        }
-        if (debtAction === 'borrow') {
-          newTotalDebt += debt.numerator.value;
-        } else {
-          newTotalDebt -= debt.numerator.value;
-        }
-      }
-      setTotalLocked(newTotalLocked);
-      setTotalDebt(newTotalDebt);
-    }
-  }, [getRunHistory]);
+  /* const {
+    BldLienAtt: lienBrand = undefined,
+    RUN: runBrand = undefined,
+    Stake: bldBrand = undefined,
+  } = getRun?.getRunTerms?.brands ?? {}; */
 
-  const lockedRatio = brand && makeRatio(totalLocked, brand);
-  const debtRatio = debtBrand && makeRatio(totalDebt, debtBrand);
-  const maxDebtRatio =
-    lockedRatio &&
-    marketPrice &&
-    initialMargin &&
-    makeRatio(
-      (lockedRatio.numerator.value * marketPrice.numerator.value) /
-        initialMargin.numerator.value,
-      brand,
-    );
-
-  const runPercent =
-    lockedRatio &&
-    debtRatio &&
-    debtRatio.numerator.value > 0n &&
-    makeRatio(
-      debtRatio.numerator.value,
-      debtBrand,
-      (lockedRatio.numerator.value * marketPrice.numerator.value) /
-        marketPrice.denominator.value,
-      brand,
-    );
-
-  const collateralization =
-    lockedRatio &&
-    debtRatio &&
-    debtRatio.numerator.value > 0n &&
-    makeRatio(
-      (lockedRatio.numerator.value * marketPrice.numerator.value) /
-        marketPrice.denominator.value,
-      brand,
-      debtRatio.numerator.value,
-      debtBrand,
-    );
+  console.log('getRunTerms', getRun?.getRunTerms);
 
   return (
     <div className={classes.root}>
       <div className={classes.container}>
         <div className={classes.item}>
-          <MyGetRun
-            lockedBld={lockedRatio}
-            outstandingDebt={debtRatio}
-            maxDebt={maxDebtRatio}
-            maxRunPercent={maxRunPercent}
-            runPercent={runPercent}
-            collateralization={collateralization}
-            brandToInfo={brandToInfo}
-          />
+          <MyGetRun brandToInfo={brandToInfo} />
         </div>
         <div className={classes.item}>
           <MarketDetails
-            marketPrice={marketPrice}
-            maxRunPercent={maxRunPercent}
             brandToInfo={brandToInfo}
-            interestRate={interestRate}
             collateralPrice={collateralPrice}
             collateralizationRatio={collateralizationRatio}
           />
         </div>
         <div className={classes.item}>
-          <Adjust
-            purses={purses}
-            brandToInfo={brandToInfo}
-            brand={brand}
-            debtBrand={debtBrand}
-            locked={lockedRatio}
-            runPercent={runPercent}
-            borrowed={debtRatio}
-            collateralization={collateralization}
-            marketPrice={marketPrice}
-          />
+          <Adjust purses={purses} brandToInfo={brandToInfo} />
         </div>
         <div className={classes.item}>
           <History history={getRunHistory} brandToInfo={brandToInfo} />

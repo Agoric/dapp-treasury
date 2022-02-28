@@ -104,6 +104,6 @@
 /**
  * @typedef {{
  *   getRunApi: unknown,
- *   governedParams: unknown
+ *   getRunTerms: unknown
  * }} GetRunState
  */

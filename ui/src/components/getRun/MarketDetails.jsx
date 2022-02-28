@@ -4,7 +4,7 @@ import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { makeStyles } from '@material-ui/core/styles';
-
+import { makeRatio, invertRatio } from '@agoric/zoe/src/contractSupport';
 import { NameValueTable, makeRow } from './NameValueTable';
 import { makeDisplayFunctions } from '../helpers';
 
@@ -38,33 +38,40 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const MarketDetails = ({
-  marketPrice,
-  maxRunPercent,
-  interestRate,
   brandToInfo,
   collateralPrice,
   collateralizationRatio,
 }) => {
-  const { displayPercent, displayRatio } = makeDisplayFunctions(brandToInfo);
-  console.log(
-    'market details',
-    displayRatio(collateralPrice),
-    displayRatio(collateralizationRatio),
-  );
   const classes = useStyles();
+  const { displayPercent, displayRatio } = makeDisplayFunctions(brandToInfo);
+
+  const borrowLimit =
+    collateralPrice &&
+    collateralizationRatio &&
+    makeRatio(
+      collateralPrice.denominator.value *
+        collateralizationRatio.denominator.value,
+      collateralPrice.numerator.brand,
+      collateralPrice.numerator.value * collateralizationRatio.numerator.value,
+      collateralPrice.denominator.brand,
+    );
+
   const rows =
-    collateralPrice && collateralizationRatio && interestRate
+    collateralPrice && collateralizationRatio
       ? [
-          makeRow('RUN Price', `${displayRatio(collateralPrice)} BLD`),
-          makeRow('Interest Rate', `${displayPercent(interestRate)}%`),
+          makeRow(
+            'BLD Price',
+            `${displayRatio(invertRatio(collateralPrice))} RUN`,
+          ),
           makeRow(
             'Min BLD:RUN Ratio',
             `${displayPercent(collateralizationRatio)}%`,
           ),
+          makeRow('Borrow Limit per BLD', `${displayRatio(borrowLimit)} RUN`),
         ]
       : [];
   const values =
-    !marketPrice || !maxRunPercent || !interestRate ? (
+    !collateralPrice || !collateralizationRatio ? (
       <div className={classes.loadingPlaceholder}>
         <CircularProgress />
       </div>
@@ -74,7 +81,7 @@ const MarketDetails = ({
 
   return (
     <Paper className={classes.root} elevation={4}>
-      <Typography className={classes.title}>Market Details</Typography>
+      <Typography className={classes.title}>Economy Details</Typography>
       <hr className={classes.break} />
       {values}
     </Paper>
