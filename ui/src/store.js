@@ -56,6 +56,7 @@ export const initial = {
  *    setGetRun: (payload: typeof initial.getRun) => TreasuryReducer,
  *    setUseGetRUN: (payload: boolean) => TreasuryReducer,
  *    setLoadTreasuryError: (payload: string | null) => TreasuryReducer,
+ *    setWalletP: (payload: unknown) => TreasuryReducer,
  * }} TreasuryActions
  */
 
@@ -84,6 +85,7 @@ export const {
     setGetRun,
     setUseGetRUN,
     setLoadTreasuryError,
+    setWalletP,
   },
   // @ts-ignore tsc can't tell that autodux is callable
 } = autodux({
