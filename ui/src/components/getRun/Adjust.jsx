@@ -21,6 +21,7 @@ import GetStarted from './GetStarted';
 import NatPurseAmountInput from '../vault/VaultManagement/NatPurseAmountInput';
 import { adjust } from '../../runLoCStub';
 import { icons, defaultIcon } from '../../utils/icons';
+import { makeDisplayFunctions } from '../helpers';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -112,6 +113,7 @@ const useStyles = makeStyles(theme => ({
   bldPurse: {
     fontSize: 16,
     lineHeight: '18px',
+    color: '#000',
   },
   bldBalance: {
     display: 'flex',
@@ -121,7 +123,6 @@ const useStyles = makeStyles(theme => ({
   stakedAmount: {
     fontSize: 14,
     lineHeight: '16px',
-    color: 'rgba(0, 0, 0, 0.54)',
   },
   collateralForm: {
     display: 'flex',
@@ -135,7 +136,7 @@ const useStyles = makeStyles(theme => ({
     marginTop: '-14px',
     marginLeft: '4px',
     padding: '0 4px',
-    color: 'rgba(0, 0, 0, 0.56)',
+    fontWeight: 400,
   },
 }));
 
@@ -151,6 +152,8 @@ const Adjust = ({
   marketPrice,
   accountState,
 }) => {
+  const classes = useStyles();
+
   const [runPurseSelected, setRunPurseSelected] = useState(null);
   const [collateralAction, setCollateralAction] = useState('lock');
   const [debtAction, setDebtAction] = useState('borrow');
@@ -159,7 +162,8 @@ const Adjust = ({
   const [getStartedClicked, setGetStartedClicked] = useState(false);
   const [currentTab, setCurrentTab] = useState(0);
   const [openApproveOfferSB, setOpenApproveOfferSB] = useState(false);
-  const classes = useStyles();
+
+  const { displayAmount } = makeDisplayFunctions(brandToInfo);
 
   const hasLockedBld = locked?.numerator?.value > 0;
 
@@ -236,7 +240,9 @@ const Adjust = ({
             <div className={classes.bldPurse}>
               {bldStakingPurse.pursePetname}
             </div>
-            <div className={classes.stakedAmount}>5.04 Staked</div>
+            <div className={classes.stakedAmount}>
+              {displayAmount(accountState.bonded)} staked
+            </div>
           </div>
         </div>
         <TextField

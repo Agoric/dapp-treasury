@@ -18,7 +18,6 @@ const useStyles = makeStyles(theme => ({
     lineHeight: '27px',
     padding: theme.spacing(4),
     minWidth: 360,
-    height: 228,
   },
   title: {
     fontSize: '22px',

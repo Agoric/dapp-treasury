@@ -1,6 +1,7 @@
 import { React, useEffect, useState } from 'react';
 
 import { E } from '@agoric/eventual-send';
+import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
 import MarketDetails from './MarketDetails';
@@ -10,7 +11,7 @@ import History from './History';
 import { useApplicationContext } from '../../contexts/Application';
 
 const useStyles = makeStyles(theme => ({
-  root: {
+  body: {
     maxWidth: '1400px',
     display: 'flex',
     flexDirection: 'column',
@@ -39,24 +40,35 @@ const useStyles = makeStyles(theme => ({
     flexGrow: 2,
   },
   header: {
-    marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1),
-    marginLeft: theme.spacing(1),
+    maxWidth: '1560px',
+    margin: 'auto',
     padding: theme.spacing(2),
+    paddingBottom: 0,
     '& > .MuiTypography-root': {
       fontFamily: 'Inter',
       fontWeight: '500',
       color: '#707070',
-      fontSize: '22px',
+      fontSize: '20px',
     },
     '& > .MuiTypography-h3': {
       fontSize: '32px',
       lineHeight: '32px',
+      marginBottom: '16px',
     },
   },
   history: {
     width: '100%',
     padding: '0 16px',
+  },
+  headerBottom: {
+    height: '2px',
+    width: '100%',
+    margin: 'auto',
+    backgroundColor: '#e0e0e0',
+    marginTop: '24px',
+  },
+  root: {
+    margin: 'auto',
   },
 }));
 
@@ -72,6 +84,8 @@ const GetRun = () => {
   const [accountState, setAccountState] = useState(null);
 
   useEffect(() => {
+    if (!walletP) return () => {};
+
     let cancelled = false;
     const refreshAccountState = async () => {
       const newAccountState = await E(walletP).getAccountState();
@@ -83,7 +97,7 @@ const GetRun = () => {
     refreshAccountState();
 
     return () => (cancelled = true);
-  }, [purses]);
+  }, [purses, walletP]);
 
   const {
     CollateralPrice: { value: collateralPrice = undefined },
@@ -103,31 +117,47 @@ const GetRun = () => {
 
   return (
     <div className={classes.root}>
-      <div className={classes.container}>
-        <div className={classes.infoColumn}>
-          <div className={classes.item}>
-            <MarketDetails
+      <div className={classes.header}>
+        <Typography variant="h3">Get RUN</Typography>
+        <Typography>
+          Stake BLD, borrow RUN, automatically pay it back with your staking
+          rewards.
+        </Typography>
+        <div className={classes.headerBottom}></div>
+      </div>
+      <div className={classes.body}>
+        <div className={classes.container}>
+          <div className={classes.infoColumn}>
+            <div className={classes.item}>
+              <MarketDetails
+                brandToInfo={brandToInfo}
+                collateralPrice={collateralPrice}
+                collateralizationRatio={collateralizationRatio}
+              />
+            </div>
+            <div className={classes.item}>
+              <MyGetRun
+                brandToInfo={brandToInfo}
+                accountState={accountState}
+                collateralPrice={collateralPrice}
+                collateralizationRatio={collateralizationRatio}
+                getRun={getRun}
+              />
+            </div>
+          </div>
+          <div className={classes.adjust}>
+            <Adjust
+              brand={bldBrand}
+              debtBrand={runBrand}
+              purses={purses}
               brandToInfo={brandToInfo}
-              collateralPrice={collateralPrice}
-              collateralizationRatio={collateralizationRatio}
+              accountState={accountState}
             />
           </div>
-          <div className={classes.item}>
-            <MyGetRun brandToInfo={brandToInfo} />
-          </div>
         </div>
-        <div className={classes.adjust}>
-          <Adjust
-            brand={bldBrand}
-            debtBrand={runBrand}
-            purses={purses}
-            brandToInfo={brandToInfo}
-            accountState={accountState}
-          />
+        <div className={classes.history}>
+          <History history={getRunHistory} brandToInfo={brandToInfo} />
         </div>
-      </div>
-      <div className={classes.history}>
-        <History history={getRunHistory} brandToInfo={brandToInfo} />
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { makeStyles } from '@material-ui/core/styles';
+import { makeRatio, floorMultiplyBy } from '@agoric/zoe/src/contractSupport';
 
 import { NameValueTable, makeRow } from './NameValueTable';
 import { makeDisplayFunctions } from '../helpers';
@@ -17,7 +18,6 @@ const useStyles = makeStyles(theme => ({
     lineHeight: '27px',
     padding: theme.spacing(4),
     minWidth: 360,
-    height: 228,
   },
   title: {
     fontSize: '22px',
@@ -37,27 +37,38 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const MyGetRun = ({
-  lockedBld,
-  outstandingDebt,
-  maxDebt,
-  runPercent,
   brandToInfo,
+  accountState,
+  collateralPrice,
+  collateralizationRatio,
+  getRun,
 }) => {
-  const { displayRatio, displayPercent } = makeDisplayFunctions(brandToInfo);
+  const { displayAmount } = makeDisplayFunctions(brandToInfo);
   const classes = useStyles();
 
+  const borrowLimit =
+    collateralPrice &&
+    collateralizationRatio &&
+    accountState &&
+    floorMultiplyBy(
+      accountState.bonded,
+      makeRatio(
+        collateralPrice.denominator.value *
+          collateralizationRatio.denominator.value,
+        collateralPrice.numerator.brand,
+        collateralPrice.numerator.value *
+          collateralizationRatio.numerator.value,
+        collateralPrice.denominator.brand,
+      ),
+    );
+
   const rows =
-    lockedBld && outstandingDebt
+    borrowLimit && accountState && getRun
       ? [
-          makeRow('Locked', `${displayRatio(lockedBld)} BLD`),
-          makeRow(
-            'Debt',
-            `${displayRatio(outstandingDebt)} / ${displayRatio(maxDebt)} RUN`,
-          ),
-          makeRow(
-            'RUN Percent',
-            `${runPercent ? displayPercent(runPercent) : '-'}%`,
-          ),
+          makeRow('Locked', `${displayAmount(accountState.locked)} BLD`),
+          makeRow('Debt', '0.00 RUN'),
+          makeRow('Staked', `${displayAmount(accountState.bonded)} BLD`),
+          makeRow('Debt Limit', `${displayAmount(borrowLimit)} RUN`),
         ]
       : [];
 
@@ -71,7 +82,7 @@ const MyGetRun = ({
 
   return (
     <Paper className={classes.root} elevation={4}>
-      <Typography className={classes.title}>My RUN</Typography>
+      <Typography className={classes.title}>My Wallet</Typography>
       <hr className={classes.break} />
       {values}
     </Paper>
