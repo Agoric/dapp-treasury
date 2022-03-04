@@ -86,8 +86,8 @@ const ConfirmOfferTable = ({
       <Table className={classes.table} size="small">
         <TableHead>
           <TableRow className={[classes.rowHeader, classes.row].join(' ')}>
-            <TableCell>Locked</TableCell>
-            <TableCell>Debt</TableCell>
+            <TableCell>Liened</TableCell>
+            <TableCell>Borrowed</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>

@@ -16,8 +16,8 @@ import ApproveOfferSB from '../ApproveOfferSB';
 import ConfirmOfferTable from './ConfirmOfferTable';
 import GetStarted from './GetStarted';
 import NatPurseAmountInput from '../vault/VaultManagement/NatPurseAmountInput';
-import { icons, defaultIcon } from '../../utils/icons';
-import { makeDisplayFunctions, getPurseDecimalPlaces } from '../helpers';
+// import { icons, defaultIcon } from '../../utils/icons';
+import { /* makeDisplayFunctions, */ getPurseDecimalPlaces } from '../helpers';
 
 const NatAmountInput = makeNatAmountInput({ React, TextField });
 
@@ -31,7 +31,6 @@ const useStyles = makeStyles(theme => ({
     lineHeight: '27px',
     padding: theme.spacing(4),
     paddingTop: theme.spacing(2),
-    height: theme.spacing(70),
     width: '100%',
   },
   settingsToolbar: {
@@ -129,11 +128,12 @@ const useStyles = makeStyles(theme => ({
     position: 'absolute',
     background: '#fff',
     fontSize: 12,
+    color: 'rgba(0,0,0,0.9)',
     lineHeight: '12px',
     marginTop: '-14px',
     marginLeft: '4px',
-    padding: '0 4px',
-    fontWeight: 400,
+    padding: '0 2px',
+    fontWeight: 300,
   },
 }));
 
@@ -163,7 +163,7 @@ const Adjust = ({
   const [currentTab, setCurrentTab] = useState(0);
   const [openApproveOfferSB, setOpenApproveOfferSB] = useState(false);
 
-  const { displayAmount } = makeDisplayFunctions(brandToInfo);
+  // const { displayAmount } = makeDisplayFunctions(brandToInfo);
 
   const hasLockedBld = locked?.numerator?.value > 0;
 
@@ -221,14 +221,9 @@ const Adjust = ({
     setDebtDelta(newDebtDelta);
   };
 
-  const adjustCollateral = (
-    <Grid item className={classes.step}>
-      <Typography variant="h6" className={classes.stepTitle}>
-        {collateralAction === 'lock' ? 'Lock BLD' : 'Unlock BLD'}
-      </Typography>
-      <div className={classes.collateralForm}>
-        <div className={classes.bldPurseSelector}>
-          <div className={classes.bldPurseLabel}>Purse</div>
+  /*
+          <div className={classes.bldPurseSelector}>
+          <div className={classes.bldPurseLabel}>Asset</div>
           <img
             className={classes.bldPurseIcon}
             alt="icon"
@@ -237,14 +232,20 @@ const Adjust = ({
             width="40px"
           />
           <div className={classes.bldBalance}>
-            <div className={classes.bldPurse}>
-              {bldStakingPurse.pursePetname}
-            </div>
+            <div className={classes.bldPurse}>BLD</div>
             <div className={classes.stakedAmount}>
               {displayAmount(accountState.bonded)} staked
             </div>
           </div>
         </div>
+        */
+
+  const adjustCollateral = (
+    <Grid item className={classes.step}>
+      <Typography variant="h6" className={classes.stepTitle}>
+        {collateralAction === 'lock' ? 'Lien BLD' : 'Unlien BLD'}
+      </Typography>
+      <div className={classes.collateralForm}>
         <NatAmountInput
           label="Amount"
           onChange={handleCollateralAmountChange}
@@ -259,7 +260,7 @@ const Adjust = ({
   const adjustDebt = (
     <Grid item className={classes.step}>
       <Typography variant="h6" className={classes.stepTitle}>
-        {debtAction === 'borrow' ? 'Borrow RUN' : 'Repay RUN Debt'}
+        {debtAction === 'borrow' ? 'Borrow RUN' : 'Repay RUN'}
       </Typography>
       <NatPurseAmountInput
         purses={purses}
@@ -339,7 +340,7 @@ const Adjust = ({
           >
             <Grid item>
               <ConfirmOfferTable
-                locked={locked}
+                locked={accountState.liened}
                 borrowed={borrowed}
                 lockedDelta={lockedDelta}
                 debtDelta={debtDelta}

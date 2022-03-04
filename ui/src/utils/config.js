@@ -21,16 +21,32 @@ export async function refreshConfigFromWallet(walletP, useGetRUN = false) {
   const [method, args] = dappConfig.ON_CHAIN_CONFIG;
   if (useGetRUN) {
     const [getRunMethod, getRunArgs] = dappConfig.GET_RUN_ON_CHAIN_CONFIG;
-    console.log('have methods', method, getRunMethod, 'args', args, getRunArgs);
-    const [overrideConfig, getRunInstance] = await Promise.all([
+    const [
+      getRunInstallationMethod,
+      getRunInstallationArgs,
+    ] = dappConfig.GET_RUN_INSTALLATION_ON_CHAIN_CONFIG;
+
+    const [
+      overrideConfig,
+      getRunInstance,
+      getRunInstallation,
+    ] = await Promise.all([
       E(walletP)[method](...args),
       E(walletP)[getRunMethod](...getRunArgs),
+      E(walletP)[getRunInstallationMethod](...getRunInstallationArgs),
     ]);
     console.log('overriding with', {
+      ...dappConfig,
       ...overrideConfig,
       getRunInstance,
+      getRunInstallation,
     });
-    dappConfig = { ...dappConfig, ...overrideConfig, getRunInstance };
+    dappConfig = {
+      ...dappConfig,
+      ...overrideConfig,
+      getRunInstance,
+      getRunInstallation,
+    };
   } else {
     console.log('have methods', method, 'args', args);
     const overrideConfig = await E(walletP)[method](...args);

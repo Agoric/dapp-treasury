@@ -166,12 +166,22 @@ const setupAMM = async (dispatch, brandToInfo, zoe, board, instanceID) => {
   });
 };
 
-const setupGetRun = async (dispatch, instance, zoe, brandToInfo) => {
+const watchLoanInvitationOffers = async (dispatch, instanceBoardId) => {};
+
+const setupGetRun = async (
+  dispatch,
+  instance,
+  installation,
+  board,
+  zoe,
+  GET_RUN_NAME,
+) => {
   const [getRunApi, getRunTerms] = await Promise.all([
     E(zoe).getPublicFacet(instance),
     E(zoe).getTerms(instance),
   ]);
 
+  // Get brands.
   const brands = [
     getRunTerms.brands.BldLienAtt,
     getRunTerms.brands.RUN,
@@ -196,8 +206,24 @@ const setupGetRun = async (dispatch, instance, zoe, brandToInfo) => {
     ];
     return entry;
   });
-
   dispatch(mergeBrandToInfo(newBrandToInfo));
+
+  // Suggest instance/installation
+  const [instanceBoardId, installationBoardId] = await Promise.all([
+    E(board).getId(instance),
+    E(board).getId(installation),
+  ]);
+  await Promise.all([
+    E(walletP).suggestInstallation(
+      `${GET_RUN_NAME}Installation`,
+      installationBoardId,
+    ),
+    E(walletP).suggestInstance(`${GET_RUN_NAME}Instance`, instanceBoardId),
+  ]);
+
+  // Watch for loan invitations.
+  watchLoanInvitationOffers(dispatch, instanceBoardId);
+
   // TODO: Get notifier for governedParams.
   dispatch(setGetRun({ getRunApi, getRunTerms }));
 };
@@ -229,7 +255,9 @@ export default function Provider({ children }) {
       AMM_INSTALLATION_BOARD_ID,
       AMM_INSTANCE_BOARD_ID,
       AMM_NAME,
+      GET_RUN_NAME,
       getRunInstance,
+      getRunInstallation,
     } = dappConfig;
     const zoe = E(walletP).getZoe();
     const board = E(walletP).getBoard();
@@ -238,7 +266,14 @@ export default function Provider({ children }) {
         await Promise.all([
           setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID),
           setupAMM(dispatch, brandToInfo, zoe, board, AMM_INSTANCE_BOARD_ID),
-          setupGetRun(dispatch, getRunInstance, zoe, brandToInfo),
+          setupGetRun(
+            dispatch,
+            getRunInstance,
+            getRunInstallation,
+            board,
+            zoe,
+            GET_RUN_NAME,
+          ),
         ]);
       } else {
         await Promise.all([

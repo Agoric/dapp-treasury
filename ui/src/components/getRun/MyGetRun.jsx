@@ -53,10 +53,10 @@ const MyGetRun = ({
     floorMultiplyBy(
       accountState.bonded,
       makeRatio(
-        collateralPrice.denominator.value *
+        collateralPrice.numerator.value *
           collateralizationRatio.denominator.value,
         collateralPrice.numerator.brand,
-        collateralPrice.numerator.value *
+        collateralPrice.denominator.value *
           collateralizationRatio.numerator.value,
         collateralPrice.denominator.brand,
       ),
@@ -65,10 +65,10 @@ const MyGetRun = ({
   const rows =
     borrowLimit && accountState && getRun
       ? [
-          makeRow('Locked', `${displayAmount(accountState.locked)} BLD`),
-          makeRow('Debt', '0.00 RUN'),
+          makeRow('Liened', `${displayAmount(accountState.liened)} BLD`),
+          makeRow('Borrowed', '0.00 RUN'),
           makeRow('Staked', `${displayAmount(accountState.bonded)} BLD`),
-          makeRow('Debt Limit', `${displayAmount(borrowLimit)} RUN`),
+          makeRow('Borrow Limit', `${displayAmount(borrowLimit)} RUN`),
         ]
       : [];
 

@@ -48,20 +48,18 @@ const MarketDetails = ({
     collateralPrice &&
     collateralizationRatio &&
     makeRatio(
-      collateralPrice.denominator.value *
+      collateralPrice.numerator.value *
         collateralizationRatio.denominator.value,
       collateralPrice.numerator.brand,
-      collateralPrice.numerator.value * collateralizationRatio.numerator.value,
+      collateralPrice.denominator.value *
+        collateralizationRatio.numerator.value,
       collateralPrice.denominator.brand,
     );
 
   const rows =
     collateralPrice && collateralizationRatio
       ? [
-          makeRow(
-            'BLD Price',
-            `${displayRatio(invertRatio(collateralPrice))} RUN`,
-          ),
+          makeRow('BLD Price', `${displayRatio(collateralPrice)} RUN`),
           makeRow(
             'Min BLD:RUN Ratio',
             `${displayPercent(collateralizationRatio)}%`,
