@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from 'react';
 
 import { AmountMath } from '@agoric/ertp';
@@ -9,19 +8,18 @@ import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import SendIcon from '@material-ui/icons/Send';
-import { makeRatio } from '@agoric/zoe/src/contractSupport';
-import { Grid } from '@material-ui/core';
+import { Grid, TextField } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import { filterPurses } from '@agoric/ui-components';
-import TextField from '@material-ui/core/TextField';
+import { makeNatAmountInput, filterPurses } from '@agoric/ui-components';
 
 import ApproveOfferSB from '../ApproveOfferSB';
 import ConfirmOfferTable from './ConfirmOfferTable';
 import GetStarted from './GetStarted';
 import NatPurseAmountInput from '../vault/VaultManagement/NatPurseAmountInput';
-import { adjust } from '../../runLoCStub';
 import { icons, defaultIcon } from '../../utils/icons';
-import { makeDisplayFunctions } from '../helpers';
+import { makeDisplayFunctions, getPurseDecimalPlaces } from '../helpers';
+
+const NatAmountInput = makeNatAmountInput({ React, TextField });
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -33,7 +31,8 @@ const useStyles = makeStyles(theme => ({
     lineHeight: '27px',
     padding: theme.spacing(4),
     paddingTop: theme.spacing(2),
-    height: '100%',
+    height: theme.spacing(70),
+    width: '100%',
   },
   settingsToolbar: {
     minHeight: '48px',
@@ -106,6 +105,7 @@ const useStyles = makeStyles(theme => ({
     width: 'fit-content',
     boxSizing: 'border-box',
     marginRight: 8,
+    marginBottom: 16,
   },
   bldPurseIcon: {
     marginRight: 8,
@@ -124,10 +124,7 @@ const useStyles = makeStyles(theme => ({
     fontSize: 14,
     lineHeight: '16px',
   },
-  collateralForm: {
-    display: 'flex',
-    flexDirection: 'row',
-  },
+  collateralForm: {},
   bldPurseLabel: {
     position: 'absolute',
     background: '#fff',
@@ -151,6 +148,9 @@ const Adjust = ({
   runPercent,
   marketPrice,
   accountState,
+  walletP,
+  lienBrand,
+  getRun,
 }) => {
   const classes = useStyles();
 
@@ -191,9 +191,7 @@ const Adjust = ({
     return (
       <div>
         <Paper elevation={3} className={classes.root}>
-          <Grid container>
-            <GetStarted />
-          </Grid>
+          <GetStarted />
         </Paper>
       </div>
     );
@@ -206,6 +204,8 @@ const Adjust = ({
       </Paper>
     );
   }
+  locked = AmountMath.makeEmpty(brand);
+  borrowed = AmountMath.makeEmpty(debtBrand);
 
   const bldPurses = filterPurses(purses, brand);
   // TODO: find a better way to identify the staking purse.
@@ -245,12 +245,12 @@ const Adjust = ({
             </div>
           </div>
         </div>
-        <TextField
+        <NatAmountInput
           label="Amount"
-          variant="outlined"
-          inputProps={{
-            'aria-label': '13 stakedunlocked',
-          }}
+          onChange={handleCollateralAmountChange}
+          value={lockedDelta && lockedDelta.value}
+          decimalPlaces={getPurseDecimalPlaces(bldStakingPurse)}
+          placesToShow={2}
         />
       </div>
     </Grid>
@@ -278,27 +278,37 @@ const Adjust = ({
     setLockedDelta(null);
     setOpenApproveOfferSB(true);
 
-    const [displayInfo, debtDisplayInfo] = await Promise.all([
-      E(brand).getDisplayInfo(),
-      E(debtBrand).getDisplayInfo(),
-    ]);
-
-    const collateralAmount =
-      (lockedDelta ?? AmountMath.makeEmpty(brand)).value /
-      10n ** BigInt(displayInfo.decimalPlaces - 2);
-    const adjustCollateralRatio = brand && makeRatio(collateralAmount, brand);
-
-    const debtAmount =
-      (debtDelta ?? AmountMath.makeEmpty(debtBrand)).value /
-      10n ** BigInt(debtDisplayInfo.decimalPlaces - 2);
-    const adjustDebtRatio = debtBrand && makeRatio(debtAmount, debtBrand);
-
-    adjust(
-      adjustCollateralRatio,
-      adjustDebtRatio,
-      collateralAction,
-      debtAction,
+    const id = `${Date.now()}`;
+    const invitation = E(getRun.getRunApi).makeLoanInvitation();
+    const collateralAmount = AmountMath.make(
+      lienBrand,
+      lockedDelta?.value ?? 0n,
     );
+    const debtAmount = AmountMath.make(debtBrand, debtDelta?.value ?? 0n);
+
+    const offerConfig = {
+      id,
+      invitation,
+      proposalTemplate: {
+        give: {
+          Attestation: {
+            value: collateralAmount.value,
+            pursePetname: bldStakingPurse.pursePetname,
+            brand: lienBrand,
+          },
+        },
+        want: {
+          RUN: {
+            pursePetname: runPurseSelected.pursePetname,
+            value: debtAmount.value,
+          },
+        },
+      },
+    };
+
+    console.log('OFFER CONFIG', offerConfig);
+
+    E(walletP).addOffer(offerConfig);
   };
 
   return (
@@ -318,44 +328,42 @@ const Adjust = ({
           {adjustCollateral}
           {adjustDebt}
         </Grid>
-        {locked && borrowed && (lockedDelta || debtDelta) && (
-          <div className={classes.confirm}>
-            <hr className={classes.break} />
-            <Grid
-              container
-              spacing={1}
-              className={classes.buttons}
-              justify="space-evenly"
-              alignItems="center"
-            >
-              <Grid item>
-                <ConfirmOfferTable
-                  locked={locked}
-                  borrowed={borrowed}
-                  lockedDelta={lockedDelta}
-                  debtDelta={debtDelta}
-                  brandToInfo={brandToInfo}
-                  collateralization={collateralization}
-                  collateralAction={collateralAction}
-                  debtAction={debtAction}
-                  runPercent={runPercent}
-                  marketPrice={marketPrice}
-                />
-              </Grid>
-              <Grid item>
-                <Button
-                  onClick={() => makeOffer()}
-                  className={classes.button}
-                  variant="contained"
-                  color="primary"
-                  startIcon={<SendIcon />}
-                >
-                  Make Offer
-                </Button>
-              </Grid>
+        <div className={classes.confirm}>
+          <hr className={classes.break} />
+          <Grid
+            container
+            spacing={1}
+            className={classes.buttons}
+            justify="space-evenly"
+            alignItems="center"
+          >
+            <Grid item>
+              <ConfirmOfferTable
+                locked={locked}
+                borrowed={borrowed}
+                lockedDelta={lockedDelta}
+                debtDelta={debtDelta}
+                brandToInfo={brandToInfo}
+                collateralization={collateralization}
+                collateralAction={collateralAction}
+                debtAction={debtAction}
+                runPercent={runPercent}
+                marketPrice={marketPrice}
+              />
             </Grid>
-          </div>
-        )}
+            <Grid item>
+              <Button
+                onClick={() => makeOffer()}
+                className={classes.button}
+                variant="contained"
+                color="primary"
+                startIcon={<SendIcon />}
+              >
+                Make Offer
+              </Button>
+            </Grid>
+          </Grid>
+        </div>
       </Paper>
       <ApproveOfferSB
         open={openApproveOfferSB}

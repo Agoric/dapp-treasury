@@ -108,7 +108,7 @@ const GetRun = () => {
   };
 
   const {
-    // BldLienAtt: lienBrand = undefined,
+    BldLienAtt: lienBrand = undefined,
     RUN: runBrand = undefined,
     Stake: bldBrand = undefined,
   } = getRun?.getRunTerms?.brands ?? {};
@@ -152,6 +152,9 @@ const GetRun = () => {
               purses={purses}
               brandToInfo={brandToInfo}
               accountState={accountState}
+              walletP={walletP}
+              lienBrand={lienBrand}
+              getRun={getRun}
             />
           </div>
         </div>

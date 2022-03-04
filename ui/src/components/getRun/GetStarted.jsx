@@ -1,5 +1,4 @@
 import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -7,10 +6,10 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    flexDirection: 'row',
-    width: '100%',
-    height: theme.spacing(45),
+    flexDirection: 'column',
+    width: theme.spacing(64),
     margin: 'auto',
+    height: '100%',
   },
   graphicContainer: {
     [theme.breakpoints.down('sm')]: {
@@ -30,7 +29,7 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    padding: theme.spacing(5),
+    fontSize: '20px',
     '& > *': {
       marginBottom: theme.spacing(2),
     },
@@ -54,8 +53,7 @@ const GetStarted = ({ onGetStarted }) => {
     </>
   ) : (
     <>
-      <div>Loading chain data</div>
-      <CircularProgress />
+      <div>Loading chain data...</div>
     </>
   );
 
