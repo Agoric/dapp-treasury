@@ -1,10 +1,9 @@
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
-import CircularProgress from '@material-ui/core/CircularProgress';
 import { makeStyles } from '@material-ui/core/styles';
 import { makeRatio, floorMultiplyBy } from '@agoric/zoe/src/contractSupport';
-
+import { AmountMath } from '@agoric/ertp';
 import { NameValueTable, makeRow } from './NameValueTable';
 import { makeDisplayFunctions } from '../helpers';
 
@@ -42,6 +41,7 @@ const MyGetRun = ({
   collateralPrice,
   collateralizationRatio,
   getRun,
+  loan,
 }) => {
   const { displayAmount } = makeDisplayFunctions(brandToInfo);
   const classes = useStyles();
@@ -63,19 +63,22 @@ const MyGetRun = ({
     );
 
   const rows =
-    borrowLimit && accountState && getRun
+    borrowLimit && accountState && getRun && loan
       ? [
           makeRow('Liened', `${displayAmount(accountState.liened)} BLD`),
-          makeRow('Borrowed', '0.00 RUN'),
+          makeRow(
+            'Borrowed',
+            `${displayAmount(
+              loan?.data?.debt ?? AmountMath.makeEmpty(borrowLimit.brand),
+            )} RUN`,
+          ),
           makeRow('Staked', `${displayAmount(accountState.bonded)} BLD`),
           makeRow('Borrow Limit', `${displayAmount(borrowLimit)} RUN`),
         ]
       : [];
 
   const values = !rows.length ? (
-    <div className={classes.loadingPlaceholder}>
-      <CircularProgress />
-    </div>
+    <NameValueTable rowsToLoad={4} />
   ) : (
     <NameValueTable rows={rows} />
   );

@@ -1,20 +1,18 @@
 import Button from '@material-ui/core/Button';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import { makeStyles } from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({
   getStarted: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     flexDirection: 'column',
-    width: theme.spacing(64),
     margin: 'auto',
-    height: '100%',
+    height: '450px',
+    overflow: 'hidden',
   },
   graphicContainer: {
-    [theme.breakpoints.down('sm')]: {
-      display: 'none',
-    },
     height: theme.spacing(45),
     width: theme.spacing(45),
   },
@@ -36,26 +34,35 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const GetStarted = ({ onGetStarted }) => {
+const GetStarted = ({ onGetStarted, pendingApproval }) => {
+  console.log('pending approval', pendingApproval);
   const classes = useStyles();
 
-  const message = onGetStarted ? (
-    <>
-      <div>No BLD locked</div>
-      <Button
-        onClick={() => onGetStarted()}
-        className={classes.button}
-        variant="contained"
-        color="primary"
-      >
-        Get Started
-      </Button>
-    </>
-  ) : (
-    <>
-      <div>Loading chain data...</div>
-    </>
-  );
+  const message =
+    onGetStarted && !pendingApproval ? (
+      <>
+        <div>No loans open</div>
+        <Button
+          onClick={() => onGetStarted()}
+          className={classes.button}
+          variant="contained"
+          color="primary"
+        >
+          Get Started
+        </Button>
+      </>
+    ) : (
+      <>
+        {pendingApproval ? (
+          <div>Pending wallet approval</div>
+        ) : (
+          <>
+            <div>Fetching loan data</div>
+            <CircularProgress />
+          </>
+        )}
+      </>
+    );
 
   return (
     <div className={classes.getStarted}>

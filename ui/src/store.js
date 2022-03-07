@@ -24,6 +24,7 @@ export const initial = {
   vaultToManageId: /** @type {string | null} */ (null),
   useGetRUN: false,
   getRun: /** @type { GetRunState | null } */ (null),
+  loan: /** @type { unknown | null } */ (null),
   loadTreasuryError: /** @type {string | null} */ null,
 };
 
@@ -52,6 +53,7 @@ export const initial = {
  *    updateVault: (v: { id: string, vault: VaultData }) => TreasuryReducer,
  *    resetVault: () => TreasuryReducer,
  *    initVaults: () => TreasuryReducer,
+ *    setLoan: (payload: typeof initial.loan) => TreasuryReducer,
  *    setAutoswap: (payload: typeof initial.autoswap) => TreasuryReducer,
  *    setGetRun: (payload: typeof initial.getRun) => TreasuryReducer,
  *    setUseGetRUN: (payload: boolean) => TreasuryReducer,
@@ -86,6 +88,7 @@ export const {
     setUseGetRUN,
     setLoadTreasuryError,
     setWalletP,
+    setLoan,
   },
   // @ts-ignore tsc can't tell that autodux is callable
 } = autodux({

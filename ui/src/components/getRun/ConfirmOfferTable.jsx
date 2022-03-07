@@ -96,8 +96,10 @@ const ConfirmOfferTable = ({
               {displayAmount(locked)} -&gt;{' '}
               <span
                 className={
-                  displayAmount(newLocked) !== displayAmount(locked) &&
-                  classes.new
+                  displayAmount(newLocked) !== displayAmount(locked) ||
+                  newLockedSignum === '-'
+                    ? classes.new
+                    : ''
                 }
               >
                 {newLockedSignum}
@@ -108,8 +110,10 @@ const ConfirmOfferTable = ({
               {displayAmount(borrowed)} -&gt;{' '}
               <span
                 className={
-                  displayAmount(newBorrowed) !== displayAmount(borrowed) &&
-                  classes.new
+                  displayAmount(newBorrowed) !== displayAmount(borrowed) ||
+                  newBorrowedSignum === '-'
+                    ? classes.new
+                    : ''
                 }
               >
                 {newBorrowedSignum}

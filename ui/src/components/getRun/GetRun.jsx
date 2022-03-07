@@ -37,7 +37,7 @@ const useStyles = makeStyles(theme => ({
   infoColumn: {
     display: 'flex',
     flexDirection: 'column',
-    flexGrow: 2,
+    flexGrow: 1,
   },
   header: {
     maxWidth: '1560px',
@@ -75,7 +75,8 @@ const useStyles = makeStyles(theme => ({
 const GetRun = () => {
   const classes = useStyles();
   const {
-    state: { brandToInfo, purses, getRunHistory, getRun },
+    state: { brandToInfo, purses, getRunHistory, getRun, loan },
+    dispatch,
     walletP,
   } = useApplicationContext();
   /* const [totalLocked, setTotalLocked] = useState(0n);
@@ -142,6 +143,7 @@ const GetRun = () => {
                 collateralPrice={collateralPrice}
                 collateralizationRatio={collateralizationRatio}
                 getRun={getRun}
+                loan={loan}
               />
             </div>
           </div>
@@ -155,6 +157,8 @@ const GetRun = () => {
               walletP={walletP}
               lienBrand={lienBrand}
               getRun={getRun}
+              loan={loan}
+              dispatch={dispatch}
             />
           </div>
         </div>

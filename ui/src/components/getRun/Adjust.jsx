@@ -18,6 +18,7 @@ import GetStarted from './GetStarted';
 import NatPurseAmountInput from '../vault/VaultManagement/NatPurseAmountInput';
 // import { icons, defaultIcon } from '../../utils/icons';
 import { /* makeDisplayFunctions, */ getPurseDecimalPlaces } from '../helpers';
+import { setLoan } from '../../store';
 
 const NatAmountInput = makeNatAmountInput({ React, TextField });
 
@@ -142,8 +143,6 @@ const Adjust = ({
   brandToInfo,
   brand,
   debtBrand,
-  locked,
-  borrowed,
   collateralization,
   runPercent,
   marketPrice,
@@ -151,7 +150,10 @@ const Adjust = ({
   walletP,
   lienBrand,
   getRun,
+  loan,
+  dispatch,
 }) => {
+  console.log('HAVE LOAN', loan);
   const classes = useStyles();
 
   const [runPurseSelected, setRunPurseSelected] = useState(null);
@@ -164,8 +166,6 @@ const Adjust = ({
   const [openApproveOfferSB, setOpenApproveOfferSB] = useState(false);
 
   // const { displayAmount } = makeDisplayFunctions(brandToInfo);
-
-  const hasLockedBld = locked?.numerator?.value > 0;
 
   const handleTabChange = (_, newTab) => {
     setCurrentTab(newTab);
@@ -187,7 +187,7 @@ const Adjust = ({
     }
   }, [currentTab]);
 
-  if (!purses || !brand || !debtBrand || !accountState) {
+  if (!purses || !brand || !debtBrand || !accountState || !loan) {
     return (
       <div>
         <Paper elevation={3} className={classes.root}>
@@ -197,15 +197,23 @@ const Adjust = ({
     );
   }
 
-  if (!hasLockedBld && !getStartedClicked) {
+  const isLoanInProgress = ['proposed', 'pending', 'complete'].includes(
+    loan?.status,
+  );
+
+  const isLoanOpen = loan?.status === 'accept';
+
+  if ((!isLoanOpen && !getStartedClicked) || isLoanInProgress) {
+    console.log(getStartedClicked, loan?.status, loan);
     return (
       <Paper elevation={3} className={classes.root}>
-        <GetStarted onGetStarted={() => setGetStartedClicked(true)} />
+        <GetStarted
+          pendingApproval={isLoanInProgress}
+          onGetStarted={() => setGetStartedClicked(true)}
+        />
       </Paper>
     );
   }
-  locked = AmountMath.makeEmpty(brand);
-  borrowed = AmountMath.makeEmpty(debtBrand);
 
   const bldPurses = filterPurses(purses, brand);
   // TODO: find a better way to identify the staking purse.
@@ -290,6 +298,8 @@ const Adjust = ({
     const offerConfig = {
       id,
       invitation,
+      installationHandleBoardId: getRun.installationBoardId,
+      instanceHandleBoardId: getRun.instanceBoardId,
       proposalTemplate: {
         give: {
           Attestation: {
@@ -309,6 +319,8 @@ const Adjust = ({
 
     console.log('OFFER CONFIG', offerConfig);
 
+    // Eagerly set loan as pending wallet approval.
+    dispatch(setLoan({ id, status: 'proposed' }));
     E(walletP).addOffer(offerConfig);
   };
 
@@ -341,7 +353,7 @@ const Adjust = ({
             <Grid item>
               <ConfirmOfferTable
                 locked={accountState.liened}
-                borrowed={borrowed}
+                borrowed={loan?.data?.debt ?? AmountMath.makeEmpty(debtBrand)}
                 lockedDelta={lockedDelta}
                 debtDelta={debtDelta}
                 brandToInfo={brandToInfo}

@@ -22,6 +22,7 @@ import {
   mergeBrandToInfo,
   setUseGetRUN,
   setLoadTreasuryError,
+  setLoan,
 } from '../store';
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
 import WalletConnection from '../components/WalletConnection';
@@ -166,7 +167,74 @@ const setupAMM = async (dispatch, brandToInfo, zoe, board, instanceID) => {
   });
 };
 
-const watchLoanInvitationOffers = async (dispatch, instanceBoardId) => {};
+function watchLoan(status, id, dispatch) {
+  if (status === undefined) status = 'proposed';
+  console.log('loan watched', id, status);
+
+  // If the loan is active, don't show it until we get its data.
+  if (status !== 'accept') {
+    dispatch(setLoan({ status }));
+  }
+
+  async function loanUpdater() {
+    const uiNotifier = E(walletP).getUINotifier(id);
+    for await (const value of iterateNotifier(uiNotifier)) {
+      console.log('======== LOAN', id, value);
+      dispatch(setLoan({ id, status, data: value }));
+    }
+  }
+
+  loanUpdater().catch(err => {
+    console.error('Loan watcher exception', id, err);
+    dispatch(updateVault({ id, status: 'Error in offer', error: err }));
+  });
+}
+
+const watchLoans = async (dispatch, instanceBoardId) => {
+  console.log('WATCHING LOANS ------');
+  async function offersUpdater() {
+    const offerNotifier = E(walletP).getOffersNotifier();
+    for await (const offers of iterateNotifier(offerNotifier)) {
+      console.log('GOT OFFERS FOR ', instanceBoardId);
+      let hasLoan = false;
+      for (const {
+        id,
+        instanceHandleBoardId,
+        continuingInvitation,
+        status,
+      } of offers) {
+        if (
+          instanceHandleBoardId === instanceBoardId &&
+          continuingInvitation === undefined // AdjustBalances and CloseVault offers use continuingInvitation
+        ) {
+          console.log('FOUND LOAN: ', {
+            id,
+            instanceBoardId,
+            continuingInvitation,
+            status,
+          });
+
+          if (
+            status === 'accept' ||
+            status === 'complete' ||
+            status === 'pending' ||
+            status === undefined
+          ) {
+            hasLoan = true;
+            watchLoan(status, id, dispatch);
+            break;
+          }
+        }
+      }
+      if (!hasLoan) {
+        dispatch(setLoan({}));
+      }
+    }
+  }
+  offersUpdater().catch(err =>
+    console.error('GetRUN offers watcher exception', err),
+  );
+};
 
 const setupGetRun = async (
   dispatch,
@@ -222,10 +290,12 @@ const setupGetRun = async (
   ]);
 
   // Watch for loan invitations.
-  watchLoanInvitationOffers(dispatch, instanceBoardId);
+  watchLoans(dispatch, instanceBoardId);
 
   // TODO: Get notifier for governedParams.
-  dispatch(setGetRun({ getRunApi, getRunTerms }));
+  dispatch(
+    setGetRun({ getRunApi, getRunTerms, instanceBoardId, installationBoardId }),
+  );
 };
 
 const watchGetRun = dispatch => {

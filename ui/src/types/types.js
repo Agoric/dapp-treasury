@@ -105,5 +105,8 @@
  * @typedef {{
  *   getRunApi: unknown,
  *   getRunTerms: unknown
+ *   loanData: unknown,
+ *   instanceBoardId: string,
+ *   installationBoardId: string,
  * }} GetRunState
  */

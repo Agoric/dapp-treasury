@@ -2,9 +2,8 @@
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
-import CircularProgress from '@material-ui/core/CircularProgress';
 import { makeStyles } from '@material-ui/core/styles';
-import { makeRatio, invertRatio } from '@agoric/zoe/src/contractSupport';
+import { makeRatio } from '@agoric/zoe/src/contractSupport';
 import { NameValueTable, makeRow } from './NameValueTable';
 import { makeDisplayFunctions } from '../helpers';
 
@@ -69,9 +68,7 @@ const MarketDetails = ({
       : [];
   const values =
     !collateralPrice || !collateralizationRatio ? (
-      <div className={classes.loadingPlaceholder}>
-        <CircularProgress />
-      </div>
+      <NameValueTable rowsToLoad={3} />
     ) : (
       <NameValueTable rows={rows} />
     );

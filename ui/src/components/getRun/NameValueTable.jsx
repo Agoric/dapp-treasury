@@ -5,6 +5,8 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableRow from '@material-ui/core/TableRow';
 import { makeStyles } from '@material-ui/core/styles';
 
+import LoadingShimmer from './LoadingShimmer';
+
 const useStyles = makeStyles(_ => ({
   table: {
     '& > .MuiTableCell-root': {
@@ -28,20 +30,30 @@ export const makeRow = (name, value) => ({
   value,
 });
 
-export const NameValueTable = ({ rows }) => {
+export const NameValueTable = ({ rows, rowsToLoad }) => {
   const classes = useStyles();
 
+  let content;
+  if (rows) {
+    content = rows.map(row => (
+      <TableRow key={row.name} className={classes.row}>
+        <TableCell align="left">{row.name}</TableCell>
+        <TableCell align="right">{row.value}</TableCell>
+      </TableRow>
+    ));
+  } else if (rowsToLoad) {
+    content = [...Array(rowsToLoad).keys()].map(i => (
+      <TableRow key={i} className={classes.row}>
+        <TableCell>
+          <LoadingShimmer />
+        </TableCell>
+      </TableRow>
+    ));
+  }
   return (
     <TableContainer>
       <Table className={classes.table} size="small">
-        <TableBody>
-          {rows.map(row => (
-            <TableRow key={row.name} className={classes.row}>
-              <TableCell align="left">{row.name}</TableCell>
-              <TableCell align="right">{row.value}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
+        <TableBody>{content}</TableBody>
       </Table>
     </TableContainer>
   );
