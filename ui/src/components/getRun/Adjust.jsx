@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from 'react';
 
 import { AmountMath } from '@agoric/ertp';
@@ -151,7 +152,6 @@ const Adjust = ({
   lienBrand,
   getRun,
   loan,
-  dispatch,
 }) => {
   console.log('HAVE LOAN', loan);
   const classes = useStyles();
@@ -204,7 +204,6 @@ const Adjust = ({
   const isLoanOpen = loan?.status === 'accept';
 
   if ((!isLoanOpen && !getStartedClicked) || isLoanInProgress) {
-    console.log(getStartedClicked, loan?.status, loan);
     return (
       <Paper elevation={3} className={classes.root}>
         <GetStarted
@@ -282,12 +281,12 @@ const Adjust = ({
     </Grid>
   );
 
-  const makeOffer = async () => {
+  const makeOffer = () => {
+    const id = `${Date.now()}`;
     setDebtDelta(null);
     setLockedDelta(null);
     setOpenApproveOfferSB(true);
 
-    const id = `${Date.now()}`;
     const invitation = E(getRun.getRunApi).makeLoanInvitation();
     const collateralAmount = AmountMath.make(
       lienBrand,
@@ -305,7 +304,7 @@ const Adjust = ({
           Attestation: {
             value: collateralAmount.value,
             pursePetname: bldStakingPurse.pursePetname,
-            brand: lienBrand,
+            type: 'Attestation',
           },
         },
         want: {
@@ -319,8 +318,6 @@ const Adjust = ({
 
     console.log('OFFER CONFIG', offerConfig);
 
-    // Eagerly set loan as pending wallet approval.
-    dispatch(setLoan({ id, status: 'proposed' }));
     E(walletP).addOffer(offerConfig);
   };
 

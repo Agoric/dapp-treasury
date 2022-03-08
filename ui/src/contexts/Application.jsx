@@ -186,7 +186,7 @@ function watchLoan(status, id, dispatch) {
 
   loanUpdater().catch(err => {
     console.error('Loan watcher exception', id, err);
-    dispatch(updateVault({ id, status: 'Error in offer', error: err }));
+    dispatch(setLoan({ id, status: 'Error in offer', error: err }));
   });
 }
 
