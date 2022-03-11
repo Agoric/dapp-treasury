@@ -281,7 +281,7 @@ const Adjust = ({
     </Grid>
   );
 
-  const makeOffer = () => {
+  const openLoan = () => {
     const id = `${Date.now()}`;
     setDebtDelta(null);
     setLockedDelta(null);
@@ -313,6 +313,70 @@ const Adjust = ({
             value: debtAmount.value,
           },
         },
+      },
+    };
+
+    console.log('OFFER CONFIG', offerConfig);
+
+    E(walletP).addOffer(offerConfig);
+  };
+
+  const makeOffer = async () => {
+    if (!isLoanOpen) {
+      openLoan();
+      return;
+    }
+
+    const id = `${Date.now()}`;
+    setDebtDelta(null);
+    setLockedDelta(null);
+    setOpenApproveOfferSB(true);
+
+    const continuingInvitation = {
+      priorOfferId: loan?.id,
+      description: 'AdjustBalances',
+    };
+
+    const collateralAmount = AmountMath.make(
+      lienBrand,
+      lockedDelta?.value ?? 0n,
+    );
+    const debtAmount = AmountMath.make(debtBrand, debtDelta?.value ?? 0n);
+
+    const RUN = {
+      value: debtAmount.value,
+      pursePetname: runPurseSelected.pursePetname,
+    };
+
+    const give = {};
+    const want = {};
+
+    const Attestation = {
+      value: collateralAmount.value,
+      pursePetname: bldStakingPurse.pursePetname,
+      type: 'Attestation',
+    };
+
+    if (collateralAction === 'lock' && collateralAmount.value > 0n) {
+      give.Attestation = Attestation;
+    } else if (collateralAmount.value > 0n) {
+      want.Attestation = Attestation;
+    }
+
+    if (debtAction === 'borrow' && debtAmount.value > 0n) {
+      want.RUN = RUN;
+    } else if (debtAmount.value > 0n) {
+      give.RUN = RUN;
+    }
+
+    const offerConfig = {
+      id,
+      continuingInvitation,
+      installationHandleBoardId: getRun.installationBoardId,
+      instanceHandleBoardId: getRun.instanceBoardId,
+      proposalTemplate: {
+        give,
+        want,
       },
     };
 
