@@ -10,7 +10,7 @@ export const initial = {
   account: null,
   purses: /** @type {PursesJSONState[] | null} */ (null),
   brandToInfo: /** @type {Array<[Brand, BrandInfo]>} */ ([]),
-
+  getRunHistory: /** @type {Record<string, unknown>} */ ({}),
   // Autoswap state
   autoswap: /** @type { AutoswapState } */ ({}),
   // Vault state
@@ -20,7 +20,6 @@ export const initial = {
   vaults: /** @type {Record<string, VaultData> | null} */ (null),
   collaterals: /** @type { Collaterals | null } */ (null),
   runLoCTerms: /** @type { CollateralInfo | null } */ (null),
-  getRunHistory: /** @type {[] | null} */ (null),
   vaultToManageId: /** @type {string | null} */ (null),
   useGetRUN: false,
   getRun: /** @type { GetRunState | null } */ (null),
@@ -44,7 +43,7 @@ export const initial = {
  *    addToBrandToInfo: (payload: typeof initial.brandToInfo) => TreasuryReducer,
  *    setCollaterals: (payload: typeof initial.collaterals) => TreasuryReducer,
  *    setRunLoCTerms: (payload: typeof initial.runLoCTerms) => TreasuryReducer,
- *    setGetRunHistory: (payload: typeof initial.getRunHistory) => TreasuryReducer,
+ *    mergeGetRunHistory: (payload: unknown) => TreasuryReducer,
  *    resetState: () => TreasuryReducer,
  *    setTreasury: (payload: typeof initial.treasury) => TreasuryReducer,
  *    setVaultCollateral: (payload: typeof initial.vaultCollateral) => TreasuryReducer,
@@ -61,7 +60,6 @@ export const initial = {
  *    setWalletP: (payload: unknown) => TreasuryReducer,
  * }} TreasuryActions
  */
-
 export const {
   reducer,
   initial: defaultState,
@@ -73,7 +71,7 @@ export const {
     addToBrandToInfo,
     setCollaterals,
     setRunLoCTerms,
-    setGetRunHistory,
+    mergeGetRunHistory,
     resetState,
     setTreasury,
     setVaultCollateral,
@@ -142,6 +140,15 @@ export const {
       return {
         ...state,
         brandToInfo,
+      };
+    },
+    mergeGetRunHistory: (state, newGetRunHistory) => {
+      return {
+        ...state,
+        getRunHistory: {
+          ...state.getRunHistory,
+          ...newGetRunHistory,
+        },
       };
     },
   },

@@ -15,7 +15,7 @@ import {
   updateVault,
   setCollaterals,
   setRunLoCTerms,
-  setGetRunHistory,
+  mergeGetRunHistory,
   setTreasury,
   setAutoswap,
   setGetRun,
@@ -167,7 +167,7 @@ const setupAMM = async (dispatch, brandToInfo, zoe, board, instanceID) => {
   });
 };
 
-function watchLoan(status, id, dispatch) {
+function watchLoan(status, id, dispatch, watchedLoans) {
   if (status === undefined) status = 'proposed';
   console.log('loan watched', id, status);
 
@@ -177,10 +177,10 @@ function watchLoan(status, id, dispatch) {
   }
 
   async function loanUpdater() {
-    const uiNotifier = E(walletP).getUINotifier(id);
+    const uiNotifier = await E(walletP).getUINotifier(id);
     for await (const value of iterateNotifier(uiNotifier)) {
       console.log('======== LOAN', id, value);
-      dispatch(setLoan({ id, status, data: value }));
+      dispatch(setLoan({ id, status: 'accept', data: value }));
     }
   }
 
@@ -188,10 +188,14 @@ function watchLoan(status, id, dispatch) {
     console.error('Loan watcher exception', id, err);
     dispatch(setLoan({ id, status: 'Error in offer', error: err }));
   });
+
+  watchedLoans.add(id);
 }
 
 const watchLoans = async (dispatch, instanceBoardId) => {
   console.log('WATCHING LOANS ------');
+  const watchedLoans = new Set();
+
   async function offersUpdater() {
     const offerNotifier = E(walletP).getOffersNotifier();
     for await (const offers of iterateNotifier(offerNotifier)) {
@@ -202,6 +206,8 @@ const watchLoans = async (dispatch, instanceBoardId) => {
         instanceHandleBoardId,
         continuingInvitation,
         status,
+        proposalForDisplay,
+        meta,
       } of offers) {
         if (
           instanceHandleBoardId === instanceBoardId &&
@@ -221,9 +227,17 @@ const watchLoans = async (dispatch, instanceBoardId) => {
             status === undefined
           ) {
             hasLoan = true;
-            watchLoan(status, id, dispatch);
-            break;
+            if (!watchedLoans.has(id)) {
+              watchLoan(status, id, dispatch, watchedLoans);
+            }
           }
+        } else if (
+          instanceHandleBoardId === instanceBoardId &&
+          continuingInvitation &&
+          status === 'accept'
+        ) {
+          console.log('found adjustment!!!', id);
+          dispatch(mergeGetRunHistory({ [id]: { meta, proposalForDisplay } }));
         }
       }
       if (!hasLoan) {
@@ -296,12 +310,6 @@ const setupGetRun = async (
   dispatch(
     setGetRun({ getRunApi, getRunTerms, instanceBoardId, installationBoardId }),
   );
-};
-
-const watchGetRun = dispatch => {
-  makeGetRunNotifer(history => {
-    dispatch(setGetRunHistory(history));
-  });
 };
 
 /* eslint-disable complexity, react/prop-types */
@@ -380,8 +388,6 @@ export default function Provider({ children }) {
         const { brandInfo, terms: runLoCTerms } = await getRunLoCTerms(issuers);
         dispatch(mergeBrandToInfo([[brandInfo.brand, brandInfo]]));
         dispatch(setRunLoCTerms(runLoCTerms));
-
-        watchGetRun(dispatch);
       }
     }
     watchBrands().catch(err => {

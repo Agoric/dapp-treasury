@@ -19,7 +19,6 @@ import GetStarted from './GetStarted';
 import NatPurseAmountInput from '../vault/VaultManagement/NatPurseAmountInput';
 // import { icons, defaultIcon } from '../../utils/icons';
 import { /* makeDisplayFunctions, */ getPurseDecimalPlaces } from '../helpers';
-import { setLoan } from '../../store';
 
 const NatAmountInput = makeNatAmountInput({ React, TextField });
 

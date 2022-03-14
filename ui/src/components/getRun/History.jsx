@@ -87,16 +87,17 @@ const formatDateNow = stamp => {
 };
 
 const History = ({ history, brandToInfo }) => {
+  console.log('got history!!!', history);
   const { displayRatio } = makeDisplayFunctions(brandToInfo);
   const classes = useStyles();
 
   const rows =
     history &&
     brandToInfo &&
-    history
-      .map(item =>
-        createData(
-          item.date,
+    Object.entries(history)
+      .map(([_id, item]) => {
+        return createData(
+          item.meta.creationStamp,
           `${
             (item.locked?.numerator?.value ?? 0) > 0 &&
             item.lockedAction === 'unlock'
@@ -110,8 +111,8 @@ const History = ({ history, brandToInfo }) => {
               : ''
           }${displayRatio(item.debt)}`,
           item.id,
-        ),
-      )
+        );
+      })
       ?.sort((a, b) => b.date - a.date);
 
   const content = history?.length ? (
