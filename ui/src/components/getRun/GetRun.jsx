@@ -163,7 +163,14 @@ const GetRun = () => {
           </div>
         </div>
         <div className={classes.history}>
-          <History history={getRunHistory} brandToInfo={brandToInfo} />
+          <History
+            getRun={getRun}
+            loan={loan}
+            history={getRunHistory}
+            brandToInfo={brandToInfo}
+            brand={bldBrand}
+            debtBrand={runBrand}
+          />
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { AmountMath } from '@agoric/ertp';
 import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Table from '@material-ui/core/Table';
@@ -86,36 +87,69 @@ const formatDateNow = stamp => {
   return `${match[1]} ${match[2]}`;
 };
 
-const History = ({ history, brandToInfo }) => {
+const History = ({ getRun, loan, history, brandToInfo, brand, debtBrand }) => {
   console.log('got history!!!', history);
-  const { displayRatio } = makeDisplayFunctions(brandToInfo);
+  const { displayAmount } = makeDisplayFunctions(brandToInfo);
   const classes = useStyles();
 
   const rows =
+    getRun &&
+    loan &&
     history &&
     brandToInfo &&
+    brand &&
+    debtBrand &&
     Object.entries(history)
-      .map(([_id, item]) => {
+      .filter(
+        ([_id, { continuingInvitation = null }]) =>
+          !continuingInvitation ||
+          continuingInvitation.priorOfferId === loan.id,
+      )
+      .map(([id, { meta, proposalForDisplay }]) => {
+        let locked = AmountMath.makeEmpty(brand);
+        let borrowed = AmountMath.makeEmpty(debtBrand);
+        let lockedSignum = '';
+        let borrowedSignum = '';
+
+        if (proposalForDisplay.give?.Attestation) {
+          locked = AmountMath.make(
+            brand,
+            BigInt(proposalForDisplay.give.Attestation.amount.value),
+          );
+        } else if (proposalForDisplay.want?.Attestation) {
+          lockedSignum = '-';
+          locked = AmountMath.make(
+            brand,
+            BigInt(proposalForDisplay.want.Attestation.amount.value),
+          );
+        }
+
+        if (proposalForDisplay.give?.RUN) {
+          borrowedSignum = '-';
+          borrowed = AmountMath.make(
+            debtBrand,
+            BigInt(proposalForDisplay.give.RUN.amount.value),
+          );
+        } else if (proposalForDisplay.want?.RUN) {
+          borrowed = AmountMath.make(
+            debtBrand,
+            BigInt(proposalForDisplay.want.RUN.amount.value),
+          );
+        }
+
         return createData(
-          item.meta.creationStamp,
-          `${
-            (item.locked?.numerator?.value ?? 0) > 0 &&
-            item.lockedAction === 'unlock'
-              ? '-'
-              : ''
-          }${displayRatio(item.locked)}`,
-          `${
-            (item.debt?.numerator?.value ?? 0) > 0 &&
-            item.debtAction === 'repay'
-              ? '-'
-              : ''
-          }${displayRatio(item.debt)}`,
-          item.id,
+          meta.creationStamp,
+          `${locked.value > 0 ? lockedSignum : ''}${displayAmount(locked)}`,
+          `${borrowed.value > 0 ? borrowedSignum : ''}${displayAmount(
+            borrowed,
+          )}`,
+          id,
         );
       })
       ?.sort((a, b) => b.date - a.date);
 
-  const content = history?.length ? (
+  console.log('ROWS', rows);
+  const content = rows?.length ? (
     <TableContainer>
       <Table className={classes.table} size="small">
         <TableHead>
