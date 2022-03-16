@@ -88,7 +88,6 @@ const formatDateNow = stamp => {
 };
 
 const History = ({ getRun, loan, history, brandToInfo, brand, debtBrand }) => {
-  console.log('got history!!!', history);
   const { displayAmount } = makeDisplayFunctions(brandToInfo);
   const classes = useStyles();
 
@@ -148,7 +147,6 @@ const History = ({ getRun, loan, history, brandToInfo, brand, debtBrand }) => {
       })
       ?.sort((a, b) => b.date - a.date);
 
-  console.log('ROWS', rows);
   const content = rows?.length ? (
     <TableContainer>
       <Table className={classes.table} size="small">

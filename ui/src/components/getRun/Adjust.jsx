@@ -16,7 +16,7 @@ import { makeNatAmountInput, filterPurses } from '@agoric/ui-components';
 import ApproveOfferSB from '../ApproveOfferSB';
 import ConfirmOfferTable from './ConfirmOfferTable';
 import GetStarted from './GetStarted';
-import NatPurseAmountInput from '../vault/VaultManagement/NatPurseAmountInput';
+import NatPurseAmountInput from './NatPurseAmountInput';
 // import { icons, defaultIcon } from '../../utils/icons';
 import { /* makeDisplayFunctions, */ getPurseDecimalPlaces } from '../helpers';
 
@@ -88,7 +88,6 @@ const useStyles = makeStyles(theme => ({
     marginTop: theme.spacing(4),
     marginLeft: 'auto',
     marginRight: 'auto',
-    width: 'fit-content',
   },
   confirm: {
     marginTop: theme.spacing(4),
@@ -152,7 +151,6 @@ const Adjust = ({
   getRun,
   loan,
 }) => {
-  console.log('HAVE LOAN', loan);
   const classes = useStyles();
 
   const [runPurseSelected, setRunPurseSelected] = useState(null);
@@ -276,6 +274,7 @@ const Adjust = ({
         onAmountChange={handleDebtAmountChange}
         brandToFilter={debtBrand}
         brandToInfo={brandToInfo}
+        iconSrc="tokens/RUN.svg"
       />
     </Grid>
   );

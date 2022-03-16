@@ -230,9 +230,11 @@ const watchLoans = async (dispatch, instanceBoardId) => {
             if (!watchedLoans.has(id)) {
               watchLoan(status, id, dispatch, watchedLoans);
             }
-            dispatch(
-              mergeGetRunHistory({ [id]: { meta, proposalForDisplay } }),
-            );
+            if (status === 'accept') {
+              dispatch(
+                mergeGetRunHistory({ [id]: { meta, proposalForDisplay } }),
+              );
+            }
           }
         } else if (
           instanceHandleBoardId === instanceBoardId &&
