@@ -120,7 +120,7 @@ function NavDrawer() {
         {useGetRUN && (
           <ListItemLink
             icon={<AccountBalanceWallet />}
-            primary="getRUN"
+            primary="RUNStake"
             to="/getRUN"
             replace
           />

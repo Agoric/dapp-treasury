@@ -8,8 +8,6 @@ import Paper from '@material-ui/core/Paper';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
-import SendIcon from '@material-ui/icons/Send';
 import { Grid } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { filterPurses } from '@agoric/ui-components';
@@ -103,9 +101,6 @@ const Adjust = ({
   brandToInfo,
   brand,
   debtBrand,
-  collateralization,
-  runPercent,
-  marketPrice,
   accountState,
   walletP,
   lienBrand,
@@ -189,10 +184,10 @@ const Adjust = ({
   }, [useMaxDebt, lockedDelta, accountState, loan]);
 
   useEffect(() => {
-    setDebtDelta(null);
-    setLockedDelta(null);
     setUseMaxCollateral(false);
     setUseMaxDebt(false);
+    setDebtDelta(null);
+    setLockedDelta(null);
     if (currentTab === 0) {
       setCollateralAction('lock');
       setDebtAction('borrow');
@@ -296,10 +291,6 @@ const Adjust = ({
 
   const openLoan = () => {
     const id = `${Date.now()}`;
-    setDebtDelta(null);
-    setLockedDelta(null);
-    setOpenApproveOfferSB(true);
-
     const invitation = E(getRun.getRunApi).makeLoanInvitation();
     const collateralAmount = AmountMath.make(
       lienBrand,
@@ -331,6 +322,12 @@ const Adjust = ({
 
     console.log('OFFER CONFIG', offerConfig);
 
+    setUseMaxCollateral(false);
+    setUseMaxDebt(false);
+    setDebtDelta(null);
+    setLockedDelta(null);
+    setOpenApproveOfferSB(true);
+
     E(walletP).addOffer(offerConfig);
   };
 
@@ -341,9 +338,6 @@ const Adjust = ({
     }
 
     const id = `${Date.now()}`;
-    setDebtDelta(null);
-    setLockedDelta(null);
-    setOpenApproveOfferSB(true);
 
     const continuingInvitation = {
       priorOfferId: loan?.id,
@@ -395,6 +389,12 @@ const Adjust = ({
 
     console.log('OFFER CONFIG', offerConfig);
 
+    setUseMaxCollateral(false);
+    setUseMaxDebt(false);
+    setDebtDelta(null);
+    setLockedDelta(null);
+    setOpenApproveOfferSB(true);
+
     E(walletP).addOffer(offerConfig);
   };
 
@@ -412,44 +412,24 @@ const Adjust = ({
           <Tab label="Repay" />
         </Tabs>
         <Grid className={classes.form} container direction="column">
-          {adjustCollateral}
-          {adjustDebt}
+          {debtAction === 'borrow'
+            ? [adjustCollateral, adjustDebt]
+            : [adjustDebt, adjustCollateral]}
         </Grid>
         <div className={classes.confirm}>
           <hr className={classes.break} />
-          <Grid
-            container
-            spacing={1}
-            className={classes.buttons}
-            justify="space-evenly"
-            alignItems="center"
-          >
-            <Grid item>
-              <ConfirmOfferTable
-                locked={accountState.liened}
-                borrowed={loan?.data?.debt ?? AmountMath.makeEmpty(debtBrand)}
-                lockedDelta={lockedDelta}
-                debtDelta={debtDelta}
-                brandToInfo={brandToInfo}
-                collateralization={collateralization}
-                collateralAction={collateralAction}
-                debtAction={debtAction}
-                runPercent={runPercent}
-                marketPrice={marketPrice}
-              />
-            </Grid>
-            <Grid item>
-              <Button
-                onClick={() => makeOffer()}
-                className={classes.button}
-                variant="contained"
-                color="primary"
-                startIcon={<SendIcon />}
-              >
-                Make Offer
-              </Button>
-            </Grid>
-          </Grid>
+          <ConfirmOfferTable
+            locked={accountState.liened}
+            borrowed={loan?.data?.debt ?? AmountMath.makeEmpty(debtBrand)}
+            lockedDelta={lockedDelta}
+            debtDelta={debtDelta}
+            brandToInfo={brandToInfo}
+            collateralAction={collateralAction}
+            debtAction={debtAction}
+            borrowLimit={borrowLimit}
+            onConfirm={() => makeOffer()}
+            accountState={accountState}
+          />
         </div>
       </Paper>
       <ApproveOfferSB

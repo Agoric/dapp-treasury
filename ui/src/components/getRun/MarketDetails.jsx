@@ -3,7 +3,6 @@ import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 import { makeStyles } from '@material-ui/core/styles';
-import { makeRatio } from '@agoric/zoe/src/contractSupport';
 import { NameValueTable, makeRow } from './NameValueTable';
 import { makeDisplayFunctions } from '../helpers';
 
@@ -47,17 +46,18 @@ const MarketDetails = ({
   const rows =
     collateralPrice && collateralizationRatio
       ? [
-          makeRow('BLD Price', `${displayRatio(collateralPrice)} RUN`),
+          /* makeRow('BLD Price', `${displayRatio(collateralPrice)} RUN`),
           makeRow(
             'Min BLD:RUN Ratio',
             `${displayPercent(collateralizationRatio)}%`,
-          ),
+          ), */
+          makeRow('Interest Rate', `0%`),
           makeRow('Borrow Limit per BLD', `${displayRatio(borrowLimit)} RUN`),
         ]
       : [];
   const values =
     !collateralPrice || !collateralizationRatio ? (
-      <NameValueTable rowsToLoad={3} />
+      <NameValueTable rowsToLoad={2} />
     ) : (
       <NameValueTable rows={rows} />
     );

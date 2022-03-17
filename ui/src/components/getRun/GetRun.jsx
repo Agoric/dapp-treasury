@@ -130,7 +130,7 @@ const GetRun = () => {
   return (
     <div className={classes.root}>
       <div className={classes.header}>
-        <Typography variant="h3">Get RUN</Typography>
+        <Typography variant="h3">RUNStake</Typography>
         <Typography>
           Stake BLD, borrow RUN, automatically pay it back with your staking
           rewards.

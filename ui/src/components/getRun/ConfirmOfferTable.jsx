@@ -1,48 +1,28 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-
+import Button from '@material-ui/core/Button';
 import { AmountMath } from '@agoric/ertp';
+import { floorMultiplyBy } from '@agoric/zoe/src/contractSupport';
+
 import { makeDisplayFunctions } from '../helpers';
 
 const useStyles = makeStyles(_ => ({
-  table: {
-    '& > .MuiTableCell-root': {
-      borderBottom: 'none',
-    },
-  },
-  tableContainer: {
-    width: 'fit-content',
-  },
   row: {
-    '& > th, td': {
-      borderBottom: 'none',
-    },
-    '& > th': {
-      paddingLeft: 0,
-    },
-    '& > td': {
-      paddingLeft: 0,
-      fontSize: '18px',
-      lineHeight: '24px',
-      color: '#707070',
-    },
-  },
-  left: {
-    paddingLeft: 0,
-  },
-  rowHeader: {
-    '& > *': {
-      fontSize: '16px',
-    },
+    fontSize: '18px',
+    lineHeight: '24px',
+    marginBottom: 8,
+    wordBreak: 'break-all',
   },
   new: {
     color: 'rgba(0, 0, 0, 0.87)',
+  },
+  invalidNew: {
+    color: 'rgb(226, 41, 81)',
+  },
+  buttonRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
 }));
 
@@ -54,6 +34,9 @@ const ConfirmOfferTable = ({
   collateralAction,
   debtAction,
   brandToInfo,
+  borrowLimit,
+  accountState,
+  onConfirm,
 }) => {
   const { displayAmount } = makeDisplayFunctions(brandToInfo);
   const classes = useStyles();
@@ -81,49 +64,55 @@ const ConfirmOfferTable = ({
   const newLocked = AmountMath.make(locked.brand, newLockedValue);
   const newBorrowed = AmountMath.make(borrowed.brand, newBorrowedValue);
 
+  let invalidInput = false;
+  if (
+    newBorrowedSignum === '-' ||
+    newLockedSignum === '-' ||
+    newBorrowed.value > floorMultiplyBy(newLocked, borrowLimit).value ||
+    newLocked.value > accountState.liened.value
+  ) {
+    invalidInput = true;
+  }
+
+  const lockedChanged = newLocked.value !== locked.value;
+  const borrowedChanged = newBorrowed.value !== borrowed.value;
+
   return (
-    <TableContainer className={classes.tableContainer}>
-      <Table className={classes.table} size="small">
-        <TableHead>
-          <TableRow className={[classes.rowHeader, classes.row].join(' ')}>
-            <TableCell>Liened</TableCell>
-            <TableCell>Borrowed</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          <TableRow className={classes.row}>
-            <TableCell>
-              {displayAmount(locked)} -&gt;{' '}
-              <span
-                className={
-                  displayAmount(newLocked) !== displayAmount(locked) ||
-                  newLockedSignum === '-'
-                    ? classes.new
-                    : ''
-                }
-              >
-                {newLockedSignum}
-                {displayAmount(newLocked)} BLD
-              </span>
-            </TableCell>
-            <TableCell>
-              {displayAmount(borrowed)} -&gt;{' '}
-              <span
-                className={
-                  displayAmount(newBorrowed) !== displayAmount(borrowed) ||
-                  newBorrowedSignum === '-'
-                    ? classes.new
-                    : ''
-                }
-              >
-                {newBorrowedSignum}
-                {displayAmount(newBorrowed)} RUN
-              </span>
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <>
+      <div className={classes.row}>
+        Liened: {displayAmount(locked)} -&gt;{' '}
+        <span
+          className={
+            invalidInput ? classes.invalidNew : lockedChanged && classes.new
+          }
+        >
+          {newLockedSignum}
+          {displayAmount(newLocked)} BLD
+        </span>
+      </div>
+      <div className={classes.row}>
+        Borrowed: {displayAmount(borrowed)} -&gt;{' '}
+        <span
+          className={
+            invalidInput ? classes.invalidNew : borrowedChanged && classes.new
+          }
+        >
+          {newBorrowedSignum}
+          {displayAmount(newBorrowed)} RUN
+        </span>
+      </div>
+      <div className={classes.buttonRow}>
+        <Button
+          onClick={() => onConfirm()}
+          className={classes.button}
+          variant="contained"
+          color="primary"
+          disabled={invalidInput || (!borrowedChanged && !lockedChanged)}
+        >
+          Make Offer
+        </Button>
+      </div>
+    </>
   );
 };
 
