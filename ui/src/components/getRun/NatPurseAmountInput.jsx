@@ -1,20 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import InputBase from '@material-ui/core/InputBase';
+import TextField from '@material-ui/core/TextField';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
-
-import { filterPurses } from '@agoric/ui-components';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import { parseAsValue, stringifyValue } from '@agoric/ui-components';
+import { AssetKind } from '@agoric/ertp';
+import { getInfoForBrand } from '../helpers';
 
 const useStyles = makeStyles(_theme => ({
-  container: {
-    border: '1px solid rgba(0, 0, 0, 0.23)',
-    borderRadius: 4,
-    height: 56,
-    padding: 6,
-    boxSizing: 'border-box',
+  root: {
+    margin: 'auto',
+  },
+  maxButton: {
+    border: 'none',
+    height: 36,
   },
   infoTop: {
     fontSize: 14,
@@ -24,16 +28,12 @@ const useStyles = makeStyles(_theme => ({
     color: 'rgb(112, 112, 112)',
     paddingRight: 4,
   },
-  purseSelector: {
-    color: 'rgb(112, 112, 112)',
-  },
-  purseBalance: {
-    fontSize: 14,
-    color: 'rgb(112, 112, 112)',
-  },
   icon: {
     height: 42,
     width: 42,
+  },
+  input: {
+    width: '100%',
   },
 }));
 
@@ -53,43 +53,98 @@ const StyledSelect = withStyles(theme => ({
 
 const NatPurseAmountInput = ({
   purses,
-  purseSelected,
+  selectedPurse,
   onPurseChange,
+  onAmountChange,
   brandToFilter,
+  brandToInfo,
   iconSrc,
+  amount = null,
 }) => {
   const classes = useStyles();
-  const pursesFiltered = filterPurses(purses, brandToFilter);
-  const defaultPurse = pursesFiltered.length > 0 ? pursesFiltered[0] : null;
-  if (purseSelected === null && defaultPurse !== null) {
-    onPurseChange(defaultPurse);
-  }
-  const [age, setAge] = React.useState('');
-  const handleChange = event => {
-    setAge(event.target.value);
+
+  const decimalPlaces = getInfoForBrand(brandToInfo, brandToFilter)
+    .decimalPlaces;
+
+  const amountString = stringifyValue(amount, AssetKind.NAT, decimalPlaces);
+  const [fieldString, setFieldString] = useState(
+    amount === null ? '0' : amountString,
+  );
+
+  const handlePurseChange = event => {
+    const newPurse = purses.find(p => p.pursePetname === event.target.value);
+    onPurseChange(newPurse);
   };
+
+  const handleAmountChange = ev => {
+    const str = ev.target.value.replace('-', ''); // Show the user exactly what they are typing
+    setFieldString(str);
+    const parsed = parseAsValue(str, AssetKind.NAT, decimalPlaces);
+    onAmountChange(parsed);
+  };
+
+  const displayString =
+    amount === parseAsValue(fieldString, AssetKind.NAT, decimalPlaces)
+      ? fieldString
+      : amountString;
+
+  const purseBalance = stringifyValue(
+    selectedPurse?.value ?? 0n,
+    AssetKind.NAT,
+    decimalPlaces,
+  );
+
   return (
-    <>
+    <div className={classes.root}>
       <div className={classes.infoTop}>
         <div className={classes.purseSelector}>
-          <FormControl className={classes.margin}>
+          <FormControl>
             <Select
-              value={age}
-              onChange={handleChange}
+              value={selectedPurse?.pursePetname}
+              onChange={handlePurseChange}
               input={<StyledSelect />}
             >
-              <MenuItem value={10}>Ten</MenuItem>
-              <MenuItem value={20}>Twenty</MenuItem>
-              <MenuItem value={30}>Thirty</MenuItem>
+              {purses.map(p => (
+                <MenuItem key={p?.pursePetname} value={p?.pursePetname}>
+                  {p?.pursePetname}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
         </div>
-        <div className={classes.purseBalance}>Balance: 40.05 RUN</div>
+        <div className={classes.purseBalance}>Balance: {purseBalance}</div>
       </div>
-      <div className={classes.container}>
-        {iconSrc && <img className={classes.icon} src={iconSrc} />}
-      </div>
-    </>
+      <TextField
+        value={displayString}
+        type="number"
+        onChange={handleAmountChange}
+        variant="outlined"
+        className={classes.input}
+        placeholder="Amount"
+        InputProps={{
+          'aria-label': 'Amount',
+          inputProps: {
+            min: 0,
+          },
+          startAdornment: (
+            <InputAdornment position="start">
+              {iconSrc && <img className={classes.icon} src={iconSrc} />}
+            </InputAdornment>
+          ),
+          endAdornment: (
+            <InputAdornment position="end">
+              <ToggleButton
+                color="primary"
+                className={classes.maxButton}
+                value="check"
+              >
+                Max
+              </ToggleButton>
+            </InputAdornment>
+          ),
+        }}
+      />
+    </div>
   );
 };
 

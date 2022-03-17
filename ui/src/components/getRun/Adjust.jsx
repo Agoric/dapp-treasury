@@ -17,8 +17,7 @@ import ApproveOfferSB from '../ApproveOfferSB';
 import ConfirmOfferTable from './ConfirmOfferTable';
 import GetStarted from './GetStarted';
 import NatPurseAmountInput from './NatPurseAmountInput';
-// import { icons, defaultIcon } from '../../utils/icons';
-import { /* makeDisplayFunctions, */ getPurseDecimalPlaces } from '../helpers';
+import { getPurseDecimalPlaces } from '../helpers';
 
 const NatAmountInput = makeNatAmountInput({ React, TextField });
 
@@ -32,7 +31,6 @@ const useStyles = makeStyles(theme => ({
     lineHeight: '27px',
     padding: theme.spacing(4),
     paddingTop: theme.spacing(2),
-    width: '100%',
   },
   settingsToolbar: {
     minHeight: '48px',
@@ -92,49 +90,6 @@ const useStyles = makeStyles(theme => ({
   confirm: {
     marginTop: theme.spacing(4),
   },
-  bldPurseSelector: {
-    display: 'flex',
-    flexDirection: 'row',
-    border: '1px solid rgba(0,0,0,0.2)',
-    borderRadius: 4,
-    paddingTop: 8,
-    paddingBottom: 6,
-    paddingLeft: 6,
-    paddingRight: 10,
-    width: 'fit-content',
-    boxSizing: 'border-box',
-    marginRight: 8,
-    marginBottom: 16,
-  },
-  bldPurseIcon: {
-    marginRight: 8,
-  },
-  bldPurse: {
-    fontSize: 16,
-    lineHeight: '18px',
-    color: '#000',
-  },
-  bldBalance: {
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-  },
-  stakedAmount: {
-    fontSize: 14,
-    lineHeight: '16px',
-  },
-  collateralForm: {},
-  bldPurseLabel: {
-    position: 'absolute',
-    background: '#fff',
-    fontSize: 12,
-    color: 'rgba(0,0,0,0.9)',
-    lineHeight: '12px',
-    marginTop: '-14px',
-    marginLeft: '4px',
-    padding: '0 2px',
-    fontWeight: 300,
-  },
 }));
 
 const Adjust = ({
@@ -161,8 +116,6 @@ const Adjust = ({
   const [getStartedClicked, setGetStartedClicked] = useState(false);
   const [currentTab, setCurrentTab] = useState(0);
   const [openApproveOfferSB, setOpenApproveOfferSB] = useState(false);
-
-  // const { displayAmount } = makeDisplayFunctions(brandToInfo);
 
   const handleTabChange = (_, newTab) => {
     setCurrentTab(newTab);
@@ -211,6 +164,10 @@ const Adjust = ({
     );
   }
 
+  const runPurses = filterPurses(purses, debtBrand);
+  const runPurse =
+    runPurseSelected || runPurses.length > 0 ? runPurses[0] : null;
+
   const bldPurses = filterPurses(purses, brand);
   // TODO: find a better way to identify the staking purse.
   const bldStakingPurse = bldPurses.length > 0 ? bldPurses[0] : null;
@@ -224,25 +181,6 @@ const Adjust = ({
     const newDebtDelta = AmountMath.make(debtBrand, value);
     setDebtDelta(newDebtDelta);
   };
-
-  /*
-          <div className={classes.bldPurseSelector}>
-          <div className={classes.bldPurseLabel}>Asset</div>
-          <img
-            className={classes.bldPurseIcon}
-            alt="icon"
-            src={icons[new Map(brandToInfo).get(brand).petname] ?? defaultIcon}
-            height="40px"
-            width="40px"
-          />
-          <div className={classes.bldBalance}>
-            <div className={classes.bldPurse}>BLD</div>
-            <div className={classes.stakedAmount}>
-              {displayAmount(accountState.bonded)} staked
-            </div>
-          </div>
-        </div>
-        */
 
   const adjustCollateral = (
     <Grid item className={classes.step}>
@@ -267,9 +205,9 @@ const Adjust = ({
         {debtAction === 'borrow' ? 'Borrow RUN' : 'Repay RUN'}
       </Typography>
       <NatPurseAmountInput
-        purses={purses}
-        purseSelected={runPurseSelected}
-        amountValue={debtDelta && debtDelta.value}
+        purses={runPurses}
+        selectedPurse={runPurse}
+        amount={debtDelta && debtDelta.value}
         onPurseChange={setRunPurseSelected}
         onAmountChange={handleDebtAmountChange}
         brandToFilter={debtBrand}
