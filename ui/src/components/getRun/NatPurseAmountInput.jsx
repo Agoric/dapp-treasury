@@ -26,7 +26,7 @@ const useStyles = makeStyles(_theme => ({
     flexDirection: 'row',
     justifyContent: 'space-between',
     color: 'rgb(112, 112, 112)',
-    paddingRight: 4,
+    padding: '0 4px',
   },
   icon: {
     height: 42,
@@ -42,7 +42,7 @@ const StyledSelect = withStyles(theme => ({
     borderRadius: 4,
     border: 'none',
     color: 'rgb(112, 112, 112)',
-    fontSize: 16,
+    fontSize: 14,
     padding: '4px 0',
     transition: theme.transitions.create(['border-color', 'box-shadow']),
     '&:focus': {
@@ -59,6 +59,9 @@ const NatPurseAmountInput = ({
   brandToFilter,
   brandToInfo,
   iconSrc,
+  onUseMaxChange,
+  useMax = false,
+  showPurseSelector = true,
   amount = null,
 }) => {
   const classes = useStyles();
@@ -88,36 +91,43 @@ const NatPurseAmountInput = ({
       ? fieldString
       : amountString;
 
-  const purseBalance = stringifyValue(
-    selectedPurse?.value ?? 0n,
-    AssetKind.NAT,
-    decimalPlaces,
-  );
+  const purseBalance =
+    selectedPurse &&
+    stringifyValue(selectedPurse?.value ?? 0n, AssetKind.NAT, decimalPlaces);
 
   return (
     <div className={classes.root}>
-      <div className={classes.infoTop}>
-        <div className={classes.purseSelector}>
-          <FormControl>
-            <Select
-              value={selectedPurse?.pursePetname}
-              onChange={handlePurseChange}
-              input={<StyledSelect />}
-            >
-              {purses.map(p => (
-                <MenuItem key={p?.pursePetname} value={p?.pursePetname}>
-                  {p?.pursePetname}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+      {showPurseSelector && (
+        <div className={classes.infoTop}>
+          <div className={classes.purseSelector}>
+            <FormControl>
+              <Select
+                value={selectedPurse?.pursePetname}
+                onChange={handlePurseChange}
+                input={<StyledSelect />}
+              >
+                {purses.map(p => (
+                  <MenuItem key={p?.pursePetname} value={p?.pursePetname}>
+                    {p?.pursePetname}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+          <div className={classes.purseBalance}>
+            Balance:{' '}
+            {`${purseBalance ?? '0'} ${selectedPurse?.brandPetname ?? ''}`}
+          </div>
         </div>
-        <div className={classes.purseBalance}>Balance: {purseBalance}</div>
-      </div>
+      )}
       <TextField
         value={displayString}
-        type="number"
+        type="text"
+        inputMode="numeric"
         onChange={handleAmountChange}
+        onKeyDown={() => {
+          onUseMaxChange(false);
+        }}
         variant="outlined"
         className={classes.input}
         placeholder="Amount"
@@ -135,8 +145,12 @@ const NatPurseAmountInput = ({
             <InputAdornment position="end">
               <ToggleButton
                 color="primary"
+                value="max"
                 className={classes.maxButton}
-                value="check"
+                selected={useMax}
+                onChange={() => {
+                  onUseMaxChange(!useMax);
+                }}
               >
                 Max
               </ToggleButton>

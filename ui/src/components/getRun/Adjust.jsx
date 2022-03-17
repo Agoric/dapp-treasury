@@ -3,23 +3,22 @@ import React, { useEffect, useState } from 'react';
 
 import { AmountMath } from '@agoric/ertp';
 import { E } from '@agoric/eventual-send';
+import { floorMultiplyBy, invertRatio } from '@agoric/zoe/src/contractSupport';
 import Paper from '@material-ui/core/Paper';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import SendIcon from '@material-ui/icons/Send';
-import { Grid, TextField } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import { makeNatAmountInput, filterPurses } from '@agoric/ui-components';
+import { filterPurses } from '@agoric/ui-components';
 
 import ApproveOfferSB from '../ApproveOfferSB';
 import ConfirmOfferTable from './ConfirmOfferTable';
 import GetStarted from './GetStarted';
 import NatPurseAmountInput from './NatPurseAmountInput';
-import { getPurseDecimalPlaces } from '../helpers';
-
-const NatAmountInput = makeNatAmountInput({ React, TextField });
+import { makeDisplayFunctions } from '../helpers';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -70,7 +69,14 @@ const useStyles = makeStyles(theme => ({
   stepTitle: {
     fontSize: '18px',
     color: '#707070',
-    marginBottom: theme.spacing(2),
+  },
+  collateralInfo: {
+    fontSize: 14,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    color: 'rgb(112, 112, 112)',
+    paddingRight: 4,
   },
   adjustCollateral: {
     paddingBottom: theme.spacing(3),
@@ -105,6 +111,7 @@ const Adjust = ({
   lienBrand,
   getRun,
   loan,
+  borrowLimit,
 }) => {
   const classes = useStyles();
 
@@ -116,6 +123,8 @@ const Adjust = ({
   const [getStartedClicked, setGetStartedClicked] = useState(false);
   const [currentTab, setCurrentTab] = useState(0);
   const [openApproveOfferSB, setOpenApproveOfferSB] = useState(false);
+  const [useMaxCollateral, setUseMaxCollateral] = useState(false);
+  const [useMaxDebt, setUseMaxDebt] = useState(false);
 
   const handleTabChange = (_, newTab) => {
     setCurrentTab(newTab);
@@ -125,9 +134,65 @@ const Adjust = ({
     setOpenApproveOfferSB(false);
   };
 
+  const unliened =
+    accountState &&
+    AmountMath.subtract(accountState.bonded, accountState.liened);
+
+  useEffect(() => {
+    if (!useMaxCollateral) return;
+
+    if (collateralAction === 'lock' && lockedDelta?.value !== unliened?.value) {
+      setLockedDelta(unliened);
+    } else if (collateralAction === 'unlock') {
+      const current = loan?.data?.debt ?? AmountMath.makeEmpty(debtBrand);
+      const delta = debtDelta ?? AmountMath.makeEmpty(debtBrand);
+      const newBorrowed =
+        current.value > delta.value
+          ? AmountMath.subtract(
+              loan?.data?.debt ?? AmountMath.makeEmpty(debtBrand),
+              debtDelta ?? AmountMath.makeEmpty(debtBrand),
+            )
+          : AmountMath.makeEmpty(debtBrand);
+
+      const newLockedDelta = AmountMath.subtract(
+        accountState?.liened ?? AmountMath.makeEmpty(brand),
+        floorMultiplyBy(newBorrowed, invertRatio(borrowLimit)),
+      );
+      if (newLockedDelta?.value !== lockedDelta?.value) {
+        setLockedDelta(newLockedDelta);
+      }
+    }
+  }, [useMaxCollateral, debtDelta, accountState, loan]);
+
+  useEffect(() => {
+    if (!useMaxDebt) return;
+
+    if (debtAction === 'borrow') {
+      const newLiened = AmountMath.add(
+        accountState?.liened ?? AmountMath.makeEmpty(brand),
+        lockedDelta ?? AmountMath.makeEmpty(brand),
+      );
+      const newDebtLimit = floorMultiplyBy(newLiened, borrowLimit);
+      const newDebtDelta = AmountMath.subtract(
+        newDebtLimit,
+        loan?.data?.debt ?? AmountMath.makeEmpty(debtBrand),
+      );
+      if (newDebtDelta.value !== debtDelta?.value) {
+        setDebtDelta(newDebtDelta);
+      }
+    } else {
+      const newDebtDelta = loan?.data?.debt ?? AmountMath.makeEmpty(debtBrand);
+      if (newDebtDelta.value !== debtDelta?.value) {
+        setDebtDelta(newDebtDelta);
+      }
+    }
+  }, [useMaxDebt, lockedDelta, accountState, loan]);
+
   useEffect(() => {
     setDebtDelta(null);
     setLockedDelta(null);
+    setUseMaxCollateral(false);
+    setUseMaxDebt(false);
     if (currentTab === 0) {
       setCollateralAction('lock');
       setDebtAction('borrow');
@@ -136,6 +201,16 @@ const Adjust = ({
       setDebtAction('repay');
     }
   }, [currentTab]);
+
+  const handleCollateralAmountChange = value => {
+    const newLockedDelta = AmountMath.make(brand, value);
+    setLockedDelta(newLockedDelta);
+  };
+
+  const handleDebtAmountChange = value => {
+    const newDebtDelta = AmountMath.make(debtBrand, value);
+    setDebtDelta(newDebtDelta);
+  };
 
   if (!purses || !brand || !debtBrand || !accountState || !loan) {
     return (
@@ -172,15 +247,7 @@ const Adjust = ({
   // TODO: find a better way to identify the staking purse.
   const bldStakingPurse = bldPurses.length > 0 ? bldPurses[0] : null;
 
-  const handleCollateralAmountChange = value => {
-    const newLockedDelta = AmountMath.make(brand, value);
-    setLockedDelta(newLockedDelta);
-  };
-
-  const handleDebtAmountChange = value => {
-    const newDebtDelta = AmountMath.make(debtBrand, value);
-    setDebtDelta(newDebtDelta);
-  };
+  const { displayAmount } = makeDisplayFunctions(brandToInfo);
 
   const adjustCollateral = (
     <Grid item className={classes.step}>
@@ -188,12 +255,20 @@ const Adjust = ({
         {collateralAction === 'lock' ? 'Lien BLD' : 'Unlien BLD'}
       </Typography>
       <div className={classes.collateralForm}>
-        <NatAmountInput
-          label="Amount"
-          onChange={handleCollateralAmountChange}
-          value={lockedDelta && lockedDelta.value}
-          decimalPlaces={getPurseDecimalPlaces(bldStakingPurse)}
-          placesToShow={2}
+        <div className={classes.collateralInfo}>
+          {collateralAction === 'lock'
+            ? `Unliened: ${displayAmount(unliened)} BLD`
+            : `Liened: ${displayAmount(accountState.liened)} BLD`}
+        </div>
+        <NatPurseAmountInput
+          amount={lockedDelta && lockedDelta.value}
+          onAmountChange={handleCollateralAmountChange}
+          brandToFilter={debtBrand}
+          brandToInfo={brandToInfo}
+          iconSrc="tokens/BLD.svg"
+          showPurseSelector={false}
+          useMax={useMaxCollateral}
+          onUseMaxChange={setUseMaxCollateral}
         />
       </div>
     </Grid>
@@ -213,6 +288,8 @@ const Adjust = ({
         brandToFilter={debtBrand}
         brandToInfo={brandToInfo}
         iconSrc="tokens/RUN.svg"
+        useMax={useMaxDebt}
+        onUseMaxChange={setUseMaxDebt}
       />
     </Grid>
   );
@@ -245,7 +322,7 @@ const Adjust = ({
         },
         want: {
           RUN: {
-            pursePetname: runPurseSelected.pursePetname,
+            pursePetname: runPurse.pursePetname,
             value: debtAmount.value,
           },
         },
@@ -281,7 +358,7 @@ const Adjust = ({
 
     const RUN = {
       value: debtAmount.value,
-      pursePetname: runPurseSelected.pursePetname,
+      pursePetname: runPurse.pursePetname,
     };
 
     const give = {};

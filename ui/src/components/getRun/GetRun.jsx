@@ -1,6 +1,7 @@
 import { React, useEffect, useState } from 'react';
 
 import { E } from '@agoric/eventual-send';
+import { makeRatio } from '@agoric/zoe/src/contractSupport';
 import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -114,7 +115,17 @@ const GetRun = () => {
     Stake: bldBrand = undefined,
   } = getRun?.getRunTerms?.brands ?? {};
 
-  console.log('getRunTerms', getRun?.getRunTerms);
+  const borrowLimit =
+    collateralPrice &&
+    collateralizationRatio &&
+    makeRatio(
+      collateralPrice.numerator.value *
+        collateralizationRatio.denominator.value,
+      collateralPrice.numerator.brand,
+      collateralPrice.denominator.value *
+        collateralizationRatio.numerator.value,
+      collateralPrice.denominator.brand,
+    );
 
   return (
     <div className={classes.root}>
@@ -134,6 +145,7 @@ const GetRun = () => {
                 brandToInfo={brandToInfo}
                 collateralPrice={collateralPrice}
                 collateralizationRatio={collateralizationRatio}
+                borrowLimit={borrowLimit}
               />
             </div>
             <div className={classes.item}>
@@ -159,6 +171,7 @@ const GetRun = () => {
               getRun={getRun}
               loan={loan}
               dispatch={dispatch}
+              borrowLimit={borrowLimit}
             />
           </div>
         </div>

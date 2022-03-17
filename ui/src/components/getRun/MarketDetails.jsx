@@ -39,21 +39,10 @@ const MarketDetails = ({
   brandToInfo,
   collateralPrice,
   collateralizationRatio,
+  borrowLimit,
 }) => {
   const classes = useStyles();
   const { displayPercent, displayRatio } = makeDisplayFunctions(brandToInfo);
-
-  const borrowLimit =
-    collateralPrice &&
-    collateralizationRatio &&
-    makeRatio(
-      collateralPrice.numerator.value *
-        collateralizationRatio.denominator.value,
-      collateralPrice.numerator.brand,
-      collateralPrice.denominator.value *
-        collateralizationRatio.numerator.value,
-      collateralPrice.denominator.brand,
-    );
 
   const rows =
     collateralPrice && collateralizationRatio
