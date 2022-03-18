@@ -153,7 +153,7 @@ const History = ({ getRun, loan, history, brandToInfo, brand, debtBrand }) => {
         <TableHead>
           <TableRow className={[classes.rowHeader, classes.row].join(' ')}>
             <TableCell>Date</TableCell>
-            <TableCell align="right">Locked</TableCell>
+            <TableCell align="right">Liened</TableCell>
             <TableCell align="right">Borrowed</TableCell>
           </TableRow>
         </TableHead>

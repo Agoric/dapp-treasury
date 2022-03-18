@@ -69,7 +69,7 @@ const ConfirmOfferTable = ({
     newBorrowedSignum === '-' ||
     newLockedSignum === '-' ||
     newBorrowed.value > floorMultiplyBy(newLocked, borrowLimit).value ||
-    newLocked.value > accountState.liened.value
+    newLocked.value > accountState.bonded.value
   ) {
     invalidInput = true;
   }
