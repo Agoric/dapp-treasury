@@ -70,8 +70,9 @@ function watchVault(id, dispatch, offerStatus) {
   }
 
   async function vaultUpdater() {
-    const uiNotifier = E(walletP).getUINotifier(id);
-    for await (const value of iterateNotifier(uiNotifier)) {
+    // TODO: Do something with asset notifier.
+    const { vault, _asset } = await E(walletP).getPublicNotifiers(id);
+    for await (const value of iterateNotifier(vault)) {
       console.log('======== VAULT', id, value);
       dispatch(
         updateVault({ id, vault: { ...value, status: 'Loan Initiated' } }),

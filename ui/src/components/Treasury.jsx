@@ -120,10 +120,10 @@ function VaultList() {
   );
 
   const vaultsList = Object.entries(vaults ?? {});
-  const vaultsToRender = vaultsList.filter(
-    entry =>
-      entry[1].status !== 'Declined' &&
-      !(!showClosed && ['Closed', 'Error in offer'].includes(entry[1].status)),
+  const vaultsToRender = vaultsList.filter(entry =>
+    showClosed
+      ? ['Closed', 'Error in offer'].includes(entry[1].status)
+      : !['Closed', 'Error in offer', 'Declined'].includes(entry[1].status),
   );
 
   const [redirect, setRedirect] = useState(false);
@@ -144,8 +144,8 @@ function VaultList() {
     setShowClosed(value);
   };
 
-  const showShowClosedToggle = vaultsList?.find(
-    entry => entry[1].status === 'Closed',
+  const showShowClosedToggle = vaultsList?.find(entry =>
+    ['Closed', 'Error in offer'].includes(entry[1].status),
   );
 
   const loadTreasuryErrorAlert = (

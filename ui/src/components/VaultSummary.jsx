@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
 import { AmountMath } from '@agoric/ertp';
-import { makeRatioFromAmounts } from '@agoric/zoe/src/contractSupport';
+import {
+  makeRatioFromAmounts,
+  floorMultiplyBy,
+} from '@agoric/zoe/src/contractSupport';
 import { Nat } from '@endo/nat';
 import { E } from '@endo/eventual-send';
 import { makeStyles } from '@material-ui/core/styles';
@@ -65,14 +68,10 @@ const useStyles = makeStyles(theme => {
   };
 });
 
-const calcRatio = (priceRate, newLock, newBorrow) =>
-  makeRatioFromAmounts(
-    AmountMath.make(newLock.brand, newLock.value * priceRate.numerator.value),
-    AmountMath.make(
-      newBorrow.brand,
-      newBorrow.value * priceRate.denominator.value,
-    ),
-  );
+const calcRatio = (priceRate, newLock, newBorrow) => {
+  const lockPrice = floorMultiplyBy(harden(newLock), priceRate);
+  return makeRatioFromAmounts(lockPrice, newBorrow);
+};
 
 export function VaultSummary({ vault, brandToInfo, id }) {
   const classes = useStyles();
@@ -94,12 +93,14 @@ export function VaultSummary({ vault, brandToInfo, id }) {
   } = makeDisplayFunctions(brandToInfo);
 
   const {
-    debt, // amount
+    debtSnapshot, // amount
     interestRate, // ratio
     liquidationRatio, // ratio
     locked, // amount
     status, // string
   } = vault;
+
+  const { debt = null } = debtSnapshot ?? {};
 
   useEffect(() => {
     if (marketPrice && locked && debt) {

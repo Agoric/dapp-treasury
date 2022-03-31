@@ -77,11 +77,18 @@
 
 /**
  * @typedef {{
+ *  debt?: Amount,
+ *  interest?: Ratio,
+ * }} DebtSnapshot
+ */
+
+/**
+ * @typedef {{
  *   status?: 'Pending Wallet Acceptance' | 'Error in offer'| 'Loan Initiated' | 'Liquidated',
  *   liquidated?: boolean,
  *   locked?: Amount | null,
  *   collateralizationRatio?: Ratio | null,
- *   debt?: Amount | null,
+ *   debtSnapshot?: DebtSnapshot,
  *   interestRate?:  Ratio | null,
  *   liquidationRatio?: Ratio | null,
  *   err?: Error

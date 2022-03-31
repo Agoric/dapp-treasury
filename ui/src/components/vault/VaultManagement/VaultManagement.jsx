@@ -5,8 +5,10 @@ import React, { useEffect, useState } from 'react';
 import { Redirect } from 'react-router-dom';
 import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-
-import { makeRatioFromAmounts } from '@agoric/zoe/src/contractSupport';
+import {
+  makeRatioFromAmounts,
+  floorMultiplyBy,
+} from '@agoric/zoe/src/contractSupport';
 import { AmountMath } from '@agoric/ertp';
 import { Nat } from '@endo/nat';
 import { E } from '@endo/eventual-send';
@@ -17,7 +19,6 @@ import ChangesTable from './ChangesTable';
 import CloseVaultForm from './CloseVaultForm';
 import ErrorBoundary from '../../ErrorBoundary';
 import ApproveOfferSB from '../../ApproveOfferSB';
-
 import { makeAdjustVaultOffer } from './makeAdjustVaultOffer';
 import { useApplicationContext } from '../../../contexts/Application';
 import { makeDisplayFunctions } from '../../helpers';
@@ -62,7 +63,7 @@ const VaultManagement = () => {
 
   /** @type { VaultData } */
   let vaultToManage = {
-    debt: null,
+    debtSnapshot: null,
     interestRate: null,
     liquidationRatio: null,
     locked: null,
@@ -71,7 +72,12 @@ const VaultManagement = () => {
     vaultToManage = vaults[vaultToManageId];
   }
 
-  const { debt, interestRate, liquidationRatio, locked } = vaultToManage;
+  const {
+    debtSnapshot: { debt },
+    interestRate,
+    liquidationRatio,
+    locked,
+  } = vaultToManage;
 
   if (locked === null || debt === null) {
     return <Redirect to="/vaults" />;
@@ -135,14 +141,10 @@ const VaultManagement = () => {
     setOpenApproveOfferSB(true);
   };
 
-  const calcRatio = (priceRate, newLock, newBorrow) =>
-    makeRatioFromAmounts(
-      AmountMath.make(newLock.brand, newLock.value * priceRate.numerator.value),
-      AmountMath.make(
-        newBorrow.brand,
-        newBorrow.value * priceRate.denominator.value,
-      ),
-    );
+  const calcRatio = (priceRate, newLock, newBorrow) => {
+    const lockPrice = floorMultiplyBy(harden(newLock), priceRate);
+    return makeRatioFromAmounts(lockPrice, newBorrow);
+  };
 
   // run once when component loaded.
   // TODO: use makeQuoteNotifier
