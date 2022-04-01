@@ -23,6 +23,7 @@ import {
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
 import WalletConnection from '../components/WalletConnection';
 import { getRunLoCTerms } from '../runLoCStub';
+import { VAULT_STATES } from '../constants';
 
 // eslint-disable-next-line import/no-mutable-exports
 let walletP;
@@ -55,7 +56,7 @@ function watchVault(id, dispatch, offerStatus) {
     dispatch(
       updateVault({
         id,
-        vault: { status: 'Pending Wallet Acceptance' },
+        vault: { status: VAULT_STATES.PENDING },
       }),
     );
   } else {
@@ -63,7 +64,7 @@ function watchVault(id, dispatch, offerStatus) {
       updateVault({
         id,
         vault: {
-          status: 'Loading',
+          status: VAULT_STATES.LOADING,
         },
       }),
     );
@@ -75,16 +76,19 @@ function watchVault(id, dispatch, offerStatus) {
     for await (const value of iterateNotifier(vault)) {
       console.log('======== VAULT', id, value);
       dispatch(
-        updateVault({ id, vault: { ...value, status: 'Loan Initiated' } }),
+        updateVault({
+          id,
+          vault: { ...value, status: VAULT_STATES.INITIATED },
+        }),
       );
     }
-    dispatch(updateVault({ id, vault: { status: 'Closed' } }));
-    window.localStorage.setItem(id, 'Closed');
+    dispatch(updateVault({ id, vault: { status: VAULT_STATES.CLOSED } }));
+    window.localStorage.setItem(id, VAULT_STATES.CLOSED);
   }
 
   vaultUpdater().catch(err => {
     console.error('Vault watcher exception', id, err);
-    dispatch(updateVault({ id, vault: { status: 'Error in offer', err } }));
+    dispatch(updateVault({ id, vault: { status: VAULT_STATES.ERROR, err } }));
   });
 }
 
@@ -110,16 +114,16 @@ function watchOffers(dispatch, INSTANCE_BOARD_ID) {
             dispatch(
               updateVault({
                 id,
-                vault: { status: 'Declined' },
+                vault: { status: VAULT_STATES.DECLINED },
               }),
             );
-          } else if (window.localStorage.getItem(id) === 'Closed') {
+          } else if (window.localStorage.getItem(id) === VAULT_STATES.CLOSED) {
             // We can cache closed vaults since their notifiers cannot update
             // anymore.
             dispatch(
               updateVault({
                 id,
-                vault: { status: 'Closed' },
+                vault: { status: VAULT_STATES.CLOSED },
               }),
             );
           } else if (!watchedVaults.has(id)) {

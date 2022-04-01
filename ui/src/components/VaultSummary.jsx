@@ -19,6 +19,7 @@ import {
 import LoadingBlocks from './LoadingBlocks';
 import { makeDisplayFunctions } from './helpers';
 import { useApplicationContext } from '../contexts/Application';
+import { VAULT_STATES } from '../constants';
 
 const useStyles = makeStyles(theme => {
   return {
@@ -69,7 +70,7 @@ const useStyles = makeStyles(theme => {
 });
 
 const calcRatio = (priceRate, newLock, newBorrow) => {
-  const lockPrice = floorMultiplyBy(harden(newLock), priceRate);
+  const lockPrice = floorMultiplyBy(newLock, priceRate);
   return makeRatioFromAmounts(lockPrice, newBorrow);
 };
 
@@ -100,7 +101,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     status, // string
   } = vault;
 
-  const { debt = null } = debtSnapshot ?? {};
+  const debt = debtSnapshot?.debt;
 
   useEffect(() => {
     if (marketPrice && locked && debt) {
@@ -131,7 +132,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     });
   }, [vault]);
 
-  if (vault.status === 'Pending Wallet Acceptance') {
+  if (vault.status === VAULT_STATES.PENDING) {
     return (
       <div className={classes.pending}>
         <TableContainer>
@@ -158,7 +159,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     );
   }
 
-  if (vault.status === 'Error in offer') {
+  if (vault.status === VAULT_STATES.ERROR) {
     return (
       <TableContainer>
         <Table>
@@ -186,7 +187,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     );
   }
 
-  if (vault.status === 'Loading') {
+  if (vault.status === VAULT_STATES.LOADING) {
     return (
       <TableContainer>
         <Table>
@@ -210,7 +211,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     );
   }
 
-  if (vault.status === 'Closed') {
+  if (vault.status === VAULT_STATES.CLOSED) {
     return (
       <TableContainer>
         <Table>

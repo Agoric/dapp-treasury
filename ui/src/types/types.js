@@ -84,7 +84,7 @@
 
 /**
  * @typedef {{
- *   status?: 'Pending Wallet Acceptance' | 'Error in offer'| 'Loan Initiated' | 'Liquidated',
+ *   status?: 'Pending Wallet Acceptance' | 'Error in offer'| 'Loan Initiated' | 'Liquidated' | 'Loading',
  *   liquidated?: boolean,
  *   locked?: Amount | null,
  *   collateralizationRatio?: Ratio | null,

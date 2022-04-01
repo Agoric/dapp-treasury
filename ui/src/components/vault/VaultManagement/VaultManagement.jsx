@@ -142,7 +142,7 @@ const VaultManagement = () => {
   };
 
   const calcRatio = (priceRate, newLock, newBorrow) => {
-    const lockPrice = floorMultiplyBy(harden(newLock), priceRate);
+    const lockPrice = floorMultiplyBy(newLock, priceRate);
     return makeRatioFromAmounts(lockPrice, newBorrow);
   };
 
