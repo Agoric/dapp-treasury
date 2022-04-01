@@ -69,9 +69,6 @@ const VaultManagement = () => {
     debtSnapshot,
   } = vaultToManage;
 
-  if (!locked || !debtSnapshot) {
-    return <Redirect to="/vaults" />;
-  }
   assert(locked && debtSnapshot);
   const { debt } = debtSnapshot;
 
