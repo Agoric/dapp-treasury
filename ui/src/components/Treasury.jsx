@@ -22,7 +22,7 @@ import { VaultSummary } from './VaultSummary';
 import ErrorBoundary from './ErrorBoundary';
 
 import { setVaultToManageId, setLoadTreasuryError } from '../store';
-import { VAULT_STATES } from '../constants';
+import { VaultStatus } from '../constants';
 
 const cardWidth = 360;
 const cardPadding = 16;
@@ -121,14 +121,12 @@ function VaultList() {
   );
 
   const vaultsList = Object.entries(vaults ?? {});
-  const vaultsToRender = vaultsList.filter(entry =>
+  const vaultsToRender = vaultsList.filter(([_key, { status }]) =>
     showClosed
-      ? [VAULT_STATES.CLOSED, VAULT_STATES.ERROR].includes(entry[1].status)
-      : ![
-          VAULT_STATES.CLOSED,
-          VAULT_STATES.ERROR,
-          VAULT_STATES.DECLINED,
-        ].includes(entry[1].status),
+      ? [VaultStatus.CLOSED, VaultStatus.ERROR].includes(status)
+      : ![VaultStatus.CLOSED, VaultStatus.ERROR, VaultStatus.DECLINED].includes(
+          status,
+        ),
   );
 
   const [redirect, setRedirect] = useState(false);
@@ -150,7 +148,7 @@ function VaultList() {
   };
 
   const showShowClosedToggle = vaultsList?.find(entry =>
-    [VAULT_STATES.CLOSED, VAULT_STATES.ERROR].includes(entry[1].status),
+    [VaultStatus.CLOSED, VaultStatus.ERROR].includes(entry[1].status),
   );
 
   const loadTreasuryErrorAlert = (

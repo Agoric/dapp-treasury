@@ -53,43 +53,38 @@ const VaultManagement = () => {
 
   const { state, walletP } = useApplicationContext();
 
-  const {
-    purses,
-    vaults,
-    vaultToManageId,
-    brandToInfo,
-    treasury: { priceAuthority },
-  } = state;
+  const { purses, vaults, vaultToManageId, brandToInfo, treasury } = state;
 
   /** @type { VaultData } */
-  let vaultToManage = {
-    debtSnapshot: null,
-    interestRate: null,
-    liquidationRatio: null,
-    locked: null,
-  };
+  let vaultToManage;
   if (vaultToManageId && vaults) {
     vaultToManage = vaults[vaultToManageId];
+  } else {
+    return <Redirect to="/vaults" />;
   }
-
   const {
-    debtSnapshot: { debt },
     interestRate,
     liquidationRatio,
     locked,
+    debtSnapshot,
   } = vaultToManage;
 
-  if (locked === null || debt === null) {
+  if (!locked || !debtSnapshot) {
     return <Redirect to="/vaults" />;
   }
-  assert(locked && debt);
+  assert(locked && debtSnapshot);
+  const { debt } = debtSnapshot;
 
   // deposit, withdraw, noaction
   const [collateralAction, setCollateralAction] = useState('noaction');
   // borrow, repay, noaction
   const [debtAction, setDebtAction] = React.useState('noaction');
-  const [lockedInputError, setLockedInputError] = useState(null);
-  const [debtInputError, setDebtInputError] = useState(null);
+  const [lockedInputError, setLockedInputError] = useState(
+    /** @type { string | null } */ (null),
+  );
+  const [debtInputError, setDebtInputError] = useState(
+    /** @type { string | null } */ (null),
+  );
   const [lockedDelta, setLockedDelta] = useState(
     AmountMath.make(locked.brand, 0n),
   );
@@ -156,8 +151,11 @@ const VaultManagement = () => {
       locked.brand,
       10n ** Nat(decimalPlaces),
     );
-    assert(priceAuthority, 'priceAuthority missing');
-    const quoteP = E(priceAuthority).quoteGiven(inputAmount, debt.brand);
+    assert(treasury, 'treasury missing, need priceAuthority');
+    const quoteP = E(treasury.priceAuthority).quoteGiven(
+      inputAmount,
+      debt.brand,
+    );
 
     quoteP.then(({ quoteAmount }) => {
       const [{ amountIn, amountOut }] = quoteAmount.value;

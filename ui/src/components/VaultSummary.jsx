@@ -19,7 +19,7 @@ import {
 import LoadingBlocks from './LoadingBlocks';
 import { makeDisplayFunctions } from './helpers';
 import { useApplicationContext } from '../contexts/Application';
-import { VAULT_STATES } from '../constants';
+import { VaultStatus } from '../constants';
 
 const useStyles = makeStyles(theme => {
   return {
@@ -132,7 +132,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     });
   }, [vault]);
 
-  if (vault.status === VAULT_STATES.PENDING) {
+  if (vault.status === VaultStatus.PENDING) {
     return (
       <div className={classes.pending}>
         <TableContainer>
@@ -159,7 +159,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     );
   }
 
-  if (vault.status === VAULT_STATES.ERROR) {
+  if (vault.status === VaultStatus.ERROR) {
     return (
       <TableContainer>
         <Table>
@@ -187,7 +187,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     );
   }
 
-  if (vault.status === VAULT_STATES.LOADING) {
+  if (vault.status === VaultStatus.LOADING) {
     return (
       <TableContainer>
         <Table>
@@ -211,7 +211,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     );
   }
 
-  if (vault.status === VAULT_STATES.CLOSED) {
+  if (vault.status === VaultStatus.CLOSED) {
     return (
       <TableContainer>
         <Table>

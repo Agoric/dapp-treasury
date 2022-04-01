@@ -76,22 +76,19 @@
  */
 
 /**
- * @typedef {{
- *  debt?: Amount,
- *  interest?: Ratio,
- * }} DebtSnapshot
+ * @typedef  { import('@agoric/run-protocol/src/vaultFactory/vault').VaultUIState } VaultUIState
  */
 
 /**
  * @typedef {{
- *   status?: 'Pending Wallet Acceptance' | 'Error in offer'| 'Loan Initiated' | 'Liquidated' | 'Loading',
+ *   status: import('../constants').VaultStatus,
  *   liquidated?: boolean,
- *   locked?: Amount | null,
- *   collateralizationRatio?: Ratio | null,
- *   debtSnapshot?: DebtSnapshot,
- *   interestRate?:  Ratio | null,
- *   liquidationRatio?: Ratio | null,
- *   err?: Error
+ *   locked?: VaultUIState['locked'],
+ *   collateralizationRatio?: Ratio,
+ *   debtSnapshot?: VaultUIState['debtSnapshot'],
+ *   interestRate?:  VaultUIState['interestRate'],
+ *   liquidationRatio?: VaultUIState['liquidationRatio'],
+ *   err?: Error,
  * }} VaultData
  */
 
@@ -101,6 +98,6 @@
  *   treasuryAPI: unknown,
  *   runIssuer: Issuer,
  *   runBrand: Brand,
- *   priceAuthority: unknown,
+ *   priceAuthority: ERef<PriceAuthority>,
  * }} VaultState
  */

@@ -3,7 +3,7 @@
 // The code in this file requires an understanding of Autodux.
 // See: https://github.com/ericelliott/autodux
 import autodux from 'autodux';
-import { VAULT_STATES } from './constants';
+import { VaultStatus } from './constants';
 
 export const initial = {
   approved: true,
@@ -102,7 +102,7 @@ export const {
     /** @type {(state: TreasuryState, v: { id: string, vault: VaultData }) => TreasuryState} */
     updateVault: ({ vaults, ...state }, { id, vault }) => {
       const oldVaultData = vaults && vaults[id];
-      const status = vault.liquidated ? VAULT_STATES.LIQUIDATED : vault.status;
+      const status = vault.liquidated ? VaultStatus.LIQUIDATED : vault.status;
       return {
         ...state,
         vaults: { ...vaults, [id]: { ...oldVaultData, ...vault, status } },

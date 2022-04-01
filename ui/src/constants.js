@@ -2,7 +2,7 @@
 export const AGORIC_LOGO_URL =
   'https://agoric.com/wp-content/themes/agoric_2021_theme/assets/img/logo.svg';
 
-export const VAULT_STATES = {
+export const VaultStatus = /** @type {const} */ ({
   PENDING: 'Pending Wallet Acceptance',
   ERROR: 'Error in Offer',
   INITIATED: 'Loan Initiated',
@@ -10,4 +10,5 @@ export const VAULT_STATES = {
   LOADING: 'Loading',
   CLOSED: 'Closed',
   DECLINED: 'Declined',
-};
+});
+/** @typedef {typeof VaultStatus[keyof typeof VaultStatus]} VaultStatus */

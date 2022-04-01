@@ -23,7 +23,7 @@ import {
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
 import WalletConnection from '../components/WalletConnection';
 import { getRunLoCTerms } from '../runLoCStub';
-import { VAULT_STATES } from '../constants';
+import { VaultStatus } from '../constants';
 
 // eslint-disable-next-line import/no-mutable-exports
 let walletP;
@@ -56,7 +56,7 @@ function watchVault(id, dispatch, offerStatus) {
     dispatch(
       updateVault({
         id,
-        vault: { status: VAULT_STATES.PENDING },
+        vault: { status: VaultStatus.PENDING },
       }),
     );
   } else {
@@ -64,7 +64,7 @@ function watchVault(id, dispatch, offerStatus) {
       updateVault({
         id,
         vault: {
-          status: VAULT_STATES.LOADING,
+          status: VaultStatus.LOADING,
         },
       }),
     );
@@ -78,17 +78,17 @@ function watchVault(id, dispatch, offerStatus) {
       dispatch(
         updateVault({
           id,
-          vault: { ...value, status: VAULT_STATES.INITIATED },
+          vault: { ...value, status: VaultStatus.INITIATED },
         }),
       );
     }
-    dispatch(updateVault({ id, vault: { status: VAULT_STATES.CLOSED } }));
-    window.localStorage.setItem(id, VAULT_STATES.CLOSED);
+    dispatch(updateVault({ id, vault: { status: VaultStatus.CLOSED } }));
+    window.localStorage.setItem(id, VaultStatus.CLOSED);
   }
 
   vaultUpdater().catch(err => {
     console.error('Vault watcher exception', id, err);
-    dispatch(updateVault({ id, vault: { status: VAULT_STATES.ERROR, err } }));
+    dispatch(updateVault({ id, vault: { status: VaultStatus.ERROR, err } }));
   });
 }
 
@@ -114,18 +114,19 @@ function watchOffers(dispatch, INSTANCE_BOARD_ID) {
             dispatch(
               updateVault({
                 id,
-                vault: { status: VAULT_STATES.DECLINED },
+                vault: { status: VaultStatus.DECLINED },
               }),
             );
-          } else if (window.localStorage.getItem(id) === VAULT_STATES.CLOSED) {
+          } else if (window.localStorage.getItem(id) === VaultStatus.CLOSED) {
             // We can cache closed vaults since their notifiers cannot update
             // anymore.
             dispatch(
               updateVault({
                 id,
-                vault: { status: VAULT_STATES.CLOSED },
+                vault: { status: VaultStatus.CLOSED },
               }),
             );
+            watchedVaults.add(id);
           } else if (!watchedVaults.has(id)) {
             watchedVaults.add(id);
             watchVault(id, dispatch, status);

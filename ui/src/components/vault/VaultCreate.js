@@ -9,7 +9,7 @@ import { useApplicationContext } from '../../contexts/Application';
 import { makeLoanOffer } from '../../contexts/makeLoanOffer';
 import VaultConfirmation from './VaultConfirmation';
 import ErrorBoundary from '../ErrorBoundary';
-import { VAULT_STATES } from '../../constants';
+import { VaultStatus } from '../../constants';
 
 function VaultCreate({
   dispatch,
@@ -56,7 +56,7 @@ function VaultCreate({
       liquidationMargin,
       locked: toLock,
       stabilityFee,
-      status: VAULT_STATES.PENDING,
+      status: VaultStatus.PENDING,
       liquidationPenalty: makeRatio(3n, toBorrow.brand),
     };
     dispatch(createVault({ id, vault }));
