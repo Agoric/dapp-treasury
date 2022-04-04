@@ -70,9 +70,7 @@ function watchVault(id, dispatch, offerStatus) {
     );
   }
 
-  async function vaultUpdater() {
-    // TODO: Do something with asset notifier.
-    const { vault, _asset } = await E(walletP).getPublicNotifiers(id);
+  async function vaultUpdater(vault) {
     for await (const value of iterateNotifier(vault)) {
       console.log('======== VAULT', id, value);
       dispatch(
@@ -86,10 +84,32 @@ function watchVault(id, dispatch, offerStatus) {
     window.localStorage.setItem(id, VaultStatus.CLOSED);
   }
 
-  vaultUpdater().catch(err => {
-    console.error('Vault watcher exception', id, err);
-    dispatch(updateVault({ id, vault: { status: VaultStatus.ERROR, err } }));
-  });
+  async function assetUpdater(asset) {
+    for await (const value of iterateNotifier(asset)) {
+      console.log('======== ASSET', id, value);
+      dispatch(
+        updateVault({
+          id,
+          vault: { asset: { ...value } },
+        }),
+      );
+    }
+  }
+
+  async function watch() {
+    const { vault, asset } = await E(walletP).getPublicNotifiers(id);
+
+    assetUpdater(asset).catch(err => {
+      console.error('Asset watcher exception', id, err);
+    });
+
+    vaultUpdater(vault).catch(err => {
+      console.error('Vault watcher exception', id, err);
+      dispatch(updateVault({ id, vault: { status: VaultStatus.ERROR, err } }));
+    });
+  }
+
+  watch();
 }
 
 /** @type { (d: TreasuryDispatch, id: string) => void } */

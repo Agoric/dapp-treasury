@@ -80,6 +80,10 @@
  */
 
 /**
+ * @typedef { import('@agoric/run-protocol/src/vaultFactory/vaultManager').AssetState } AssetState
+ */
+
+/**
  * @typedef {{
  *   status: import('../constants').VaultStatus,
  *   liquidated?: boolean,
@@ -88,6 +92,7 @@
  *   debtSnapshot?: VaultUIState['debtSnapshot'],
  *   interestRate?:  VaultUIState['interestRate'],
  *   liquidationRatio?: VaultUIState['liquidationRatio'],
+ *   asset?: AssetState,
  *   err?: Error,
  * }} VaultData
  */
