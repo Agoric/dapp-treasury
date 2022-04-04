@@ -12,6 +12,7 @@ import {
 import { AmountMath } from '@agoric/ertp';
 import { Nat } from '@endo/nat';
 import { E } from '@endo/eventual-send';
+import { calculateCurrentDebt } from '@agoric/run-protocol/src/interest-math';
 
 import AdjustVaultForm from './AdjustVaultForm';
 import UnchangeableValues from './UnchangeableValues';
@@ -67,10 +68,18 @@ const VaultManagement = () => {
     liquidationRatio,
     locked,
     debtSnapshot,
+    asset,
   } = vaultToManage;
 
-  assert(locked && debtSnapshot);
-  const { debt } = debtSnapshot;
+  assert(
+    locked && debtSnapshot && asset,
+    `Can't manage vault with missing data: locked: ${locked}, debt: ${debtSnapshot}, asset: ${asset}`,
+  );
+  const debt = calculateCurrentDebt(
+    debtSnapshot.debt,
+    debtSnapshot.interest,
+    asset.compoundedInterest,
+  );
 
   // deposit, withdraw, noaction
   const [collateralAction, setCollateralAction] = useState('noaction');

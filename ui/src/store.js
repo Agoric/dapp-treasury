@@ -102,7 +102,9 @@ export const {
     /** @type {(state: TreasuryState, v: { id: string, vault: VaultData }) => TreasuryState} */
     updateVault: ({ vaults, ...state }, { id, vault }) => {
       const oldVaultData = vaults && vaults[id];
-      const status = vault.liquidated ? VaultStatus.LIQUIDATED : vault.status;
+      const status = vault.liquidated
+        ? VaultStatus.LIQUIDATED
+        : (vault.status ?? oldVaultData?.status);
       return {
         ...state,
         vaults: { ...vaults, [id]: { ...oldVaultData, ...vault, status } },
