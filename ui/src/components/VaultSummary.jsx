@@ -76,10 +76,11 @@ const calcRatio = (priceRate, newLock, newBorrow) => {
 };
 
 /**
- * @typedef {Object} Props
- * @property {VaultData} vault
- * @property {Object} brandToInfo
- * @property {string} id
+ * @typedef {{
+ * vault: VaultData,
+ * brandToInfo: TreasuryState['brandToInfo'],
+ * id: string,
+ * }} Props
  */
 
 /**
