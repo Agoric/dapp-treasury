@@ -71,12 +71,12 @@ function watchVault(id, dispatch, offerStatus) {
   }
 
   async function vaultUpdater(vault) {
-    for await (const value of iterateNotifier(vault)) {
-      console.log('======== VAULT', id, value);
+    for await (const vaultState of iterateNotifier(vault)) {
+      console.log('======== VAULT', id, vaultState);
       dispatch(
         updateVault({
           id,
-          vault: { ...value, status: VaultStatus.INITIATED },
+          vault: { ...vaultState, status: VaultStatus.INITIATED },
         }),
       );
     }
@@ -85,12 +85,12 @@ function watchVault(id, dispatch, offerStatus) {
   }
 
   async function assetUpdater(asset) {
-    for await (const value of iterateNotifier(asset)) {
-      console.log('======== ASSET', id, value);
+    for await (const assetState of iterateNotifier(asset)) {
+      console.log('======== ASSET', id, assetState);
       dispatch(
         updateVault({
           id,
-          vault: { asset: { ...value } },
+          vault: { asset: assetState },
         }),
       );
     }

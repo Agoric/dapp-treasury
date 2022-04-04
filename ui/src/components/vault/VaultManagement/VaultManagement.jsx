@@ -71,7 +71,10 @@ const VaultManagement = () => {
     asset,
   } = vaultToManage;
 
-  assert(locked && debtSnapshot && asset);
+  assert(
+    locked && debtSnapshot && asset,
+    `Can't manage vault with missing data: locked: ${locked}, debt: ${debtSnapshot}, asset: ${asset}`,
+  );
   const debt = calculateCurrentDebt(
     debtSnapshot.debt,
     debtSnapshot.interest,
