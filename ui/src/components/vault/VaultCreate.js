@@ -73,7 +73,7 @@ function VaultCreate({
           vaultConfiguration={vaultConfiguration}
           brandToInfo={brandToInfo}
         ></VaultConfirmation>
-        <Grid container justify="flex-end" style={{ marginTop: '16px' }}>
+        <Grid container justifyContent="flex-end" style={{ marginTop: '16px' }}>
           <Button
             style={{ marginRight: '8px' }}
             onClick={() => dispatch(resetVault())}

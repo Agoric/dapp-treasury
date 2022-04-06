@@ -43,6 +43,7 @@ async function main(args, { readFile, writeFile }) {
    * @param {{ target: string, replacement: string}} patch
    */
   async function patchFile(name, { target, replacement }) {
+    console.log(`Patching ${name} at '${target}' with '${replacement}'`)
     const original = await readFile(name, 'utf-8');
     if (original.indexOf(target) < 0) {
       throw Error('target not found');

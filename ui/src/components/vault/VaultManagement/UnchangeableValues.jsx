@@ -83,7 +83,12 @@ const UnchangeableValues = ({
     <Paper className={classes.root} elevation={4}>
       <Typography className={classes.title}>Market Details</Typography>
       <hr className={classes.break} />
-      <Grid container spacing={1} justify="space-between" alignItems="center">
+      <Grid
+        container
+        spacing={1}
+        justifyContent="space-between"
+        alignItems="center"
+      >
         <ValueCard title="Market Price" text={displayRatio(marketPrice)} />
         <ValueCard
           title="Liq. Ratio"

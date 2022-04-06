@@ -60,7 +60,7 @@ export default function AssetInput({
 
   return (
     <ErrorBoundary>
-      <Grid container justify="center" spacing={2}>
+      <Grid container justifyContent="center" spacing={2}>
         <Grid item>
           <NatPurseSelector
             label={`${purseTitle || title} Purse`}
