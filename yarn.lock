@@ -77,6 +77,11 @@
     "@endo/marshal" "^0.6.3"
     "@endo/promise-kit" "^0.2.37"
 
+"@agoric/eslint-config@^0.3.23":
+  version "0.3.23"
+  resolved "https://registry.yarnpkg.com/@agoric/eslint-config/-/eslint-config-0.3.23.tgz#6649852c6e5b5c025cc75b6ad876d6c0eb3e0f47"
+  integrity sha512-ynWxgymuXtUcd5ythkgkT00b9eJSO3uJ2kQaWQseZl7+4IyYd05W3BpbPRnGJwRCtb5xc1ZA21IcCoAgvHD4Cw==
+
 "@agoric/governance@0.4.4-dev-5467be4.0+5467be4":
   version "0.4.4-dev-5467be4.0"
   resolved "https://registry.yarnpkg.com/@agoric/governance/-/governance-0.4.4-dev-5467be4.0.tgz#038d28ba88dd283a4cc58b23ae6cb357a998a34d"
@@ -1516,6 +1521,14 @@
     "@endo/zip" "^0.2.21"
     ses "^0.15.11"
 
+"@endo/eslint-config@^0.4.6":
+  version "0.4.6"
+  resolved "https://registry.yarnpkg.com/@endo/eslint-config/-/eslint-config-0.4.6.tgz#adcbd2415a5f341038802bb3fd14676cb4957bad"
+  integrity sha512-u5tqA9j4zYgOCQPSoJbEl1Nghj6oigJ+qmFoKM40k2sE7h/sDGMlESgNnZqvgkH9huZkpm767grRgjpEcoYBHg==
+  dependencies:
+    "@endo/eslint-plugin" "^0.3.24"
+    "@jessie.js/eslint-plugin" "^0.1.1"
+
 "@endo/eslint-plugin@^0.3.24":
   version "0.3.24"
   resolved "https://registry.yarnpkg.com/@endo/eslint-plugin/-/eslint-plugin-0.3.24.tgz#14031cb0412fa7de7ee0555dc1ab34095aa76719"
@@ -2054,7 +2067,7 @@
   resolved "https://registry.yarnpkg.com/@istanbuljs/schema/-/schema-0.1.3.tgz#e45e384e4b8ec16bce2fd903af78450f6bf7ec98"
   integrity sha512-ZXRY4jNvVgSVQ8DL3LTcakaAtXwTVUxE81hslsyD2AtoXW/wVob10HkOJ1X/pAlcI7D+2YoZKg5do8G/w6RYgA==
 
-"@jessie.js/eslint-plugin@^0.1.3":
+"@jessie.js/eslint-plugin@^0.1.1", "@jessie.js/eslint-plugin@^0.1.3":
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/@jessie.js/eslint-plugin/-/eslint-plugin-0.1.3.tgz#4df87d639dbc8ffb4c0b0168de1311b7f522cc75"
   integrity sha512-wyx/Wz/5gx87GRijQ3U6XGBYh9AnJdkw5pNgz0xZrLv6a6+l/t1p/7AeqYeolu5nDPuic/jSxfybkcWgYaP7UA==
@@ -2921,6 +2934,16 @@
     npmlog "^4.1.2"
     write-file-atomic "^3.0.3"
 
+"@lit-labs/react@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@lit-labs/react/-/react-1.0.2.tgz#a9059c39d40a1598deb17fc57dd9ed7f924165fe"
+  integrity sha512-jfcHoNsdbxA3vHTnvm4Q08skWFFYvpXRdPZ7Z31oC3lxeKfLR5WGQldr/fTF1Q0gKY3zusLsvX5UiSurV/F+og==
+
+"@lit/reactive-element@^1.3.0":
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/@lit/reactive-element/-/reactive-element-1.3.1.tgz#3021ad0fa30a75a41212c5e7f1f169c5762ef8bb"
+  integrity sha512-nOJARIr3pReqK3hfFCSW2Zg/kFcFsSAlIE7z4a0C9D2dPrgD/YSn3ZP2ET/rxKB65SXyG7jJbkynBRm+tGlacw==
+
 "@mapbox/node-pre-gyp@1.0.5":
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/@mapbox/node-pre-gyp/-/node-pre-gyp-1.0.5.tgz#2a0b32fcb416fb3f2250fd24cb2a81421a4f5950"
@@ -3737,6 +3760,11 @@
   integrity sha512-oKZe+Mf4ioWlMuzVBaXQ9WDnEm1+umLx0InILg+yvZVBBDmzV5KfZyLrCvadtWcx8+916jLmHafcmqqffl+iIw==
   dependencies:
     "@types/jest" "*"
+
+"@types/trusted-types@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@types/trusted-types/-/trusted-types-2.0.2.tgz#fc25ad9943bcac11cceb8168db4f275e0e72e756"
+  integrity sha512-F5DIZ36YVLE+PN+Zwws4kJogq47hNgX3Nx6WyDJ3kcplxyke3XIzB8uK5n/Lpm1HBsbGzd6nmGehL8cPekP+Tg==
 
 "@types/uglify-js@*":
   version "3.13.1"
@@ -5205,7 +5233,7 @@ buffer@^5.5.0:
     base64-js "^1.3.1"
     ieee754 "^1.1.13"
 
-"bufferfromfile@github:agoric-labs/BufferFromFile#Agoric-built":
+bufferfromfile@agoric-labs/BufferFromFile#Agoric-built:
   version "0.4.360"
   resolved "https://codeload.github.com/agoric-labs/BufferFromFile/tar.gz/620ad350bfa6789b297ebab937e22d582fbd19ba"
   dependencies:
@@ -7618,7 +7646,7 @@ esm@3.2.25:
   resolved "https://registry.yarnpkg.com/esm/-/esm-3.2.25.tgz#342c18c29d56157688ba5ce31f8431fbb795cc10"
   integrity sha512-U1suiZ2oDVWv4zPO56S0NcR5QriEahGtdN2OR6FiOG4WJvcjBVFB0qI4+eKoWFH483PKGuLuu6V8Z4T5g63UVA==
 
-"esm@github:agoric-labs/esm#Agoric-built":
+esm@agoric-labs/esm#Agoric-built:
   version "3.2.25"
   resolved "https://codeload.github.com/agoric-labs/esm/tar.gz/3603726ad4636b2f865f463188fcaade6375638e"
 
@@ -10676,6 +10704,30 @@ lines-and-columns@^1.1.6:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/lines-and-columns/-/lines-and-columns-1.2.4.tgz#eca284f75d2965079309dc0ad9255abb2ebc1632"
   integrity sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==
+
+lit-element@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/lit-element/-/lit-element-3.2.0.tgz#9c981c55dfd9a8f124dc863edb62cc529d434db7"
+  integrity sha512-HbE7yt2SnUtg5DCrWt028oaU4D5F4k/1cntAFHTkzY8ZIa8N0Wmu92PxSxucsQSOXlODFrICkQ5x/tEshKi13g==
+  dependencies:
+    "@lit/reactive-element" "^1.3.0"
+    lit-html "^2.2.0"
+
+lit-html@^2.2.0:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/lit-html/-/lit-html-2.2.1.tgz#762f112a8b54eaf0bbae3f516de935a25dcc12d1"
+  integrity sha512-AiJ/Rs0awjICs2FioTnHSh+Np5dhYSkyRczKy3wKjp8qjLhr1Ov+GiHrUQNdX8ou1LMuznpIME990AZsa/tR8g==
+  dependencies:
+    "@types/trusted-types" "^2.0.2"
+
+lit@^2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/lit/-/lit-2.2.1.tgz#4b679e1d8cb6c7977b64921b1ea3eca7850ca1dd"
+  integrity sha512-dSe++R50JqrvNGXmI9OE13de1z5U/Y3J2dTm/9GC86vedI8ILoR8ZGnxfThFpvQ9m0lR0qRnIR4IiKj/jDCfYw==
+  dependencies:
+    "@lit/reactive-element" "^1.3.0"
+    lit-element "^3.2.0"
+    lit-html "^2.2.0"
 
 load-json-file@^4.0.0:
   version "4.0.0"
