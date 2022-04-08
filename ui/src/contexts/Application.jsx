@@ -1,3 +1,4 @@
+// @ts-check
 /* eslint-disable no-unused-vars */
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
 
@@ -267,6 +268,7 @@ const setupGetRun = async (
   zoe,
   GET_RUN_NAME,
 ) => {
+  /** @type {[RunStakePublic, RunStakeTerms]} */
   const [getRunApi, getRunTerms] = await Promise.all([
     E(zoe).getPublicFacet(instance),
     E(zoe).getTerms(instance),
@@ -274,8 +276,8 @@ const setupGetRun = async (
 
   // Get brands.
   const brands = [
-    getRunTerms.brands.BldLienAtt,
-    getRunTerms.brands.RUN,
+    getRunTerms.brands.Attestation,
+    getRunTerms.brands.Debt,
     getRunTerms.brands.Stake,
   ];
   const keywords = ['LIEN', 'RUN', 'BLD'];

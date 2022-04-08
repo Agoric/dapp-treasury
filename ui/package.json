@@ -44,6 +44,7 @@
     "@agoric/same-structure": "*",
     "@agoric/ui-components": "*",
     "@agoric/wallet-connection": "*",
+    "@agoric/run-protocol": "*",
     "@agoric/zoe": "*",
     "@material-ui/core": "^4.11.3",
     "@material-ui/icons": "^4.11.2",

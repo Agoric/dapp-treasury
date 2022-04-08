@@ -1,3 +1,7 @@
+// @ts-check
+/** @typedef { import('@agoric/run-protocol/src/runStake/runStake.js').RunStakeTerms } RunStakeTerms */
+/** @typedef { import('@agoric/run-protocol/src/runStake/runStake.js').RunStakePublic } RunStakePublic */
+
 /**
  * @typedef {object} CollateralInfo
  *
