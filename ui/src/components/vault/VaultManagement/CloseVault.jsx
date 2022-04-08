@@ -17,7 +17,7 @@ const useStyles = makeStyles(theme => ({
 const CloseVault = ({ onClick }) => {
   const classes = useStyles();
   return (
-    <Grid container alignItems="center" justifyContent="center">
+    <Grid container alignItems="center" justify="center">
       <Grid item>
         <Button
           size="large"

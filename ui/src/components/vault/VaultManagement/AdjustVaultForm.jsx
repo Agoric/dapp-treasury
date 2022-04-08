@@ -227,7 +227,7 @@ const AdjustVaultForm = ({
           container
           spacing={1}
           className={classes.buttons}
-          justifyContent="flex-end"
+          justify="flex-end"
         >
           <Grid item>
             <Button onClick={() => setRedirect('/vaults')}>Cancel</Button>
