@@ -167,7 +167,7 @@ const CloseVaultForm = ({
         <Grid
           container
           spacing={1}
-          justifyContent="flex-end"
+          justify="flex-end"
           className={classes.buttons}
         >
           <Grid item>

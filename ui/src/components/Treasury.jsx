@@ -247,7 +247,7 @@ function VaultList() {
                     ></VaultSummary>
                   </CardContent>
                   <CardActions>
-                    <Grid container justifyContent="flex-end">
+                    <Grid container justify="flex-end">
                       <Grid item className={classes.button}>
                         <Button
                           variant="contained"
