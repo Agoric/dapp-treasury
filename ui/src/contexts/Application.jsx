@@ -101,8 +101,7 @@ function watchVault(id, dispatch, offerStatus) {
     let asset;
     try {
       const notifiers = await E(walletP).getPublicNotifiers(id);
-      vault = notifiers.vault;
-      asset = notifiers.asset;
+      ({ vault, asset } = notifiers);
     } catch (err) {
       console.error('Could not get notifiers', id, err);
       dispatch(updateVault({ id, vault: { status: VaultStatus.ERROR, err } }));
