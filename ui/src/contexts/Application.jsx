@@ -97,7 +97,16 @@ function watchVault(id, dispatch, offerStatus) {
   }
 
   async function watch() {
-    const { vault, asset } = await E(walletP).getPublicNotifiers(id);
+    let vault;
+    let asset;
+    try {
+      const notifiers = await E(walletP).getPublicNotifiers(id);
+      ({ vault, asset } = notifiers);
+    } catch (err) {
+      console.error('Could not get notifiers', id, err);
+      dispatch(updateVault({ id, vault: { status: VaultStatus.ERROR, err } }));
+      return;
+    }
 
     assetUpdater(asset).catch(err => {
       console.error('Asset watcher exception', id, err);

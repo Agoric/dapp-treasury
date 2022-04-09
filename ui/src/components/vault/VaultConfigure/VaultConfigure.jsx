@@ -212,7 +212,7 @@ function VaultConfigure({
               brandToInfo={brandToInfo}
             />
           </Grid>
-          <Grid container justifyContent="flex-end" alignItems="center">
+          <Grid container justify="flex-end" alignItems="center">
             <CancelButton dispatch={dispatch} />
             <EnterButton
               dispatch={dispatch}

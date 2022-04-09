@@ -433,12 +433,7 @@ export default function Swap() {
             outputAmount={outputAmount}
           />
 
-          <Grid
-            container
-            spacing={3}
-            className={classes.grid}
-            justifyContent="center"
-          >
+          <Grid container spacing={3} className={classes.grid} justify="center">
             <Grid item sm={12}>
               <AssetInput
                 title={inputLabel}
@@ -454,7 +449,7 @@ export default function Swap() {
               />
             </Grid>
             <Grid item sm={12}>
-              <Grid container justifyContent="center">
+              <Grid container justify="center">
                 <IconButton
                   size="medium"
                   onClick={handleSwapInputs}
