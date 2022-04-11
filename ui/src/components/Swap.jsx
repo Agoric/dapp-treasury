@@ -1,13 +1,13 @@
 import { React, useState, useEffect } from 'react';
-import { E } from '@agoric/captp';
+import { E } from '@endo/captp';
 import {
-  divideBy,
+  floorDivideBy,
   invertRatio,
   makeRatio,
   makeRatioFromAmounts,
-  multiplyBy,
+  floorMultiplyBy,
 } from '@agoric/zoe/src/contractSupport';
-import { Nat } from '@agoric/nat';
+import { Nat } from '@endo/nat';
 import { stringifyAmountValue } from '@agoric/ui-components';
 
 import { makeStyles } from '@material-ui/core/styles';
@@ -37,6 +37,10 @@ import { useApplicationContext } from '../contexts/Application';
 import { makeSwapOffer } from '../contexts/makeSwapOffer';
 
 const useStyles = makeStyles(theme => ({
+  root: {
+    width: 'fit-content',
+    margin: 'auto',
+  },
   paper: {
     marginTop: theme.spacing(3),
     marginBottom: theme.spacing(3),
@@ -65,7 +69,7 @@ const useStyles = makeStyles(theme => ({
 
 const makeInverseFromAmounts = (x, y) => makeRatioFromAmounts(y, x);
 const composeRatio = (x, y) =>
-  makeRatioFromAmounts(multiplyBy(x.numerator, y), x.denominator);
+  makeRatioFromAmounts(floorMultiplyBy(x.numerator, y), x.denominator);
 
 /* eslint-disable complexity */
 export default function Swap() {
@@ -240,14 +244,22 @@ export default function Swap() {
 
   if (!approved) {
     return (
-      <Paper className={classes.paper}>
-        <div>To continue, please approve the Treasury Dapp in your wallet.</div>
-      </Paper>
+      <div className={classes.root}>
+        <Paper className={classes.paper}>
+          <div>
+            To continue, please approve the VaultFactory Dapp in your wallet.
+          </div>
+        </Paper>
+      </div>
     );
   }
 
   if (!centralBrand || !purses) {
-    return <CircularProgress style={{ marginTop: 48 }} />;
+    return (
+      <div className={classes.root}>
+        <CircularProgress style={{ marginTop: 48 }} />
+      </div>
+    );
   }
 
   const inputAmountError =
@@ -266,7 +278,7 @@ export default function Swap() {
       const giveInfo = getInfoForBrand(brandToInfo, inputRate.brand);
       const wantInfo = getInfoForBrand(brandToInfo, outputRate.brand);
       const oneDisplayUnit = 10n ** Nat(wantInfo.decimalPlaces);
-      const wantPrice = divideBy(
+      const wantPrice = floorDivideBy(
         AmountMath.make(outputRate.brand, oneDisplayUnit),
         marketRate,
       );
@@ -293,11 +305,11 @@ export default function Swap() {
       // and so depends on whether the user entered the In or
       // the Out amount most recently
       if (quote.rate && sameStructure(source, quote.amount)) {
-        const value = multiplyBy(source, quote.rate).value;
+        const value = floorMultiplyBy(source, quote.rate).value;
         return { amount: value, label: `Quoted ${label}` };
       }
       if (marketRatio) {
-        const value = multiplyBy(source, marketRatio).value;
+        const value = floorMultiplyBy(source, marketRatio).value;
         return { amount: value, label: `Estimated ${label}` };
       }
     }
@@ -407,7 +419,7 @@ export default function Swap() {
     isValid,
   });
   return (
-    <div>
+    <div className={classes.root}>
       <Paper className={classes.paper}>
         <Typography component="h1" variant="h4" align="center">
           Swap

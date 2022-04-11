@@ -81,6 +81,11 @@ const CloseVaultForm = ({
   const classes = useStyles();
 
   useEffect(() => {
+    setCollateralValue(locked.value);
+    setRunValue(debt.value);
+  }, [locked, debt]);
+
+  useEffect(() => {
     if (needToAddOfferToWallet) {
       makeCloseVaultOffer({
         vaultToManageId,
@@ -90,7 +95,7 @@ const CloseVaultForm = ({
         collateralPurseSelected,
         collateralValue,
       });
-      setRedirect('/treasury');
+      setRedirect('/vaults');
     }
     setNeedToAddOfferToWallet(false);
   }, [needToAddOfferToWallet]);

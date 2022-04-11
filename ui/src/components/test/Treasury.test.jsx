@@ -1,7 +1,10 @@
 /* eslint-disable import/no-extraneous-dependencies */
+import { act } from '@testing-library/react';
 import { mount } from 'enzyme';
 import Alert from '@material-ui/lab/Alert';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Checkbox from '@material-ui/core/Checkbox';
+
 import VaultList from '../Treasury';
 import { VaultSummary } from '../VaultSummary';
 
@@ -29,13 +32,14 @@ beforeEach(() => {
   state.approved = false;
   state.vaults = null;
   state.brandToInfo = [];
+  state.treasury = null;
 });
 
 test('renders a message when the dapp needs approval', () => {
   const component = mount(<VaultList />);
 
   expect(component.text()).toContain(
-    'To continue, please approve the Treasury Dapp in your wallet.',
+    'To continue, please approve the VaultFactory Dapp in your wallet.',
   );
 });
 
@@ -63,6 +67,7 @@ test('renders a loading indicator when vaults are null', () => {
 test('renders a message when no vaults are available', () => {
   state.approved = true;
   state.vaults = {};
+  state.treasury = {};
 
   const component = mount(<VaultList />);
 
@@ -76,6 +81,59 @@ test('renders the vaults', () => {
     },
   };
   state.approved = true;
+  state.treasury = { priceAuthority: { quoteGiven: jest.fn() } };
+
+  const component = mount(<VaultList />);
+
+  const vaultSummaries = component.find(VaultSummary);
+  expect(vaultSummaries).toHaveLength(1);
+  expect(vaultSummaries.at(0).props().vault).toEqual(state.vaults['1']);
+  expect(vaultSummaries.at(0).props().id).toEqual('1');
+});
+
+test('hides closed vaults by default', () => {
+  state.vaults = {
+    1: {
+      status: 'Closed',
+    },
+  };
+  state.approved = true;
+  state.treasury = { priceAuthority: { quoteGiven: jest.fn() } };
+
+  const component = mount(<VaultList />);
+
+  const vaultSummaries = component.find(VaultSummary);
+  expect(vaultSummaries).toHaveLength(0);
+});
+
+test('shows closed vaults when enabled', () => {
+  state.vaults = {
+    1: {
+      status: 'Closed',
+    },
+  };
+  state.approved = true;
+  state.treasury = { priceAuthority: { quoteGiven: jest.fn() } };
+
+  const component = mount(<VaultList />);
+  const showClosedCheckbox = component.find(Checkbox);
+  act(() => showClosedCheckbox.props().onChange({ target: { checked: true } }));
+  component.update();
+
+  const vaultSummaries = component.find(VaultSummary);
+  expect(vaultSummaries).toHaveLength(1);
+  expect(vaultSummaries.at(0).props().vault).toEqual(state.vaults['1']);
+  expect(vaultSummaries.at(0).props().id).toEqual('1');
+});
+
+test('shows loading vaults', () => {
+  state.vaults = {
+    1: {
+      status: 'Loading',
+    },
+  };
+  state.approved = true;
+  state.treasury = { priceAuthority: { quoteGiven: jest.fn() } };
 
   const component = mount(<VaultList />);
 

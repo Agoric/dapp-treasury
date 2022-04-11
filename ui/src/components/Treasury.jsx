@@ -11,6 +11,9 @@ import CardContent from '@material-ui/core/CardContent';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import Alert from '@material-ui/lab/Alert';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormGroup from '@material-ui/core/FormGroup';
+import Checkbox from '@material-ui/core/Checkbox';
 
 import { CircularProgress, Typography } from '@material-ui/core';
 import { useApplicationContext } from '../contexts/Application';
@@ -20,8 +23,19 @@ import ErrorBoundary from './ErrorBoundary';
 
 import { setVaultToManageId, setLoadTreasuryError } from '../store';
 
+const cardWidth = 360;
+const cardPadding = 16;
+const cardHeight = 464;
+
 const useStyles = makeStyles(theme => {
   return {
+    root: {
+      width: 'fit-content',
+      margin: 'auto',
+    },
+    content: {
+      marginTop: 16,
+    },
     paper: {
       marginTop: theme.spacing(3),
       marginBottom: theme.spacing(3),
@@ -33,22 +47,62 @@ const useStyles = makeStyles(theme => {
       },
     },
     gridCard: {
-      paddingLeft: theme.spacing(2),
-      marginBottom: theme.spacing(2),
+      paddingLeft: cardPadding,
+      marginBottom: cardPadding,
     },
     card: {
-      width: '350px',
+      width: cardWidth,
+      minHeight: cardHeight,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      borderRadius: '16px',
+      boxShadow: '0 1px 3px 0 rgb(0 0 0 / 20%)',
     },
     loading: {
       padding: theme.spacing(3),
       marginTop: theme.spacing(2),
     },
     grid: {
+      margin: 'auto',
       marginTop: theme.spacing(2),
+      maxWidth: cardWidth + cardPadding,
+      justifyContent: 'flex-start',
+      '@media (min-width: 1025px)': {
+        maxWidth: 2 * (cardWidth + cardPadding),
+        '&__contents-1': {
+          maxWidth: cardWidth + cardPadding,
+        },
+      },
+      '@media (min-width: 1401px)': {
+        maxWidth: 3 * (cardWidth + cardPadding),
+        '&__contents-1': {
+          maxWidth: 1 * (cardWidth + cardPadding),
+        },
+        '&__contents-2': {
+          maxWidth: 2 * (cardWidth + cardPadding),
+        },
+      },
+      '@media (min-width: 1777px)': {
+        maxWidth: 4 * (cardWidth + cardPadding),
+        '&__contents-1': {
+          maxWidth: 1 * (cardWidth + cardPadding),
+        },
+        '&__contents-2': {
+          maxWidth: 2 * (cardWidth + cardPadding),
+        },
+        '&__contents-3': {
+          maxWidth: 3 * (cardWidth + cardPadding),
+        },
+      },
     },
     button: {
       marginRight: theme.spacing(1),
       marginBottom: theme.spacing(1),
+    },
+    showClosedToggle: {
+      paddingLeft: theme.spacing(4),
+      width: 'fit-content',
     },
   };
 });
@@ -56,12 +110,22 @@ const useStyles = makeStyles(theme => {
 function VaultList() {
   const classes = useStyles();
   const {
-    state: { approved, vaults, brandToInfo, loadTreasuryError },
+    state: { approved, vaults, brandToInfo, loadTreasuryError, treasury },
     dispatch,
     retrySetup,
   } = useApplicationContext();
 
+  const [showClosed, setShowClosed] = useState(
+    window.localStorage.getItem('showClosedVaults') === 'true',
+  );
+
   const vaultsList = Object.entries(vaults ?? {});
+  const vaultsToRender = vaultsList.filter(
+    entry =>
+      entry[1].status !== 'Declined' &&
+      !(!showClosed && ['Closed', 'Error in offer'].includes(entry[1].status)),
+  );
+
   const [redirect, setRedirect] = useState(false);
 
   const handleOnClick = key => {
@@ -74,20 +138,32 @@ function VaultList() {
     retrySetup();
   };
 
+  const onShowClosedToggled = e => {
+    const value = e.target.checked;
+    window.localStorage.setItem('showClosedVaults', value ? 'true' : 'false');
+    setShowClosed(value);
+  };
+
+  const showShowClosedToggle = vaultsList?.find(
+    entry => entry[1].status === 'Closed',
+  );
+
   const loadTreasuryErrorAlert = (
-    <Paper className={classes.paper}>
-      <Alert
-        action={
-          <Button onClick={onRetryClicked} color="inherit" size="small">
-            Retry
-          </Button>
-        }
-        severity="error"
-      >
-        A problem occured while loading your vaults — make sure you have RUN in
-        your Zoe fees purse.
-      </Alert>
-    </Paper>
+    <div className={classes.root}>
+      <Paper className={classes.paper}>
+        <Alert
+          action={
+            <Button onClick={onRetryClicked} color="inherit" size="small">
+              Retry
+            </Button>
+          }
+          severity="error"
+        >
+          A problem occured while loading your vaults — make sure you have RUN
+          in your Zoe fees purse.
+        </Alert>
+      </Paper>
+    </div>
   );
 
   if (redirect) {
@@ -96,9 +172,13 @@ function VaultList() {
 
   if (!approved) {
     return (
-      <Paper className={classes.paper}>
-        <div>To continue, please approve the Treasury Dapp in your wallet.</div>
-      </Paper>
+      <div className={classes.root}>
+        <Paper className={classes.paper}>
+          <div>
+            To continue, please approve the VaultFactory Dapp in your wallet.
+          </div>
+        </Paper>
+      </div>
     );
   }
 
@@ -106,23 +186,52 @@ function VaultList() {
     return loadTreasuryErrorAlert;
   }
 
-  if (vaults === null) {
-    return <CircularProgress style={{ marginTop: 48 }} />;
+  if (vaults === null || !treasury) {
+    return (
+      <div className={classes.root}>
+        <CircularProgress style={{ marginTop: 48 }} />
+      </div>
+    );
   }
 
-  if (vaultsList.length === 0) {
+  const showClosedToggle = (
+    <FormGroup className={classes.showClosedToggle}>
+      <FormControlLabel
+        control={
+          <Checkbox
+            color="primary"
+            onChange={onShowClosedToggled}
+            checked={showClosed === true}
+          />
+        }
+        label="Show closed vaults"
+      />
+    </FormGroup>
+  );
+
+  if (vaultsToRender.length === 0) {
     return (
-      <Paper className={classes.loading}>
-        <Typography>No vaults available yet</Typography>
-      </Paper>
+      <div className={classes.content}>
+        {showShowClosedToggle && showClosedToggle}
+        <div className={classes.root}>
+          <Paper className={classes.loading}>
+            <Typography>No vaults available yet</Typography>
+          </Paper>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div>
+    <div className={classes.content}>
+      {showShowClosedToggle && showClosedToggle}
       <ErrorBoundary>
-        <Grid container className={classes.grid} alignItems="stretch">
-          {vaultsList.map(([key, v]) => {
+        <Grid
+          container
+          className={`${classes.grid} ${classes.grid}__contents-${vaultsToRender?.length}`}
+          alignItems="stretch"
+        >
+          {vaultsToRender.map(([key, v]) => {
             const canManage = v.status === 'Loan Initiated';
             return (
               <Grid item key={key} className={classes.gridCard}>

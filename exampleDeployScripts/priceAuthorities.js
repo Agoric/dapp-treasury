@@ -1,5 +1,5 @@
-import { E } from '@agoric/eventual-send';
-import { Far } from '@agoric/marshal';
+import { E } from '@endo/eventual-send';
+import { Far } from '@endo/marshal';
 import { makeFakePriceAuthority } from '@agoric/zoe/tools/fakePriceAuthority';
 import { makeIssuerKit, MathKind } from '@agoric/ertp';
 import { allComparable } from '@agoric/same-structure';

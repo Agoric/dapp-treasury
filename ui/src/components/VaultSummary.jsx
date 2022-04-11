@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
+import { AmountMath } from '@agoric/ertp';
+import { makeRatioFromAmounts } from '@agoric/zoe/src/contractSupport';
+import { Nat } from '@endo/nat';
+import { E } from '@endo/eventual-send';
 import { makeStyles } from '@material-ui/core/styles';
-
 import {
   Table,
   TableBody,
@@ -10,7 +13,9 @@ import {
   TableRow,
 } from '@material-ui/core';
 
+import LoadingBlocks from './LoadingBlocks';
 import { makeDisplayFunctions } from './helpers';
+import { useApplicationContext } from '../contexts/Application';
 
 const useStyles = makeStyles(theme => {
   return {
@@ -18,35 +23,137 @@ const useStyles = makeStyles(theme => {
       color: theme.palette.primary.main,
       fontWeight: 'bold',
     },
+    loadingShimmer: {
+      display: 'inline-block',
+      height: '15px',
+      width: '100%',
+      position: 'relative',
+      overflow: 'hidden',
+      backgroundColor: '#e9e9e9',
+
+      '&::after': {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        transform: 'translateX(-100%)',
+        backgroundImage:
+          'linear-gradient(90deg, #fff0 0, #fff2 20%, #fff8 60%, #fff0)',
+        animation: `$shimmer 2.4s infinite`,
+        content: '""',
+      },
+    },
+    '@keyframes shimmer': {
+      '100%': {
+        transform: 'translateX(100%)',
+      },
+    },
+    pending: {
+      height: 368,
+      display: 'flex',
+      flexDirection: 'column',
+    },
+    acceptOfferMessage: {
+      marginTop: theme.spacing(2),
+      flexGrow: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
   };
 });
+
+const calcRatio = (priceRate, newLock, newBorrow) =>
+  makeRatioFromAmounts(
+    AmountMath.make(newLock.brand, newLock.value * priceRate.numerator.value),
+    AmountMath.make(
+      newBorrow.brand,
+      newBorrow.value * priceRate.denominator.value,
+    ),
+  );
 
 export function VaultSummary({ vault, brandToInfo, id }) {
   const classes = useStyles();
 
+  const { state } = useApplicationContext();
+  const {
+    treasury: { priceAuthority },
+  } = state;
+
+  const makeRatioState = () => useState(/** @type { Ratio | null } */ (null));
+  const [marketPrice, setMarketPrice] = makeRatioState();
+  const [collateralizationRatio, setCollateralizationRatio] = makeRatioState();
+
+  const {
+    displayPercent,
+    displayAmount,
+    displayBrandPetname,
+    getDecimalPlaces,
+  } = makeDisplayFunctions(brandToInfo);
+
+  const {
+    debt, // amount
+    interestRate, // ratio
+    liquidationRatio, // ratio
+    locked, // amount
+    status, // string
+  } = vault;
+
+  useEffect(() => {
+    if (marketPrice && locked && debt) {
+      setCollateralizationRatio(calcRatio(marketPrice, locked, debt));
+    }
+  }, [marketPrice, locked, debt]);
+
+  useEffect(() => {
+    if (!(locked && debt)) return;
+
+    const decimalPlaces = getDecimalPlaces(locked.brand);
+
+    // Make what would display as 1 unit of collateral
+    const inputAmount = AmountMath.make(
+      locked.brand,
+      10n ** Nat(decimalPlaces),
+    );
+    assert(priceAuthority, 'priceAuthority missing');
+    const quoteP = E(priceAuthority).quoteGiven(inputAmount, debt.brand);
+
+    quoteP.then(({ quoteAmount }) => {
+      const [{ amountIn, amountOut }] = quoteAmount.value;
+      const newMarketPrice = makeRatioFromAmounts(
+        amountOut, // RUN
+        amountIn, // 1 unit of collateral
+      );
+      setMarketPrice(newMarketPrice);
+    });
+  }, [vault]);
+
   if (vault.status === 'Pending Wallet Acceptance') {
     return (
-      <TableContainer>
-        <Table>
-          <TableBody>
-            <TableRow>
-              <TableCell className={classes.header}>Id</TableCell>
-              <TableCell className={classes.header} align="right">
-                {id}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Status</TableCell>
-              <TableCell align="right">{vault.status}</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell colSpan={3}>
-                Please accept the offer in your wallet.
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <div className={classes.pending}>
+        <TableContainer>
+          <Table>
+            <TableBody>
+              <TableRow>
+                <TableCell className={classes.header}>Id</TableCell>
+                <TableCell className={classes.header} align="right">
+                  {id}
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Status</TableCell>
+                <TableCell align="right">{vault.status}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <div className={classes.acceptOfferMessage}>
+          <LoadingBlocks />
+          <p> Please accept the offer in your wallet.</p>
+        </div>
+      </div>
     );
   }
 
@@ -78,22 +185,50 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     );
   }
 
-  const {
-    collateralizationRatio, // ratio
-    debt, // amount
-    interestRate, // ratio
-    _liquidated, // boolean
-    liquidationRatio, // ratio
-    locked, // amount
-    status, // string
-    // liquidationPenalty, // not present?
-  } = vault;
+  if (vault.status === 'Loading') {
+    return (
+      <TableContainer>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell className={classes.header}>Id</TableCell>
+              <TableCell className={classes.header} align="right">
+                {id}
+              </TableCell>
+            </TableRow>
+            {[...Array(6).keys()].map(i => (
+              <TableRow key={i}>
+                <TableCell colSpan={3}>
+                  <div className={classes.loadingShimmer}></div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  }
 
-  const {
-    displayPercent,
-    displayAmount,
-    displayBrandPetname,
-  } = makeDisplayFunctions(brandToInfo);
+  if (vault.status === 'Closed') {
+    return (
+      <TableContainer>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell className={classes.header}>Id</TableCell>
+              <TableCell className={classes.header} align="right">
+                {id}
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Status</TableCell>
+              <TableCell align="right">Closed</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  }
 
   return (
     <TableContainer>
@@ -139,12 +274,6 @@ export function VaultSummary({ vault, brandToInfo, id }) {
               {displayPercent(collateralizationRatio)}%
             </TableCell>
           </TableRow>
-          {/* <TableRow>
-            <TableCell>Liquidation Penalty</TableCell>
-            <TableCell align="right">
-              {displayPercent(liquidationPenalty)}%
-            </TableCell>
-          </TableRow> */}
         </TableBody>
       </Table>
     </TableContainer>

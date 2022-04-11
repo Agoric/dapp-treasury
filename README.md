@@ -19,12 +19,9 @@
 9. The treasury will ask you to `please approve the Treasury Dapp in
    your wallet.` Click on the `enabled` switch to do this.
 
-## Hints on starting and running the dapp
-
-
-
 ## Reusing the code with other parameters
 
 Instead of using the default on-chain settings, you can deploy the
-contract and api by using the scripts in `exampleDeployScripts` as
-templates to get started.
+contract and api by using the scripts in `exampleDeployScripts`. These are
+not intended to be run with the dapp directly as-is, but rather as
+starting points for configuring the deployment in different ways.

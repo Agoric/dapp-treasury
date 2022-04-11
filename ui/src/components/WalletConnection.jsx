@@ -1,6 +1,6 @@
 import { makeReactAgoricWalletConnection } from '@agoric/wallet-connection/react.js';
 import React, { useCallback } from 'react';
-import { E } from '@agoric/eventual-send';
+import { E } from '@endo/eventual-send';
 
 import { dappConfig } from '../utils/config';
 import { setApproved, setConnected } from '../store';
@@ -47,7 +47,7 @@ const WalletConnection = ({ setWalletP, dispatch }) => {
   return (
     <AgoricWalletConnection
       onState={onWalletState}
-      style={{ visibility: 'hidden' }}
+      style={{ display: 'none' }}
     />
   );
 };

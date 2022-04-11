@@ -1,7 +1,7 @@
 // @ts-check
 import fs from 'fs';
 import { makeHelpers } from '@agoric/deploy-script-support';
-import { E } from '@agoric/eventual-send';
+import { E } from '@endo/eventual-send';
 
 import '@agoric/deploy-script-support/exported';
 

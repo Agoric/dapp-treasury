@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
 
-import { E } from '@agoric/captp';
+import { E } from '@endo/captp';
 import { makeAsyncIterableFromNotifier as iterateNotifier } from '@agoric/notifier';
 
 import { dappConfig, refreshConfigFromWallet } from '../utils/config';
@@ -17,7 +17,7 @@ import {
   setTreasury,
   setAutoswap,
   mergeBrandToInfo,
-  setUseRloc,
+  setUseGetRUN,
   setLoadTreasuryError,
 } from '../store';
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
@@ -44,19 +44,30 @@ export function useApplicationContext() {
 /**
  * @param {string} id
  * @param {TreasuryDispatch} dispatch
+ * @param {string} offerStatus
  */
-function watchVault(id, dispatch) {
+function watchVault(id, dispatch, offerStatus) {
   console.log('vaultWatched', id);
 
   // There is no UINotifier for offers that haven't been accepted, but
   // we still want to show that the offer exists
-  const status = 'Pending Wallet Acceptance';
-  dispatch(
-    updateVault({
-      id,
-      vault: { status },
-    }),
-  );
+  if (offerStatus !== 'accept') {
+    dispatch(
+      updateVault({
+        id,
+        vault: { status: 'Pending Wallet Acceptance' },
+      }),
+    );
+  } else {
+    dispatch(
+      updateVault({
+        id,
+        vault: {
+          status: 'Loading',
+        },
+      }),
+    );
+  }
 
   async function vaultUpdater() {
     const uiNotifier = E(walletP).getUINotifier(id);
@@ -66,6 +77,8 @@ function watchVault(id, dispatch) {
         updateVault({ id, vault: { ...value, status: 'Loan Initiated' } }),
       );
     }
+    dispatch(updateVault({ id, vault: { status: 'Closed' } }));
+    window.localStorage.setItem(id, 'Closed');
   }
 
   vaultUpdater().catch(err => {
@@ -84,14 +97,34 @@ function watchOffers(dispatch, INSTANCE_BOARD_ID) {
         id,
         instanceHandleBoardId,
         continuingInvitation,
+        status,
       } of offers) {
         if (
           instanceHandleBoardId === INSTANCE_BOARD_ID &&
-          !watchedVaults.has(id) &&
           continuingInvitation === undefined // AdjustBalances and CloseVault offers use continuingInvitation
         ) {
-          watchedVaults.add(id);
-          watchVault(id, dispatch);
+          if (status === 'decline') {
+            // We don't care about declined offers, still update the vault so
+            // the UI can hide it if needed.
+            dispatch(
+              updateVault({
+                id,
+                vault: { status: 'Declined' },
+              }),
+            );
+          } else if (window.localStorage.getItem(id) === 'Closed') {
+            // We can cache closed vaults since their notifiers cannot update
+            // anymore.
+            dispatch(
+              updateVault({
+                id,
+                vault: { status: 'Closed' },
+              }),
+            );
+          } else if (!watchedVaults.has(id)) {
+            watchedVaults.add(id);
+            watchVault(id, dispatch, status);
+          }
         }
       }
       if (!watchedVaults.size) {
@@ -116,16 +149,20 @@ const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
   const instance = await E(board).getValue(instanceID);
   /** @type { ERef<VaultFactory> } */
   const treasuryAPIP = E(zoe).getPublicFacet(instance);
-  const [treasuryAPI, terms, collaterals] = await Promise.all([
+  const termsP = E(zoe).getTerms(instance);
+  const [treasuryAPI, terms, collaterals, priceAuthority] = await Promise.all([
     treasuryAPIP,
-    E(zoe).getTerms(instance),
+    termsP,
     E(treasuryAPIP).getCollaterals(),
+    E.get(termsP).priceAuthority,
   ]);
   const {
     issuers: { RUN: runIssuer },
     brands: { RUN: runBrand },
   } = terms;
-  dispatch(setTreasury({ instance, treasuryAPI, runIssuer, runBrand }));
+  dispatch(
+    setTreasury({ instance, treasuryAPI, runIssuer, runBrand, priceAuthority }),
+  );
   await storeAllBrandsFromTerms({
     dispatch,
     terms,
@@ -170,8 +207,8 @@ export default function Provider({ children }) {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const useRloc = urlParams.get('rloc') === 'true';
-    dispatch(setUseRloc(useRloc));
+    const useGetRUN = urlParams.get('gr') === 'true';
+    dispatch(setUseGetRUN(useGetRUN));
   }, []);
 
   const retrySetup = async () => {

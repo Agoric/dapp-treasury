@@ -8,7 +8,9 @@ import { resetVault } from '../../../store';
 // the user to go back to choosing the collateral brand
 
 const CancelButton = ({ dispatch }) => (
-  <Button onClick={() => dispatch(resetVault())}>Cancel</Button>
+  <Button style={{ marginRight: '8px' }} onClick={() => dispatch(resetVault())}>
+    Cancel
+  </Button>
 );
 
 export default CancelButton;

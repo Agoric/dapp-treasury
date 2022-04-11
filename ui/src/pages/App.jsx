@@ -21,6 +21,9 @@ const theme = createMuiTheme({
     success: {
       main: '#00b1a6', // green
     },
+    background: {
+      default: '#ffffff00',
+    },
   },
   overrides: {
     MuiStepIcon: {
@@ -49,8 +52,8 @@ const theme = createMuiTheme({
 function App() {
   return (
     <>
-      <CssBaseline />
       <ThemeProvider theme={theme}>
+        <CssBaseline />
         <Top />
       </ThemeProvider>
     </>

@@ -13,6 +13,7 @@ import Swap from '../components/Swap';
 import NewVault from '../components/vault/NewVault';
 import Treasury from '../components/Treasury';
 import VaultManagement from '../components/vault/VaultManagement/VaultManagement';
+import GetRun from '../components/getRun/GetRun';
 
 const navigationDrawerWidth = 240;
 
@@ -24,7 +25,7 @@ const useStyles = makeStyles(theme => ({
   body: {
     display: 'flex',
     flexDirection: 'row',
-    margin: '0 auto !important',
+    margin: '0',
     float: 'none !important',
   },
   content: {
@@ -59,7 +60,7 @@ function Top() {
           <main className={classes.content}>
             <Switch>
               {/* <Route path="/pegasus">Pegasus</Route> */}
-              <Route path="/treasury">
+              <Route path="/vaults">
                 <Treasury />
               </Route>
               {/* <Route path="/rewards">Rewards</Route> */}
@@ -69,6 +70,9 @@ function Top() {
               </Route>
               <Route path="/manageVault">
                 <VaultManagement />
+              </Route>
+              <Route path="/getRUN">
+                <GetRun />
               </Route>
               <Route path="/">
                 <NewVault />

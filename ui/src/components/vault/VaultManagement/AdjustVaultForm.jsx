@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 
-import DeleteIcon from '@material-ui/icons/Delete';
 import SendIcon from '@material-ui/icons/Send';
 
 import { Grid } from '@material-ui/core';
@@ -17,9 +16,6 @@ import { AmountMath } from '@agoric/ertp';
 import NatPurseAmountInput from './NatPurseAmountInput';
 import CollateralActionChoice from './CollateralActionChoice';
 import DebtActionChoice from './DebtActionChoice';
-
-import { makeAdjustVaultOffer } from './makeAdjustVaultOffer';
-import ApproveOfferSB from '../../ApproveOfferSB';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -86,140 +82,77 @@ const useStyles = makeStyles(theme => ({
 
 const AdjustVaultForm = ({
   purses,
-  walletP,
-  vaultToManageId,
-  locked,
-  debt,
-  onLockedDeltaChange,
-  onDebtDeltaChange,
   brandToInfo,
   invalidOffer,
+  collateralAction,
+  setCollateralAction,
+  debtAction,
+  setDebtAction,
+  lockedInputError,
+  debtInputError,
+  lockedDelta,
+  setLockedDelta,
+  debtDelta,
+  setDebtDelta,
+  lockedBrand,
+  debtBrand,
+  makeOffer,
+  collateralPurseSelected,
+  setCollateralPurseSelected,
+  runPurseSelected,
+  setRunPurseSelected,
 }) => {
-  // deposit, withdraw, noaction
-  const [collateralAction, setCollateralAction] = useState('noaction');
-  // borrow, repay, noaction
-  const [debtAction, setDebtAction] = React.useState('noaction');
-
-  const [collateralPurseSelected, setCollateralPurseSelected] = useState(null);
-  const [runPurseSelected, setRunPurseSelected] = useState(null);
-
-  const [lockedDelta, setLockedDelta] = useState(
-    AmountMath.make(locked.brand, 0n),
-  );
-  const [debtDelta, setDebtDelta] = useState(AmountMath.make(debt.brand, 0n));
-
-  const [needToAddOfferToWallet, setNeedToAddOfferToWallet] = useState(false);
-  const [redirect, setRedirect] = useState(false);
-  const [openApproveOfferSB, setOpenApproveOfferSB] = React.useState(false);
-
-  const resetState = () => {
-    setCollateralAction('noaction');
-    setDebtAction('noaction');
-    setCollateralPurseSelected(null);
-    setRunPurseSelected(null);
-    setLockedDelta(AmountMath.make(locked.brand, 0n));
-    setDebtDelta(AmountMath.make(debt.brand, 0n));
-    setNeedToAddOfferToWallet(false);
-    setRedirect(false);
-  };
-
-  const handleApproveOfferSBClose = () => {
-    setOpenApproveOfferSB(false);
-  };
-
   const classes = useStyles();
-
-  useEffect(() => {
-    if (needToAddOfferToWallet) {
-      setNeedToAddOfferToWallet(false);
-
-      if (collateralAction === 'noaction' && debtAction === 'noaction') {
-        // No actions should be taken
-        return;
-      }
-      if (collateralAction === 'deposit' || collateralAction === 'withdraw') {
-        // We are taking a collateral action, and should have a
-        // collateralPurseSelected and lockedDelta
-        if (!(collateralPurseSelected && lockedDelta && lockedDelta.value)) {
-          return;
-        }
-      }
-      if (debtAction === 'borrow' || debtAction === 'repay') {
-        // We are taking a debt action, and should have a
-        // runPurseSelected and debtDelta
-        if (!(runPurseSelected && debtDelta && debtDelta.value)) {
-          return;
-        }
-      }
-      makeAdjustVaultOffer({
-        vaultToManageId,
-        walletP,
-        runPurseSelected,
-        runValue: debtDelta && debtDelta.value,
-        collateralPurseSelected,
-        collateralValue: lockedDelta && lockedDelta.value,
-        collateralAction,
-        debtAction,
-      });
-      resetState();
-      setOpenApproveOfferSB(true);
-    }
-  }, [
-    needToAddOfferToWallet,
-    collateralPurseSelected,
-    lockedDelta,
-    runPurseSelected,
-    debtDelta,
-  ]);
-
-  const handleSubmission = () => {
-    // make offer to the wallet, the react way
-    setNeedToAddOfferToWallet(true);
-  };
-
-  const updateLockedDelta = (collAction, collDelta) => {
-    if (collAction === 'deposit') {
-      onLockedDeltaChange(AmountMath.add(locked, collDelta));
-    }
-    if (collAction === 'withdraw') {
-      onLockedDeltaChange(AmountMath.subtract(locked, collDelta));
-    }
-  };
-
-  const updateDebtDelta = (dAction, dDelta) => {
-    if (dAction === 'borrow') {
-      onDebtDeltaChange(AmountMath.add(debt, dDelta));
-    }
-    if (dAction === 'repay') {
-      onDebtDeltaChange(AmountMath.subtract(debt, dDelta));
-    }
-  };
+  const [redirect, setRedirect] = useState(false);
+  const [offerButtonDisabled, setOfferButtonDisabled] = useState(true);
 
   const handleCollateralAmountChange = value => {
-    const newLockedDelta = AmountMath.make(locked.brand, value);
+    const newLockedDelta = AmountMath.make(lockedBrand, value);
     setLockedDelta(newLockedDelta);
-    updateLockedDelta(collateralAction, newLockedDelta);
   };
 
   const handleDebtAmountChange = value => {
-    const newDebtDelta = AmountMath.make(debt.brand, value);
+    const newDebtDelta = AmountMath.make(debtBrand, value);
     setDebtDelta(newDebtDelta);
-    updateDebtDelta(debtAction, newDebtDelta);
   };
 
-  const handleCollateralAction = value => {
-    // if the collateral action changes, rerun the logic for sending
-    // the newLockedAfterDelta
-    setCollateralAction(value);
-    updateLockedDelta(value, lockedDelta);
-  };
+  useEffect(() => {
+    if (invalidOffer || debtInputError || lockedInputError) {
+      setOfferButtonDisabled(true);
+      return;
+    }
+    if (collateralAction === 'noaction' && debtAction === 'noaction') {
+      // No actions should be taken
+      setOfferButtonDisabled(true);
+      return;
+    }
+    if (collateralAction === 'deposit' || collateralAction === 'withdraw') {
+      // We are taking a collateral action, and should have a
+      // collateralPurseSelected and lockedDelta
+      if (!(collateralPurseSelected && lockedDelta && lockedDelta.value)) {
+        setOfferButtonDisabled(true);
+        return;
+      }
+    }
+    if (debtAction === 'borrow' || debtAction === 'repay') {
+      // We are taking a debt action, and should have a
+      // runPurseSelected and debtDelta
+      if (!(runPurseSelected && debtDelta && debtDelta.value)) {
+        setOfferButtonDisabled(true);
+        return;
+      }
+    }
 
-  const handleDebtAction = value => {
-    // if the debt action changes, rerun the logic for sending
-    // the newDebtAfterDelta
-    setDebtAction(value);
-    updateDebtDelta(value, debtDelta);
-  };
+    setOfferButtonDisabled(false);
+  }, [
+    invalidOffer,
+    debtInputError,
+    lockedInputError,
+    collateralAction,
+    debtAction,
+    lockedDelta,
+    debtDelta,
+  ]);
 
   if (redirect) {
     return <Redirect to={redirect} />;
@@ -243,16 +176,19 @@ const AdjustVaultForm = ({
             <Grid item md={8}>
               <CollateralActionChoice
                 collateralAction={collateralAction}
-                setCollateralAction={handleCollateralAction}
+                setCollateralAction={setCollateralAction}
               />
               <NatPurseAmountInput
+                error={lockedInputError}
                 purses={purses}
                 purseSelected={collateralPurseSelected}
                 amountValue={lockedDelta && lockedDelta.value}
                 onPurseChange={setCollateralPurseSelected}
                 onAmountChange={handleCollateralAmountChange}
-                brandToFilter={locked && locked.brand}
+                brandToFilter={lockedBrand}
                 brandToInfo={brandToInfo}
+                purseSelectorDisabled={collateralAction === 'noaction'}
+                amountInputDisabled={collateralAction === 'noaction'}
               />
             </Grid>
           </Grid>
@@ -269,16 +205,19 @@ const AdjustVaultForm = ({
             <Grid item md={8}>
               <DebtActionChoice
                 debtAction={debtAction}
-                setDebtAction={handleDebtAction}
+                setDebtAction={setDebtAction}
               />
               <NatPurseAmountInput
+                error={debtInputError}
                 purses={purses}
                 purseSelected={runPurseSelected}
                 amountValue={debtDelta && debtDelta.value}
                 onPurseChange={setRunPurseSelected}
                 onAmountChange={handleDebtAmountChange}
-                brandToFilter={debt && debt.brand}
+                brandToFilter={debtBrand}
                 brandToInfo={brandToInfo}
+                purseSelectorDisabled={debtAction === 'noaction'}
+                amountInputDisabled={debtAction === 'noaction'}
               />
             </Grid>
           </Grid>
@@ -291,34 +230,22 @@ const AdjustVaultForm = ({
           justify="flex-end"
         >
           <Grid item>
-            <Button
-              className={classes.button}
-              variant="contained"
-              color="primary"
-              startIcon={<DeleteIcon />}
-              onClick={() => setRedirect('/treasury')}
-            >
-              Cancel
-            </Button>
+            <Button onClick={() => setRedirect('/vaults')}>Cancel</Button>
           </Grid>
           <Grid item>
             <Button
               className={classes.button}
               variant="contained"
               color="primary"
-              disabled={invalidOffer}
+              disabled={offerButtonDisabled}
               startIcon={<SendIcon />}
-              onClick={handleSubmission}
+              onClick={makeOffer}
             >
               Make Offer
             </Button>
           </Grid>
         </Grid>
       </Paper>
-      <ApproveOfferSB
-        open={openApproveOfferSB}
-        handleClose={handleApproveOfferSBClose}
-      />
     </div>
   );
 };

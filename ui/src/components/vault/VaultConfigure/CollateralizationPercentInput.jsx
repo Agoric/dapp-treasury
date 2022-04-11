@@ -9,13 +9,13 @@ import { makeDisplayFunctions } from '../../helpers';
 const CollateralizationPercentInput = ({
   brandToInfo,
   collateralPercent,
-  initialMargin,
+  liquidationMargin,
   onChange,
   onError,
   belowMinError,
 }) => {
   const { displayPercent } = makeDisplayFunctions(brandToInfo);
-  const minValueStr = displayPercent(initialMargin, 0);
+  const minValueStr = displayPercent(liquidationMargin, 0);
 
   return (
     <TextField
@@ -35,7 +35,7 @@ const CollateralizationPercentInput = ({
           // return before makeRatio attempted
           return;
         }
-        if (numeratorValue < initialMargin.numerator.value) {
+        if (numeratorValue < liquidationMargin.numerator.value) {
           onError(true);
         } else {
           onError(false);

@@ -1,5 +1,5 @@
 /* global process */
-import { E } from '@agoric/eventual-send';
+import { E } from '@endo/eventual-send';
 
 // Taken from window.DAPP_CONSTANTS_JSON in index.html, defaulting to .env.local.
 import defaults from '../generated/defaults';
