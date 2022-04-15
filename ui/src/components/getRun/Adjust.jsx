@@ -207,6 +207,7 @@ const Adjust = ({
     setDebtDelta(newDebtDelta);
   };
 
+  console.log('adjust', purses, brand, debtBrand, accountState, loan);
   if (!purses || !brand || !debtBrand || !accountState || !loan) {
     return (
       <div>

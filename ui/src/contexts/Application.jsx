@@ -148,11 +148,16 @@ const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
  * @param {string} instanceID
  */
 const setupAMM = async (dispatch, brandToInfo, zoe, board, instanceID) => {
+  console.log('setupAMM');
   const instance = await E(board).getValue(instanceID);
+  console.log('setupAMM2');
+
   const [ammAPI, terms] = await Promise.all([
     E(zoe).getPublicFacet(instance),
     E(zoe).getTerms(instance),
   ]);
+  console.log('setupAMM3');
+
   // TODO this uses getTerms.brands, but that includes utility tokens, etc.
   // We need a query/notifier for what are the pools supported
   const {
@@ -165,9 +170,10 @@ const setupAMM = async (dispatch, brandToInfo, zoe, board, instanceID) => {
     terms,
     brandToInfo,
   });
+  console.log('setupAMM4');
 };
 
-function watchLoan(status, id, dispatch, watchedLoans) {
+async function watchLoan(status, id, dispatch, watchedLoans) {
   if (status === undefined) status = 'proposed';
   console.log('loan watched', id, status);
 
@@ -176,20 +182,24 @@ function watchLoan(status, id, dispatch, watchedLoans) {
     dispatch(setLoan({ status }));
   }
 
-  async function loanUpdater() {
-    const uiNotifier = await E(walletP).getUINotifier(id);
-    for await (const value of iterateNotifier(uiNotifier)) {
-      console.log('======== LOAN', id, value);
-      dispatch(setLoan({ id, status: 'accept', data: value }));
-    }
-  }
-
-  loanUpdater().catch(err => {
-    console.error('Loan watcher exception', id, err);
-    dispatch(setLoan({ id, status: 'Error in offer', error: err }));
-  });
-
   watchedLoans.add(id);
+
+  return new Promise(resolve => {
+    async function loanUpdater() {
+      const uiNotifier = await E(walletP).getUINotifier(id);
+      for await (const value of iterateNotifier(uiNotifier)) {
+        console.log('======== LOAN', id, value);
+        resolve(true);
+        dispatch(setLoan({ id, status: 'accept', data: value }));
+      }
+      resolve(false);
+    }
+
+    loanUpdater().catch(err => {
+      console.error('Loan watcher exception', id, err);
+      resolve(false);
+    });
+  });
 }
 
 const watchLoans = async (dispatch, instanceBoardId) => {
@@ -213,27 +223,20 @@ const watchLoans = async (dispatch, instanceBoardId) => {
           instanceHandleBoardId === instanceBoardId &&
           continuingInvitation === undefined // AdjustBalances and CloseVault offers use continuingInvitation
         ) {
-          console.log('FOUND LOAN: ', {
-            id,
-            instanceBoardId,
-            continuingInvitation,
-            status,
-          });
-
           if (
             status === 'accept' ||
             status === 'complete' ||
             status === 'pending' ||
             status === undefined
           ) {
-            hasLoan = true;
             if (!watchedLoans.has(id)) {
-              watchLoan(status, id, dispatch, watchedLoans);
-            }
-            if (status === 'accept') {
-              dispatch(
-                mergeGetRunHistory({ [id]: { meta, proposalForDisplay } }),
-              );
+              // eslint-disable-next-line no-await-in-loop
+              if (await watchLoan(status, id, dispatch, watchedLoans)) {
+                hasLoan = true;
+                dispatch(
+                  mergeGetRunHistory({ [id]: { meta, proposalForDisplay } }),
+                );
+              }
             }
           }
         } else if (
@@ -259,29 +262,29 @@ const watchLoans = async (dispatch, instanceBoardId) => {
   );
 };
 
-const setupGetRun = async (
-  dispatch,
-  instance,
-  installation,
-  board,
-  zoe,
-  GET_RUN_NAME,
-) => {
-  const [getRunApi, getRunTerms] = await Promise.all([
+const setupGetRun = async (dispatch, instance, board, zoe, GET_RUN_NAME) => {
+  const [getRunApi, getRunTerms, getRunInstallation] = await Promise.all([
     E(zoe).getPublicFacet(instance),
     E(zoe).getTerms(instance),
+    E(zoe).getInstallationForInstance(instance),
   ]);
-
+  console.log(
+    'got getRun api and terms and installation',
+    getRunApi,
+    getRunTerms,
+    getRunInstallation,
+  );
   // Get brands.
   const brands = [
-    getRunTerms.brands.BldLienAtt,
-    getRunTerms.brands.RUN,
+    getRunTerms.brands.Attestation,
+    getRunTerms.brands.Debt,
     getRunTerms.brands.Stake,
   ];
   const keywords = ['LIEN', 'RUN', 'BLD'];
   const displayInfos = await Promise.all(
     brands.map(b => E(b).getDisplayInfo()),
   );
+  console.log('got displayinfos');
 
   const newBrandToInfo = brands.map((brand, i) => {
     const decimalPlaces = displayInfos[i] && displayInfos[i].decimalPlaces;
@@ -299,10 +302,11 @@ const setupGetRun = async (
   });
   dispatch(mergeBrandToInfo(newBrandToInfo));
 
+  console.log('getting boardIds', board);
   // Suggest instance/installation
   const [instanceBoardId, installationBoardId] = await Promise.all([
     E(board).getId(instance),
-    E(board).getId(installation),
+    E(board).getId(getRunInstallation),
   ]);
   await Promise.all([
     E(walletP).suggestInstallation(
@@ -334,7 +338,9 @@ export default function Provider({ children }) {
   }, []);
 
   const retrySetup = async () => {
+    console.log('refresh config');
     await refreshConfigFromWallet(walletP, useGetRun);
+    console.log('done refresh config');
     const {
       INSTALLATION_BOARD_ID,
       INSTANCE_BOARD_ID,
@@ -344,32 +350,26 @@ export default function Provider({ children }) {
       AMM_NAME,
       GET_RUN_NAME,
       getRunInstance,
-      getRunInstallation,
     } = dappConfig;
     const zoe = E(walletP).getZoe();
     const board = E(walletP).getBoard();
     try {
       if (useGetRun) {
+        console.log('waiting for setups');
         await Promise.all([
-          setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID),
-          setupAMM(dispatch, brandToInfo, zoe, board, AMM_INSTANCE_BOARD_ID),
-          setupGetRun(
-            dispatch,
-            getRunInstance,
-            getRunInstallation,
-            board,
-            zoe,
-            GET_RUN_NAME,
-          ),
+          // setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID),
+          // setupAMM(dispatch, brandToInfo, zoe, board, AMM_INSTANCE_BOARD_ID),
+          setupGetRun(dispatch, getRunInstance, board, zoe, GET_RUN_NAME),
         ]);
+        console.log('done with setups');
       } else {
         await Promise.all([
-          setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID),
-          setupAMM(dispatch, brandToInfo, zoe, board, AMM_INSTANCE_BOARD_ID),
+          // setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID),
+          // setupAMM(dispatch, brandToInfo, zoe, board, AMM_INSTANCE_BOARD_ID),
         ]);
       }
     } catch (e) {
-      console.log('Couldnt load collaterals');
+      console.error('Couldnt load collaterals', e);
       dispatch(setLoadTreasuryError(e));
       return;
     }
@@ -394,18 +394,15 @@ export default function Provider({ children }) {
           brandToInfo,
           issuersFromNotifier: issuers,
         });
-        const { brandInfo, terms: runLoCTerms } = await getRunLoCTerms(issuers);
-        dispatch(mergeBrandToInfo([[brandInfo.brand, brandInfo]]));
-        dispatch(setRunLoCTerms(runLoCTerms));
       }
     }
     watchBrands().catch(err => {
       console.error('got watchBrands err', err);
     });
-    await Promise.all([
-      E(walletP).suggestInstallation('Installation', INSTALLATION_BOARD_ID),
-      E(walletP).suggestInstance('Instance', INSTANCE_BOARD_ID),
-      E(walletP).suggestInstallation(
+    /* await Promise.all([
+       E(walletP).suggestInstallation('Installation', INSTALLATION_BOARD_ID),
+       E(walletP).suggestInstance('Instance', INSTANCE_BOARD_ID),
+       E(walletP).suggestInstallation(
         `${AMM_NAME}Installation`,
         AMM_INSTALLATION_BOARD_ID,
       ),
@@ -413,12 +410,13 @@ export default function Provider({ children }) {
       E(walletP).suggestIssuer('RUN', RUN_ISSUER_BOARD_ID),
     ]);
 
-    watchOffers(dispatch, INSTANCE_BOARD_ID);
+    watchOffers(dispatch, INSTANCE_BOARD_ID); */
   };
 
   const setWalletP = async bridge => {
     walletP = bridge;
 
+    console.log('set walletP');
     await retrySetup();
   };
 

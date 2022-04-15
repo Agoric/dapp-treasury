@@ -34,29 +34,24 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const MarketDetails = ({
-  brandToInfo,
-  collateralPrice,
-  collateralizationRatio,
-  borrowLimit,
-}) => {
+const MarketDetails = ({ brandToInfo, borrowLimit, interestRate }) => {
   const classes = useStyles();
   const { displayPercent, displayRatio } = makeDisplayFunctions(brandToInfo);
 
   const rows =
-    collateralPrice && collateralizationRatio
+    borrowLimit && interestRate
       ? [
           /* makeRow('BLD Price', `${displayRatio(collateralPrice)} RUN`),
           makeRow(
             'Min BLD:RUN Ratio',
             `${displayPercent(collateralizationRatio)}%`,
           ), */
-          makeRow('Interest Rate', `0%`),
+          makeRow('Interest Rate', `${displayPercent(interestRate, 2)}%`),
           makeRow('Borrow Limit per BLD', `${displayRatio(borrowLimit)} RUN`),
         ]
       : [];
   const values =
-    !collateralPrice || !collateralizationRatio ? (
+    !borrowLimit || !interestRate ? (
       <NameValueTable rowsToLoad={2} />
     ) : (
       <NameValueTable rows={rows} />
