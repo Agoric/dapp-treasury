@@ -313,7 +313,7 @@ const Adjust = ({
           },
         },
         want: {
-          RUN: {
+          Debt: {
             pursePetname: runPurse.pursePetname,
             value: debtAmount.value,
           },
@@ -372,9 +372,9 @@ const Adjust = ({
     }
 
     if (debtAction === 'borrow' && debtAmount.value > 0n) {
-      want.RUN = RUN;
+      want.Debt = RUN;
     } else if (debtAmount.value > 0n) {
-      give.RUN = RUN;
+      give.Debt = RUN;
     }
 
     const offerConfig = {
