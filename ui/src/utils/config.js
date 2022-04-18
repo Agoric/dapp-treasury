@@ -12,41 +12,27 @@ dappConfig = process.env.REACT_APP_DAPP_CONSTANTS_JSON
   ? JSON.parse(process.env.REACT_APP_DAPP_CONSTANTS_JSON)
   : defaults;
 
-export async function refreshConfigFromWallet(walletP, useGetRUN = false) {
-  if (!dappConfig.ON_CHAIN_CONFIG) {
+export async function refreshConfigFromWallet(walletP, useGetRUN) {
+  if (!dappConfig.ON_CHAIN_CONFIG && !dappConfig.RUN_STAKE_ON_CHAIN_CONFIG) {
     // No refresh required.
     return;
   }
 
-  const [method, args] = dappConfig.ON_CHAIN_CONFIG;
   if (useGetRUN) {
-    const [getRunMethod, getRunArgs] = dappConfig.GET_RUN_ON_CHAIN_CONFIG;
+    const [RUNStakeMethod, RUNStakeArgs] = dappConfig.RUN_STAKE_ON_CHAIN_CONFIG;
 
-    console.log(
-      'should say overriding with',
-      method,
-      args,
-      getRunMethod,
-      getRunArgs,
-    );
-    const [
-      // overrideConfig,
-      getRunInstance,
-    ] = await Promise.all([
-      // E(walletP)[method](...args),
-      E(walletP)[getRunMethod](...getRunArgs),
-    ]);
+    console.log('should say overriding with', RUNStakeMethod, RUNStakeArgs);
+    const RUNStakeInstance = await E(walletP)[RUNStakeMethod](...RUNStakeArgs);
     console.log('overriding with', {
       ...dappConfig,
-      // ...overrideConfig,
-      getRunInstance,
+      RUNStakeInstance,
     });
     dappConfig = {
       ...dappConfig,
-      // ...overrideConfig,
-      getRunInstance,
+      RUNStakeInstance,
     };
   } else {
+    const [method, args] = dappConfig.ON_CHAIN_CONFIG;
     console.log('have methods', method, 'args', args);
     const overrideConfig = await E(walletP)[method](...args);
     console.log('overriding with', {

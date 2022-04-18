@@ -103,10 +103,10 @@
 
 /**
  * @typedef {{
- *   getRunApi: unknown,
- *   getRunTerms: unknown
+ *   RUNStakeAPI: unknown,
+ *   RUNStakeTerms: unknown
  *   loanData: unknown,
  *   instanceBoardId: string,
  *   installationBoardId: string,
- * }} GetRunState
+ * }} RUNStakeState
  */

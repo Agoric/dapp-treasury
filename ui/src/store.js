@@ -10,7 +10,7 @@ export const initial = {
   account: null,
   purses: /** @type {PursesJSONState[] | null} */ (null),
   brandToInfo: /** @type {Array<[Brand, BrandInfo]>} */ ([]),
-  getRunHistory: /** @type {Record<string, unknown>} */ ({}),
+  RUNSTakeHistory: /** @type {Record<string, unknown>} */ ({}),
   // Autoswap state
   autoswap: /** @type { AutoswapState } */ ({}),
   // Vault state
@@ -19,12 +19,11 @@ export const initial = {
   vaultConfiguration: null,
   vaults: /** @type {Record<string, VaultData> | null} */ (null),
   collaterals: /** @type { Collaterals | null } */ (null),
-  runLoCTerms: /** @type { CollateralInfo | null } */ (null),
   vaultToManageId: /** @type {string | null} */ (null),
   useGetRUN: false,
-  getRun: /** @type { GetRunState | null } */ (null),
-  loan: /** @type { unknown | null } */ (null),
   loadTreasuryError: /** @type {string | null} */ null,
+  RUNStake: /** @type { RUNStakeState | null } */ (null),
+  loan: /** @type { unknown | null } */ (null),
 };
 
 /**
@@ -45,6 +44,7 @@ export const initial = {
  *    setRunLoCTerms: (payload: typeof initial.runLoCTerms) => TreasuryReducer,
  *    mergeGetRunHistory: (payload: unknown) => TreasuryReducer,
  *    resetState: () => TreasuryReducer,
+ *    mergeRUNStakeHistory: (payload: unknown) => TreasuryReducer,
  *    setTreasury: (payload: typeof initial.treasury) => TreasuryReducer,
  *    setVaultCollateral: (payload: typeof initial.vaultCollateral) => TreasuryReducer,
  *    setVaultConfiguration: (payload: typeof initial.vaultConfiguration) => TreasuryReducer,
@@ -54,10 +54,10 @@ export const initial = {
  *    initVaults: () => TreasuryReducer,
  *    setLoan: (payload: typeof initial.loan) => TreasuryReducer,
  *    setAutoswap: (payload: typeof initial.autoswap) => TreasuryReducer,
- *    setGetRun: (payload: typeof initial.getRun) => TreasuryReducer,
+ *    setLoan: (payload: typeof initial.loan) => TreasuryReducer,
  *    setUseGetRUN: (payload: boolean) => TreasuryReducer,
  *    setLoadTreasuryError: (payload: string | null) => TreasuryReducer,
- *    setWalletP: (payload: unknown) => TreasuryReducer,
+ *    setRUNStake: (payload: typeof initial.RUNStake) => TreasuryReducer,
  * }} TreasuryActions
  */
 export const {
@@ -82,10 +82,10 @@ export const {
     updateVault,
     resetVault,
     setAutoswap,
-    setGetRun,
     setUseGetRUN,
     setLoadTreasuryError,
-    setWalletP,
+    mergeRUNStakeHistory,
+    setRUNStake,
     setLoan,
   },
   // @ts-ignore tsc can't tell that autodux is callable
