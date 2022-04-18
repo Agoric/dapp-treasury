@@ -75,7 +75,7 @@ const useStyles = makeStyles(theme => ({
 const GetRun = () => {
   const classes = useStyles();
   const {
-    state: { brandToInfo, purses, getRunHistory, getRun, loan },
+    state: { brandToInfo, purses, RUNStakeHistory, RUNStake, loan },
     dispatch,
     walletP,
   } = useApplicationContext();
@@ -100,11 +100,11 @@ const GetRun = () => {
     return () => (cancelled = true);
   }, [purses, walletP]);
 
-  console.log('getRun', getRun);
+  console.log('getRun', RUNStake);
   const {
     MintingRatio: { value: borrowLimit = undefined },
     InterestRate: { value: interestRate = undefined },
-  } = getRun?.getRunTerms?.governedParams ?? {
+  } = RUNStake?.RUNStakeTerms?.governedParams ?? {
     MintingRatio: {},
     InterestRate: {},
   };
@@ -113,7 +113,7 @@ const GetRun = () => {
     Attestation: lienBrand = undefined,
     Debt: runBrand = undefined,
     Stake: bldBrand = undefined,
-  } = getRun?.getRunTerms?.brands ?? {};
+  } = RUNStake?.RUNStakeTerms?.brands ?? {};
 
   return (
     <div className={classes.root}>
@@ -140,7 +140,7 @@ const GetRun = () => {
                 brandToInfo={brandToInfo}
                 accountState={accountState}
                 borrowLimit={borrowLimit}
-                getRun={getRun}
+                getRun={RUNStake}
                 loan={loan}
               />
             </div>
@@ -154,7 +154,7 @@ const GetRun = () => {
               accountState={accountState}
               walletP={walletP}
               lienBrand={lienBrand}
-              getRun={getRun}
+              getRun={RUNStake}
               loan={loan}
               dispatch={dispatch}
               borrowLimit={borrowLimit}
@@ -163,9 +163,9 @@ const GetRun = () => {
         </div>
         <div className={classes.history}>
           <History
-            getRun={getRun}
+            getRun={RUNStake}
             loan={loan}
-            history={getRunHistory}
+            history={RUNStakeHistory}
             brandToInfo={brandToInfo}
             brand={bldBrand}
             debtBrand={runBrand}

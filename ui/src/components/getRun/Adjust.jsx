@@ -292,7 +292,7 @@ const Adjust = ({
 
   const openLoan = () => {
     const id = `${Date.now()}`;
-    const invitation = E(getRun.getRunApi).makeLoanInvitation();
+    const invitation = E(getRun.RUNStakeAPI).makeLoanInvitation();
     const collateralAmount = AmountMath.make(
       lienBrand,
       lockedDelta?.value ?? 0n,
