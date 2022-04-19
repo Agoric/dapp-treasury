@@ -6,7 +6,10 @@ import { Redirect } from 'react-router-dom';
 import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
-import { makeRatioFromAmounts } from '@agoric/zoe/src/contractSupport';
+import {
+  makeRatioFromAmounts,
+  floorMultiplyBy,
+} from '@agoric/zoe/src/contractSupport';
 import { AmountMath } from '@agoric/ertp';
 import { Nat } from '@endo/nat';
 import { E } from '@endo/eventual-send';
@@ -135,14 +138,10 @@ const VaultManagement = () => {
     setOpenApproveOfferSB(true);
   };
 
-  const calcRatio = (priceRate, newLock, newBorrow) =>
-    makeRatioFromAmounts(
-      AmountMath.make(newLock.brand, newLock.value * priceRate.numerator.value),
-      AmountMath.make(
-        newBorrow.brand,
-        newBorrow.value * priceRate.denominator.value,
-      ),
-    );
+  const calcRatio = (priceRate, newLock, newBorrow) => {
+    const lockPrice = floorMultiplyBy(newLock, priceRate);
+    return makeRatioFromAmounts(lockPrice, newBorrow);
+  };
 
   // run once when component loaded.
   // TODO: use makeQuoteNotifier
