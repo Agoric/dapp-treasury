@@ -13,7 +13,7 @@ export default {
     "getAgoricNames",
     [
       "instance",
-      "getRUN"
+      "runStake"
     ]
   ],
   "RUN_STAKE_NAME": "GetRUN"
