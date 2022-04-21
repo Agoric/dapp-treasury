@@ -106,3 +106,13 @@
  *   priceAuthority: ERef<PriceAuthority>,
  * }} VaultState
  */
+
+/**
+ * @typedef {{
+ *   RUNStakeAPI: unknown,
+ *   RUNStakeTerms: unknown
+ *   loanData: unknown,
+ *   instanceBoardId: string,
+ *   installationBoardId: string,
+ * }} RUNStakeState
+ */

@@ -11,7 +11,7 @@ export const initial = {
   account: null,
   purses: /** @type {PursesJSONState[] | null} */ (null),
   brandToInfo: /** @type {Array<[Brand, BrandInfo]>} */ ([]),
-
+  RUNSTakeHistory: /** @type {Record<string, unknown>} */ ({}),
   // Autoswap state
   autoswap: /** @type { AutoswapState } */ ({}),
   // Vault state
@@ -20,10 +20,11 @@ export const initial = {
   vaultConfiguration: null,
   vaults: /** @type {Record<string, VaultData> | null} */ (null),
   collaterals: /** @type { Collaterals | null } */ (null),
-  runLoCTerms: /** @type { CollateralInfo | null } */ (null),
   vaultToManageId: /** @type {string | null} */ (null),
   useGetRUN: false,
   loadTreasuryError: /** @type {string | null} */ null,
+  RUNStake: /** @type { RUNStakeState | null } */ (null),
+  loan: /** @type { unknown | null } */ (null),
 };
 
 /**
@@ -43,6 +44,7 @@ export const initial = {
  *    setCollaterals: (payload: typeof initial.collaterals) => TreasuryReducer,
  *    setRunLoCTerms: (payload: typeof initial.runLoCTerms) => TreasuryReducer,
  *    resetState: () => TreasuryReducer,
+ *    mergeRUNStakeHistory: (payload: unknown) => TreasuryReducer,
  *    setTreasury: (payload: typeof initial.treasury) => TreasuryReducer,
  *    setVaultCollateral: (payload: typeof initial.vaultCollateral) => TreasuryReducer,
  *    setVaultConfiguration: (payload: typeof initial.vaultConfiguration) => TreasuryReducer,
@@ -51,8 +53,10 @@ export const initial = {
  *    resetVault: () => TreasuryReducer,
  *    initVaults: () => TreasuryReducer,
  *    setAutoswap: (payload: typeof initial.autoswap) => TreasuryReducer,
+ *    setLoan: (payload: typeof initial.loan) => TreasuryReducer,
  *    setUseGetRUN: (payload: boolean) => TreasuryReducer,
  *    setLoadTreasuryError: (payload: string | null) => TreasuryReducer,
+ *    setRUNStake: (payload: typeof initial.RUNStake) => TreasuryReducer,
  * }} TreasuryActions
  */
 
@@ -79,6 +83,9 @@ export const {
     setAutoswap,
     setUseGetRUN,
     setLoadTreasuryError,
+    mergeRUNStakeHistory,
+    setRUNStake,
+    setLoan,
   },
   // @ts-ignore tsc can't tell that autodux is callable
 } = autodux({
@@ -134,6 +141,15 @@ export const {
       return {
         ...state,
         brandToInfo,
+      };
+    },
+    mergeGetRunHistory: (state, newGetRunHistory) => {
+      return {
+        ...state,
+        getRunHistory: {
+          ...state.getRunHistory,
+          ...newGetRunHistory,
+        },
       };
     },
   },
