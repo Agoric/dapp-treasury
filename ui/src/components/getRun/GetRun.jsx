@@ -53,20 +53,20 @@ const useStyles = makeStyles(theme => ({
       lineHeight: '32px',
       marginBottom: '16px',
     },
-    history: {
-      width: '100%',
-      padding: '0 16px',
-    },
-    headerBottom: {
-      height: '2px',
-      width: '100%',
-      margin: 'auto',
-      backgroundColor: '#e0e0e0',
-      marginTop: '24px',
-    },
-    root: {
-      margin: 'auto',
-    },
+  },
+  history: {
+    width: '100%',
+    padding: '0 16px',
+  },
+  headerBottom: {
+    height: '2px',
+    width: '100%',
+    margin: 'auto',
+    backgroundColor: '#e0e0e0',
+    marginTop: '24px',
+  },
+  root: {
+    margin: 'auto',
   },
 }));
 
@@ -134,7 +134,6 @@ const GetRun = () => {
           </div>
         </div>
       </div>
-      <Typography variant="h3">getRUN</Typography>
     </div>
   );
 };
