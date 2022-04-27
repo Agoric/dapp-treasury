@@ -35,7 +35,14 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const MyGetRun = ({ brandToInfo, accountState, borrowLimit, getRun, loan }) => {
+const MyGetRun = ({
+  brandToInfo,
+  accountState,
+  borrowLimit,
+  getRun,
+  loan,
+  debt,
+}) => {
   const { displayAmount } = makeDisplayFunctions(brandToInfo);
   const classes = useStyles();
 
@@ -51,7 +58,7 @@ const MyGetRun = ({ brandToInfo, accountState, borrowLimit, getRun, loan }) => {
           makeRow(
             'Borrowed',
             `${displayAmount(
-              loan?.data?.debt ?? AmountMath.makeEmpty(leftToBorrow.brand),
+              debt ?? AmountMath.makeEmpty(leftToBorrow.brand),
             )} RUN`,
           ),
           makeRow('Staked', `${displayAmount(accountState.bonded)} BLD`),

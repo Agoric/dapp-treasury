@@ -22,6 +22,7 @@ import {
   mergeRUNStakeHistory,
   setRUNStake,
   setLoan,
+  setLoanAsset,
 } from '../store';
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
 import WalletConnection from '../components/WalletConnection';
@@ -172,55 +173,71 @@ const setupAMM = async (dispatch, brandToInfo, zoe, board, instanceID) => {
   console.log('setupAMM4');
 };
 
-const watchLoan = (status, id, dispatch, watchedLoans) => {
-  watchedLoans.add(id);
-  console.log('loan watched', id, status);
+// We don't know if the loan is still open or not until we get its notifier
+// data, so return a promise that resolves after we find out.
+//
+// If the notifier throws an error, or is finished, the loan is closed.
+const watchLoan = (status, id, dispatch, watchedLoans) =>
+  new Promise(resolve => {
+    console.log('loan watched', id, status);
 
-  const cached = window.localStorage.getItem(id);
-  if (cached !== null) {
-    console.log(`loan ${cached}`, id);
-    return cached;
-  }
+    const cached = window.localStorage.getItem(id);
+    if (cached !== null) {
+      console.log(`loan ${cached}`, id);
+      watchedLoans[id] = cached;
+      resolve();
+      return;
+    }
 
-  if (status === undefined) {
-    status = LoanStatus.PROPOSED;
-  }
+    if (status === undefined) {
+      status = LoanStatus.PROPOSED;
+    }
 
-  // If the loan is active, don't show it until we get its data.
-  if (status !== LoanStatus.ACCEPT) {
-    dispatch(setLoan({ status }));
-  }
+    // If the loan is active, don't show it until we get its data.
+    if (status !== 'accept') {
+      watchedLoans[id] = status;
+      dispatch(setLoan({ id, status }));
+      resolve();
+    }
 
-  // We don't know if the loan is still open or not until we get its notifier
-  // data.
-  //
-  // If the notifier throws an error, or is finished, the loan is closed.
-  return new Promise(resolve => {
-    async function loanUpdater() {
-      const uiNotifier = await E(walletP).getUINotifier(id);
-      let isAccept;
-      for await (const value of iterateNotifier(uiNotifier)) {
-        console.log('======== LOAN', id, value);
-        isAccept = true;
-        resolve(LoanStatus.ACCEPT);
-        dispatch(setLoan({ id, status: LoanStatus.ACCEPT, data: value }));
+    async function watchLoanAsset(asset) {
+      for await (const value of iterateNotifier(asset)) {
+        dispatch(setLoanAsset(value));
       }
-      console.log('loan closed', id);
+    }
+
+    async function loanUpdater() {
+      const { vault, asset } = await E(walletP).getPublicNotifiers(id);
+
+      watchLoanAsset(asset);
+
+      let isOpen;
+      for await (const value of iterateNotifier(vault)) {
+        console.log('======== LOAN', id, value);
+        isOpen = true;
+        watchedLoans[id] = LoanStatus.OPEN;
+        resolve();
+        dispatch(setLoan({ id, status: LoanStatus.OPEN, data: value }));
+      }
+      console.log('Loan closed', id);
+      watchedLoans[id] = LoanStatus.CLOSED;
       window.localStorage.setItem(id, LoanStatus.CLOSED);
-      if (isAccept) {
+      if (isOpen) {
+        // The loan was open before, which means it was set as the open loan,
+        // so we want to reset back to the no-loans-open state.
         dispatch(setLoan({}));
       } else {
-        resolve(LoanStatus.CLOSED);
+        resolve();
       }
     }
 
     loanUpdater().catch(err => {
       console.error('Loan watcher exception', id, err);
+      watchedLoans[id] = LoanStatus.ERROR;
       window.localStorage.setItem(id, LoanStatus.ERROR);
-      resolve(LoanStatus.ERROR);
+      resolve();
     });
   });
-};
 
 const processLoanOffers = (dispatch, instanceBoardId, watchedLoans, offers) =>
   offers.map(
@@ -234,36 +251,31 @@ const processLoanOffers = (dispatch, instanceBoardId, watchedLoans, offers) =>
     }) => {
       if (
         instanceHandleBoardId === instanceBoardId &&
-        continuingInvitation === undefined // AdjustBalances and CloseVault offers use continuingInvitation
+        continuingInvitation === undefined
       ) {
-        if (
-          [
-            LoanStatus.ACCEPT,
-            LoanStatus.COMPLETE,
-            LoanStatus.PENDING,
-            undefined,
-          ].includes(status) &&
-          !watchedLoans.has(id)
-        ) {
-          const loanStatus = await watchLoan(
-            status,
-            id,
-            dispatch,
-            watchedLoans,
-          );
+        if (status === 'decline' && id in watchedLoans) {
+          dispatch(setLoan({}));
+          delete watchedLoans[id];
+        }
+        if (['accept', 'pending', 'complete', undefined].includes(status)) {
+          if (!(id in watchedLoans)) {
+            await watchLoan(status, id, dispatch, watchedLoans);
+          }
+          const loanStatus = watchedLoans[id];
 
-          if ([LoanStatus.ACCEPT, LoanStatus.CLOSED].includes(loanStatus)) {
+          if ([LoanStatus.OPEN, LoanStatus.CLOSED].includes(loanStatus)) {
             dispatch(
               mergeRUNStakeHistory({ [id]: { meta, proposalForDisplay } }),
             );
           }
-          return status;
+          return loanStatus;
         }
       } else if (
         instanceHandleBoardId === instanceBoardId &&
         continuingInvitation &&
-        status === LoanStatus.ACCEPT
+        status === 'accept'
       ) {
+        // AdjustBalances and CloseVault offers use continuingInvitation
         dispatch(
           mergeRUNStakeHistory({
             [id]: { meta, proposalForDisplay, continuingInvitation },
@@ -275,18 +287,21 @@ const processLoanOffers = (dispatch, instanceBoardId, watchedLoans, offers) =>
   );
 
 const watchLoans = async (dispatch, instanceBoardId) => {
-  console.log('WATCHING LOANS ------');
-  const watchedLoans = new Set();
+  const watchedLoans = {};
 
   async function offersUpdater() {
     const offerNotifier = E(walletP).getOffersNotifier();
     for await (const offers of iterateNotifier(offerNotifier)) {
-      console.log('GOT OFFERS FOR ', instanceBoardId);
-      const hasLoan = [LoanStatus.ACCEPT].includes(
-        await Promise.all(
-          processLoanOffers(dispatch, instanceBoardId, watchedLoans, offers),
-        ),
+      console.log('GOT LOANS =====');
+      const loans = await Promise.all(
+        processLoanOffers(dispatch, instanceBoardId, watchedLoans, offers),
       );
+      console.log('loans:', loans);
+      const hasLoan =
+        loans.includes(LoanStatus.OPEN) ||
+        loans.includes(LoanStatus.PENDING) ||
+        loans.includes(LoanStatus.PROPOSED) ||
+        loans.includes(LoanStatus.COMPLETE);
       // Set loan to empty object indicating data is loaded but no loan exists.
       if (!hasLoan) {
         dispatch(setLoan({}));
@@ -294,7 +309,7 @@ const watchLoans = async (dispatch, instanceBoardId) => {
     }
   }
   offersUpdater().catch(err =>
-    console.error('GetRUN offers watcher exception', err),
+    console.error('runStake offers watcher exception', err),
   );
 };
 

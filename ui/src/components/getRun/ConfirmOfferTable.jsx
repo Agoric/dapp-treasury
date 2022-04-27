@@ -83,7 +83,9 @@ const ConfirmOfferTable = ({
         Liened: {displayAmount(locked)} -&gt;{' '}
         <span
           className={
-            invalidInput ? classes.invalidNew : lockedChanged && classes.new
+            invalidInput
+              ? classes.invalidNew
+              : (lockedChanged && classes.new) || undefined
           }
         >
           {newLockedSignum}
@@ -94,7 +96,9 @@ const ConfirmOfferTable = ({
         Borrowed: {displayAmount(borrowed)} -&gt;{' '}
         <span
           className={
-            invalidInput ? classes.invalidNew : borrowedChanged && classes.new
+            invalidInput
+              ? classes.invalidNew
+              : (borrowedChanged && classes.new) || undefined
           }
         >
           {newBorrowedSignum}

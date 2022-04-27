@@ -1,5 +1,6 @@
 import { React, useEffect, useState } from 'react';
 
+import { calculateCurrentDebt } from '@agoric/run-protocol/src/interest-math';
 import { E } from '@agoric/eventual-send';
 import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
@@ -75,12 +76,10 @@ const useStyles = makeStyles(theme => ({
 const GetRun = () => {
   const classes = useStyles();
   const {
-    state: { brandToInfo, purses, RUNStakeHistory, RUNStake, loan },
+    state: { brandToInfo, purses, RUNStakeHistory, RUNStake, loan, loanAsset },
     dispatch,
     walletP,
   } = useApplicationContext();
-  /* const [totalLocked, setTotalLocked] = useState(0n);
-  const [totalDebt, setTotalDebt] = useState(0n); */
 
   const [accountState, setAccountState] = useState(null);
 
@@ -100,7 +99,8 @@ const GetRun = () => {
     return () => (cancelled = true);
   }, [purses, walletP]);
 
-  console.log('getRun', RUNStake);
+  console.log('getRun', RUNStake, loan);
+  console.log('loanAsset', loanAsset);
   const {
     MintingRatio: { value: borrowLimit = undefined },
     InterestRate: { value: interestRate = undefined },
@@ -114,6 +114,15 @@ const GetRun = () => {
     Debt: runBrand = undefined,
     Stake: bldBrand = undefined,
   } = RUNStake?.RUNStakeTerms?.brands ?? {};
+
+  const debt =
+    loan?.data?.debtSnapshot &&
+    loanAsset &&
+    calculateCurrentDebt(
+      loan.data.debtSnapshot.debt,
+      loan.data.debtSnapshot.interest,
+      loanAsset.compoundedInterest,
+    );
 
   return (
     <div className={classes.root}>
@@ -142,6 +151,7 @@ const GetRun = () => {
                 borrowLimit={borrowLimit}
                 getRun={RUNStake}
                 loan={loan}
+                debt={debt}
               />
             </div>
           </div>
@@ -158,6 +168,7 @@ const GetRun = () => {
               loan={loan}
               dispatch={dispatch}
               borrowLimit={borrowLimit}
+              debt={debt}
             />
           </div>
         </div>

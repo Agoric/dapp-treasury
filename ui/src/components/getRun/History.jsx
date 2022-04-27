@@ -123,16 +123,16 @@ const History = ({ getRun, loan, history, brandToInfo, brand, debtBrand }) => {
           );
         }
 
-        if (proposalForDisplay.give?.RUN) {
+        if (proposalForDisplay.give?.Debt) {
           borrowedSignum = '-';
           borrowed = AmountMath.make(
             debtBrand,
-            BigInt(proposalForDisplay.give.RUN.amount.value),
+            BigInt(proposalForDisplay.give.Debt.amount.value),
           );
-        } else if (proposalForDisplay.want?.RUN) {
+        } else if (proposalForDisplay.want?.Debt) {
           borrowed = AmountMath.make(
             debtBrand,
-            BigInt(proposalForDisplay.want.RUN.amount.value),
+            BigInt(proposalForDisplay.want.Debt.amount.value),
           );
         }
 

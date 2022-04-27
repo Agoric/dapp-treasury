@@ -41,6 +41,7 @@
     "@agoric/install-ses": "*",
     "@agoric/nat": "^4.0.0",
     "@agoric/notifier": "*",
+    "@agoric/run-protocol": "*",
     "@agoric/same-structure": "*",
     "@agoric/ui-components": "*",
     "@agoric/wallet-connection": "*",

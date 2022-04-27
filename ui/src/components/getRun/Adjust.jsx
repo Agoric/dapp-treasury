@@ -17,6 +17,7 @@ import ConfirmOfferTable from './ConfirmOfferTable';
 import GetStarted from './GetStarted';
 import NatPurseAmountInput from './NatPurseAmountInput';
 import { makeDisplayFunctions } from '../helpers';
+import { LoanStatus } from '../../constants';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -107,6 +108,7 @@ const Adjust = ({
   getRun,
   loan,
   borrowLimit,
+  debt,
 }) => {
   const classes = useStyles();
 
@@ -139,12 +141,12 @@ const Adjust = ({
     if (collateralAction === 'lock' && lockedDelta?.value !== unliened?.value) {
       setLockedDelta(unliened);
     } else if (collateralAction === 'unlock') {
-      const current = loan?.data?.debt ?? AmountMath.makeEmpty(debtBrand);
+      const current = debt ?? AmountMath.makeEmpty(debtBrand);
       const delta = debtDelta ?? AmountMath.makeEmpty(debtBrand);
       const newBorrowed =
         current.value > delta.value
           ? AmountMath.subtract(
-              loan?.data?.debt ?? AmountMath.makeEmpty(debtBrand),
+              debt ?? AmountMath.makeEmpty(debtBrand),
               debtDelta ?? AmountMath.makeEmpty(debtBrand),
             )
           : AmountMath.makeEmpty(debtBrand);
@@ -170,13 +172,13 @@ const Adjust = ({
       const newDebtLimit = floorMultiplyBy(newLiened, borrowLimit);
       const newDebtDelta = AmountMath.subtract(
         newDebtLimit,
-        loan?.data?.debt ?? AmountMath.makeEmpty(debtBrand),
+        debt ?? AmountMath.makeEmpty(debtBrand),
       );
       if (newDebtDelta.value !== debtDelta?.value) {
         setDebtDelta(newDebtDelta);
       }
     } else {
-      const newDebtDelta = loan?.data?.debt ?? AmountMath.makeEmpty(debtBrand);
+      const newDebtDelta = debt ?? AmountMath.makeEmpty(debtBrand);
       if (newDebtDelta.value !== debtDelta?.value) {
         setDebtDelta(newDebtDelta);
       }
@@ -218,11 +220,13 @@ const Adjust = ({
     );
   }
 
-  const isLoanInProgress = ['proposed', 'pending', 'complete'].includes(
-    loan?.status,
-  );
+  const isLoanInProgress = [
+    LoanStatus.PROPOSED,
+    LoanStatus.PENDING,
+    LoanStatus.COMPLETE,
+  ].includes(loan?.status);
 
-  const isLoanOpen = loan?.status === 'accept';
+  const isLoanOpen = loan?.status === LoanStatus.OPEN;
 
   if ((!isLoanOpen && !getStartedClicked) || isLoanInProgress) {
     return (
@@ -246,7 +250,7 @@ const Adjust = ({
   const { displayAmount } = makeDisplayFunctions(brandToInfo);
 
   const adjustCollateral = (
-    <Grid item className={classes.step}>
+    <Grid item className={classes.step} key="adjustCollateral">
       <Typography variant="h6" className={classes.stepTitle}>
         {collateralAction === 'lock' ? 'Lien BLD' : 'Unlien BLD'}
       </Typography>
@@ -271,7 +275,7 @@ const Adjust = ({
   );
 
   const adjustDebt = (
-    <Grid item className={classes.step}>
+    <Grid item className={classes.step} key="adjustDebt">
       <Typography variant="h6" className={classes.stepTitle}>
         {debtAction === 'borrow' ? 'Borrow RUN' : 'Repay RUN'}
       </Typography>
@@ -421,7 +425,7 @@ const Adjust = ({
           <hr className={classes.break} />
           <ConfirmOfferTable
             locked={accountState.liened}
-            borrowed={loan?.data?.debt ?? AmountMath.makeEmpty(debtBrand)}
+            borrowed={debt ?? AmountMath.makeEmpty(debtBrand)}
             lockedDelta={lockedDelta}
             debtDelta={debtDelta}
             brandToInfo={brandToInfo}
