@@ -12,8 +12,6 @@ export const initial = {
   purses: /** @type {PursesJSONState[] | null} */ (null),
   brandToInfo: /** @type {Array<[Brand, BrandInfo]>} */ ([]),
   RUNSTakeHistory: /** @type {Record<string, unknown>} */ ({}),
-  // Autoswap state
-  autoswap: /** @type { AutoswapState } */ ({}),
   // Vault state
   treasury: /** @type { VaultState | null } */ (null),
   vaultCollateral: /** @type { CollateralInfo | null } */ (null),
@@ -52,7 +50,6 @@ export const initial = {
  *    updateVault: (v: { id: string, vault: VaultData }) => TreasuryReducer,
  *    resetVault: () => TreasuryReducer,
  *    initVaults: () => TreasuryReducer,
- *    setAutoswap: (payload: typeof initial.autoswap) => TreasuryReducer,
  *    setLoan: (payload: typeof initial.loan) => TreasuryReducer,
  *    setUseGetRUN: (payload: boolean) => TreasuryReducer,
  *    setLoadTreasuryError: (payload: string | null) => TreasuryReducer,
@@ -80,7 +77,6 @@ export const {
     setVaultToManageId,
     updateVault,
     resetVault,
-    setAutoswap,
     setUseGetRUN,
     setLoadTreasuryError,
     mergeRUNStakeHistory,

@@ -11,7 +11,6 @@ import ListItemText from '@material-ui/core/ListItemText';
 // import FlightTakeoffIcon from '@material-ui/icons/FlightTakeoff';
 import MonetizationIcon from '@material-ui/icons/MonetizationOn';
 import AccountBalanceIcon from '@material-ui/icons/AccountBalance';
-import SwapIcon from '@material-ui/icons/SwapHoriz';
 import AccountBalanceWallet from '@material-ui/icons/AccountBalanceWallet';
 import { useApplicationContext } from '../contexts/Application';
 import { AGORIC_LOGO_URL } from '../constants';
@@ -125,30 +124,6 @@ function NavDrawer() {
             replace
           />
         )}
-        {/* <ListItemLink
-          icon={<FlightTakeoffIcon />}
-          primary="Pegasus"
-          to="/pegasus"
-          replace
-        /> */}
-        <ListItemLink
-          icon={<SwapIcon />}
-          primary="Autoswap"
-          to="/swap"
-          replace
-        />
-        {/* <ListItemLink
-          icon={<TrendingUpIcon />}
-          primary="Rewards"
-          to="/rewards"
-          replace
-        />
-        <ListItemLink
-          icon={<HowToVoteIcon />}
-          primary="Governance"
-          to="/gov"
-          replace
-        /> */}
       </List>
     </div>
   );

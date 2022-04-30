@@ -14,7 +14,6 @@ import {
   updateVault,
   setCollaterals,
   setTreasury,
-  setAutoswap,
   mergeBrandToInfo,
   setUseGetRUN,
   setLoadTreasuryError,
@@ -207,33 +206,6 @@ const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
   console.log('SET COLLATERALS', collaterals);
   dispatch(setCollaterals(collaterals));
   return { terms, collaterals };
-};
-
-/**
- * @param {TreasuryDispatch} dispatch
- * @param {Array<[Brand, BrandInfo]>} brandToInfo
- * @param {ERef<ZoeService>} zoe
- * @param {ERef<Board>} board
- * @param {string} instanceID
- */
-const setupAMM = async (dispatch, brandToInfo, zoe, board, instanceID) => {
-  const instance = await E(board).getValue(instanceID);
-  const [ammAPI, terms] = await Promise.all([
-    E(zoe).getPublicFacet(instance),
-    E(zoe).getTerms(instance),
-  ]);
-  // TODO this uses getTerms.brands, but that includes utility tokens, etc.
-  // We need a query/notifier for what are the pools supported
-  const {
-    brands: { Central: centralBrand, ...otherBrands },
-  } = terms;
-  console.log('AMM brands retrieved', otherBrands);
-  dispatch(setAutoswap({ instance, ammAPI, centralBrand, otherBrands }));
-  await storeAllBrandsFromTerms({
-    dispatch,
-    terms,
-    brandToInfo,
-  });
 };
 
 function watchLoan(status, id, dispatch, watchedLoans) {
@@ -445,9 +417,6 @@ export default function Provider({ children }) {
       INSTALLATION_BOARD_ID,
       INSTANCE_BOARD_ID,
       RUN_ISSUER_BOARD_ID,
-      AMM_INSTALLATION_BOARD_ID,
-      AMM_INSTANCE_BOARD_ID,
-      AMM_NAME,
       RUNStakeInstance,
       RUN_STAKE_NAME,
     } = dappConfig;
@@ -466,7 +435,6 @@ export default function Provider({ children }) {
       } else {
         await Promise.all([
           setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID),
-          setupAMM(dispatch, brandToInfo, zoe, board, AMM_INSTANCE_BOARD_ID),
         ]);
       }
     } catch (e) {
@@ -505,14 +473,6 @@ export default function Provider({ children }) {
       await Promise.all([
         E(walletP).suggestInstallation('Installation', INSTALLATION_BOARD_ID),
         E(walletP).suggestInstance('Instance', INSTANCE_BOARD_ID),
-        E(walletP).suggestInstallation(
-          `${AMM_NAME}Installation`,
-          AMM_INSTALLATION_BOARD_ID,
-        ),
-        E(walletP).suggestInstance(
-          `${AMM_NAME}Instance`,
-          AMM_INSTANCE_BOARD_ID,
-        ),
         E(walletP).suggestIssuer('RUN', RUN_ISSUER_BOARD_ID),
       ]);
 
