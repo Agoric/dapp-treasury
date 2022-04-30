@@ -21,7 +21,6 @@ export async function refreshConfigFromWallet(walletP, useGetRUN) {
   if (useGetRUN) {
     const [RUNStakeMethod, RUNStakeArgs] = dappConfig.RUN_STAKE_ON_CHAIN_CONFIG;
 
-    console.log('should say overriding with', RUNStakeMethod, RUNStakeArgs);
     const RUNStakeInstance = await E(walletP)[RUNStakeMethod](...RUNStakeArgs);
     console.log('overriding with', {
       ...dappConfig,
@@ -36,6 +35,7 @@ export async function refreshConfigFromWallet(walletP, useGetRUN) {
     console.log('have methods', method, 'args', args);
     const overrideConfig = await E(walletP)[method](...args);
     console.log('overriding with', {
+      ...dappConfig,
       ...overrideConfig,
     });
     dappConfig = { ...dappConfig, ...overrideConfig };
