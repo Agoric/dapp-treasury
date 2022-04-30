@@ -23,6 +23,7 @@ export const initial = {
   loadTreasuryError: /** @type {string | null} */ null,
   RUNStake: /** @type { RUNStakeState | null } */ (null),
   loan: /** @type { unknown | null } */ (null),
+  loanAsset: /** @type { unknown | null } */ (null),
 };
 
 /**
@@ -51,6 +52,7 @@ export const initial = {
  *    resetVault: () => TreasuryReducer,
  *    initVaults: () => TreasuryReducer,
  *    setLoan: (payload: typeof initial.loan) => TreasuryReducer,
+ *    setLoanAsset: (payload: typeof initial.loanAsset) => TreasuryReducer,
  *    setUseGetRUN: (payload: boolean) => TreasuryReducer,
  *    setLoadTreasuryError: (payload: string | null) => TreasuryReducer,
  *    setRUNStake: (payload: typeof initial.RUNStake) => TreasuryReducer,
@@ -82,6 +84,7 @@ export const {
     mergeRUNStakeHistory,
     setRUNStake,
     setLoan,
+    setLoanAsset,
   },
   // @ts-ignore tsc can't tell that autodux is callable
 } = autodux({
@@ -139,12 +142,12 @@ export const {
         brandToInfo,
       };
     },
-    mergeGetRunHistory: (state, newGetRunHistory) => {
+    mergeRUNStakeHistory: (state, newRUNStakeHistory) => {
       return {
         ...state,
-        getRunHistory: {
-          ...state.getRunHistory,
-          ...newGetRunHistory,
+        RUNStakeHistory: {
+          ...state.RUNStakeHistory,
+          ...newRUNStakeHistory,
         },
       };
     },
