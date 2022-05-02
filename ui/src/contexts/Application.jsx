@@ -416,8 +416,9 @@ export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, defaultState);
   const { brandToInfo } = state;
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const useGetRUN = urlParams.get('gr') === 'true';
+  // const urlParams = new URLSearchParams(window.location.search);
+  // const useGetRUN = urlParams.get('gr') === 'true';
+  const useGetRUN = true;
 
   useEffect(() => {
     dispatch(setUseGetRUN(useGetRUN));

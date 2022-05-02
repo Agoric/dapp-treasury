@@ -122,8 +122,8 @@ const NatPurseAmountInput = ({
       )}
       <TextField
         value={displayString}
-        type="text"
-        inputMode="numeric"
+        type="number"
+        inputMode="decimal"
         onChange={handleAmountChange}
         onKeyDown={() => {
           onUseMaxChange(false);
