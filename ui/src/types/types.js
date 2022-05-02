@@ -76,15 +76,24 @@
  */
 
 /**
+ * @typedef  { import('@agoric/run-protocol/src/vaultFactory/vault').VaultUIState } VaultUIState
+ */
+
+/**
+ * @typedef { import('@agoric/run-protocol/src/vaultFactory/vaultManager').AssetState } AssetState
+ */
+
+/**
  * @typedef {{
- *   status?: 'Pending Wallet Acceptance' | 'Error in offer'| 'Loan Initiated' | 'Liquidated',
+ *   status: import('../constants').VaultStatus,
  *   liquidated?: boolean,
- *   locked?: Amount | null,
- *   collateralizationRatio?: Ratio | null,
- *   debt?: Amount | null,
- *   interestRate?:  Ratio | null,
- *   liquidationRatio?: Ratio | null,
- *   err?: Error
+ *   locked?: VaultUIState['locked'],
+ *   collateralizationRatio?: Ratio,
+ *   debtSnapshot?: VaultUIState['debtSnapshot'],
+ *   interestRate?:  VaultUIState['interestRate'],
+ *   liquidationRatio?: VaultUIState['liquidationRatio'],
+ *   asset?: AssetState,
+ *   err?: Error,
  * }} VaultData
  */
 
@@ -94,6 +103,16 @@
  *   treasuryAPI: unknown,
  *   runIssuer: Issuer,
  *   runBrand: Brand,
- *   priceAuthority: unknown,
+ *   priceAuthority: ERef<PriceAuthority>,
  * }} VaultState
+ */
+
+/**
+ * @typedef {{
+ *   RUNStakeAPI: unknown,
+ *   RUNStakeTerms: unknown
+ *   loanData: unknown,
+ *   instanceBoardId: string,
+ *   installationBoardId: string,
+ * }} RUNStakeState
  */

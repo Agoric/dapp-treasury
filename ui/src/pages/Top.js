@@ -9,7 +9,6 @@ import ResponsiveNavigation from '../components/ResponsiveNavigation';
 
 import NavDrawer from '../components/NavDrawer';
 
-import Swap from '../components/Swap';
 import NewVault from '../components/vault/NewVault';
 import Treasury from '../components/Treasury';
 import VaultManagement from '../components/vault/VaultManagement/VaultManagement';
@@ -25,13 +24,16 @@ const useStyles = makeStyles(theme => ({
   body: {
     display: 'flex',
     flexDirection: 'row',
-    margin: '0',
+    margin: 0,
     float: 'none !important',
   },
   content: {
     flexGrow: 1,
     backgroundColor: theme.palette.background.default,
     padding: theme.spacing(1),
+    [theme.breakpoints.down('sm')]: {
+      padding: 0,
+    },
   },
 }));
 
@@ -59,14 +61,8 @@ function Top() {
 
           <main className={classes.content}>
             <Switch>
-              {/* <Route path="/pegasus">Pegasus</Route> */}
               <Route path="/vaults">
                 <Treasury />
-              </Route>
-              {/* <Route path="/rewards">Rewards</Route> */}
-              {/* <Route path="/gov">Governance</Route> */}
-              <Route path="/swap">
-                <Swap />
               </Route>
               <Route path="/manageVault">
                 <VaultManagement />

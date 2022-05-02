@@ -3,6 +3,7 @@
 // The code in this file requires an understanding of Autodux.
 // See: https://github.com/ericelliott/autodux
 import autodux from 'autodux';
+import { VaultStatus } from './constants';
 
 export const initial = {
   approved: true,
@@ -10,19 +11,19 @@ export const initial = {
   account: null,
   purses: /** @type {PursesJSONState[] | null} */ (null),
   brandToInfo: /** @type {Array<[Brand, BrandInfo]>} */ ([]),
-
-  // Autoswap state
-  autoswap: /** @type { AutoswapState } */ ({}),
+  RUNSTakeHistory: /** @type {Record<string, unknown>} */ ({}),
   // Vault state
   treasury: /** @type { VaultState | null } */ (null),
   vaultCollateral: /** @type { CollateralInfo | null } */ (null),
   vaultConfiguration: null,
   vaults: /** @type {Record<string, VaultData> | null} */ (null),
   collaterals: /** @type { Collaterals | null } */ (null),
-  runLoCTerms: /** @type { CollateralInfo | null } */ (null),
   vaultToManageId: /** @type {string | null} */ (null),
   useGetRUN: false,
   loadTreasuryError: /** @type {string | null} */ null,
+  RUNStake: /** @type { RUNStakeState | null } */ (null),
+  loan: /** @type { unknown | null } */ (null),
+  loanAsset: /** @type { unknown | null } */ (null),
 };
 
 /**
@@ -42,6 +43,7 @@ export const initial = {
  *    setCollaterals: (payload: typeof initial.collaterals) => TreasuryReducer,
  *    setRunLoCTerms: (payload: typeof initial.runLoCTerms) => TreasuryReducer,
  *    resetState: () => TreasuryReducer,
+ *    mergeRUNStakeHistory: (payload: unknown) => TreasuryReducer,
  *    setTreasury: (payload: typeof initial.treasury) => TreasuryReducer,
  *    setVaultCollateral: (payload: typeof initial.vaultCollateral) => TreasuryReducer,
  *    setVaultConfiguration: (payload: typeof initial.vaultConfiguration) => TreasuryReducer,
@@ -49,12 +51,13 @@ export const initial = {
  *    updateVault: (v: { id: string, vault: VaultData }) => TreasuryReducer,
  *    resetVault: () => TreasuryReducer,
  *    initVaults: () => TreasuryReducer,
- *    setAutoswap: (payload: typeof initial.autoswap) => TreasuryReducer,
+ *    setLoan: (payload: typeof initial.loan) => TreasuryReducer,
+ *    setLoanAsset: (payload: typeof initial.loanAsset) => TreasuryReducer,
  *    setUseGetRUN: (payload: boolean) => TreasuryReducer,
  *    setLoadTreasuryError: (payload: string | null) => TreasuryReducer,
+ *    setRUNStake: (payload: typeof initial.RUNStake) => TreasuryReducer,
  * }} TreasuryActions
  */
-
 export const {
   reducer,
   initial: defaultState,
@@ -75,9 +78,12 @@ export const {
     setVaultToManageId,
     updateVault,
     resetVault,
-    setAutoswap,
     setUseGetRUN,
     setLoadTreasuryError,
+    mergeRUNStakeHistory,
+    setRUNStake,
+    setLoan,
+    setLoanAsset,
   },
   // @ts-ignore tsc can't tell that autodux is callable
 } = autodux({
@@ -101,7 +107,9 @@ export const {
     /** @type {(state: TreasuryState, v: { id: string, vault: VaultData }) => TreasuryState} */
     updateVault: ({ vaults, ...state }, { id, vault }) => {
       const oldVaultData = vaults && vaults[id];
-      const status = vault.liquidated ? 'Liquidated' : vault.status;
+      const status = vault.liquidated
+        ? VaultStatus.LIQUIDATED
+        : (vault.status ?? oldVaultData?.status);
       return {
         ...state,
         vaults: { ...vaults, [id]: { ...oldVaultData, ...vault, status } },
@@ -131,6 +139,15 @@ export const {
       return {
         ...state,
         brandToInfo,
+      };
+    },
+    mergeRUNStakeHistory: (state, newRUNStakeHistory) => {
+      return {
+        ...state,
+        RUNStakeHistory: {
+          ...state.RUNStakeHistory,
+          ...newRUNStakeHistory,
+        },
       };
     },
   },

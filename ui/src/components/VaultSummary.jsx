@@ -16,9 +16,11 @@ import {
   TableRow,
 } from '@material-ui/core';
 
+import { calculateCurrentDebt } from '@agoric/run-protocol/src/interest-math';
 import LoadingBlocks from './LoadingBlocks';
 import { makeDisplayFunctions } from './helpers';
 import { useApplicationContext } from '../contexts/Application';
+import { VaultStatus } from '../constants';
 
 const useStyles = makeStyles(theme => {
   return {
@@ -73,6 +75,17 @@ const calcRatio = (priceRate, newLock, newBorrow) => {
   return makeRatioFromAmounts(lockPrice, newBorrow);
 };
 
+/**
+ * @typedef {{
+ * vault: VaultData,
+ * brandToInfo: TreasuryState['brandToInfo'],
+ * id: string,
+ * }} Props
+ */
+
+/**
+ * @param {Props} props
+ */
 export function VaultSummary({ vault, brandToInfo, id }) {
   const classes = useStyles();
 
@@ -93,12 +106,22 @@ export function VaultSummary({ vault, brandToInfo, id }) {
   } = makeDisplayFunctions(brandToInfo);
 
   const {
-    debt, // amount
-    interestRate, // ratio
-    liquidationRatio, // ratio
-    locked, // amount
-    status, // string
+    debtSnapshot,
+    asset,
+    interestRate,
+    liquidationRatio,
+    locked,
+    status,
   } = vault;
+
+  const debt =
+    debtSnapshot &&
+    asset &&
+    calculateCurrentDebt(
+      debtSnapshot.debt,
+      debtSnapshot.interest,
+      asset.compoundedInterest,
+    );
 
   useEffect(() => {
     if (marketPrice && locked && debt) {
@@ -129,7 +152,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     });
   }, [vault]);
 
-  if (vault.status === 'Pending Wallet Acceptance') {
+  if (vault.status === VaultStatus.PENDING) {
     return (
       <div className={classes.pending}>
         <TableContainer>
@@ -156,7 +179,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     );
   }
 
-  if (vault.status === 'Error in offer') {
+  if (vault.status === VaultStatus.ERROR) {
     return (
       <TableContainer>
         <Table>
@@ -184,7 +207,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     );
   }
 
-  if (vault.status === 'Loading') {
+  if (!vault.status || vault.status === VaultStatus.LOADING) {
     return (
       <TableContainer>
         <Table>
@@ -208,7 +231,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     );
   }
 
-  if (vault.status === 'Closed') {
+  if (vault.status === VaultStatus.CLOSED) {
     return (
       <TableContainer>
         <Table>
@@ -250,7 +273,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
             </TableCell>
           </TableRow>
           <TableRow>
-            <TableCell>Borrowed</TableCell>
+            <TableCell>Debt</TableCell>
             <TableCell align="right">
               {displayAmount(debt)} {displayBrandPetname(debt.brand)}
             </TableCell>
