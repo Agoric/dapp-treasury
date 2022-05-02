@@ -58,7 +58,6 @@ export const initial = {
  *    setRUNStake: (payload: typeof initial.RUNStake) => TreasuryReducer,
  * }} TreasuryActions
  */
-
 export const {
   reducer,
   initial: defaultState,

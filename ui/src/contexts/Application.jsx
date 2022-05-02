@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { createContext, useContext, useEffect, useReducer } from 'react';
 
 import { E } from '@endo/captp';
@@ -431,7 +432,6 @@ export default function Provider({ children }) {
       RUNStakeInstance,
       RUN_STAKE_NAME,
     } = dappConfig;
-
     const zoe = E(walletP).getZoe();
     const board = E(walletP).getBoard();
     try {
@@ -494,6 +494,7 @@ export default function Provider({ children }) {
   const setWalletP = async bridge => {
     walletP = bridge;
 
+    console.log('set walletP');
     await retrySetup();
   };
 

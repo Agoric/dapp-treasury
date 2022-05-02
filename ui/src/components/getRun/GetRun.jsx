@@ -1,42 +1,190 @@
-import { React } from 'react';
+import { React, useEffect, useState } from 'react';
 
+import { calculateCurrentDebt } from '@agoric/run-protocol/src/interest-math';
+import { E } from '@endo/eventual-send';
+import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
-import { Typography } from '@material-ui/core';
+import MarketDetails from './MarketDetails';
+import MyGetRun from './MyGetRun';
+import Adjust from './Adjust';
+import History from './History';
+import { useApplicationContext } from '../../contexts/Application';
 
 const useStyles = makeStyles(theme => ({
-  root: {
-    marginBottom: theme.spacing(3),
+  body: {
+    maxWidth: '1400px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    margin: 'auto',
+  },
+  container: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
     width: '100%',
+    flexWrap: 'wrap',
+    padding: '32px 0',
+  },
+  item: {
+    margin: `0 ${theme.spacing(2)}px`,
+    minWidth: 420,
+  },
+  adjust: {
+    margin: `0 ${theme.spacing(2)}px`,
+    flexGrow: 1,
+  },
+  infoColumn: {
+    display: 'flex',
+    flexDirection: 'column',
+    flexGrow: 1,
   },
   header: {
-    marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1),
-    marginLeft: theme.spacing(1),
+    maxWidth: '1560px',
+    margin: 'auto',
     padding: theme.spacing(2),
+    paddingBottom: 0,
     '& > .MuiTypography-root': {
       fontFamily: 'Inter',
       fontWeight: '500',
       color: '#707070',
-      fontSize: '22px',
+      fontSize: '20px',
     },
     '& > .MuiTypography-h3': {
       fontSize: '32px',
       lineHeight: '32px',
+      marginBottom: '16px',
     },
+  },
+  history: {
+    width: '100%',
+    padding: '0 16px',
+  },
+  headerBottom: {
+    height: '2px',
+    width: '100%',
+    margin: 'auto',
+    backgroundColor: '#e0e0e0',
+    marginTop: '24px',
+  },
+  root: {
+    margin: 'auto',
   },
 }));
 
 const GetRun = () => {
   const classes = useStyles();
+  const {
+    state: { brandToInfo, purses, RUNStakeHistory, RUNStake, loan, loanAsset },
+    dispatch,
+    walletP,
+  } = useApplicationContext();
 
-  const header = (
-    <div className={classes.header}>
-      <Typography variant="h3">getRUN</Typography>
+  const [accountState, setAccountState] = useState(null);
+
+  useEffect(() => {
+    if (!walletP) return () => {};
+
+    let cancelled = false;
+    const refreshAccountState = async () => {
+      const newAccountState = await E(walletP).getAccountState();
+      if (!cancelled) {
+        setAccountState(newAccountState);
+      }
+      console.log('accountState', newAccountState);
+    };
+    refreshAccountState();
+
+    return () => (cancelled = true);
+  }, [purses, walletP]);
+
+  console.log('getRun', RUNStake, loan);
+  console.log('loanAsset', loanAsset);
+  const {
+    MintingRatio: { value: borrowLimit = undefined },
+    InterestRate: { value: interestRate = undefined },
+  } = RUNStake?.RUNStakeTerms?.governedParams ?? {
+    MintingRatio: {},
+    InterestRate: {},
+  };
+
+  const {
+    Attestation: lienBrand = undefined,
+    Debt: runBrand = undefined,
+    Stake: bldBrand = undefined,
+  } = RUNStake?.RUNStakeTerms?.brands ?? {};
+
+  const debt =
+    loan?.data?.debtSnapshot &&
+    loanAsset &&
+    calculateCurrentDebt(
+      loan.data.debtSnapshot.debt,
+      loan.data.debtSnapshot.interest,
+      loanAsset.compoundedInterest,
+    );
+
+  return (
+    <div className={classes.root}>
+      <div className={classes.header}>
+        <Typography variant="h3">RUNStake</Typography>
+        <Typography>
+          Stake BLD, borrow RUN, automatically pay it back with your staking
+          rewards.
+        </Typography>
+        <div className={classes.headerBottom}></div>
+      </div>
+      <div className={classes.body}>
+        <div className={classes.container}>
+          <div className={classes.infoColumn}>
+            <div className={classes.item}>
+              <MarketDetails
+                brandToInfo={brandToInfo}
+                borrowLimit={borrowLimit}
+                interestRate={interestRate}
+              />
+            </div>
+            <div className={classes.item}>
+              <MyGetRun
+                brandToInfo={brandToInfo}
+                accountState={accountState}
+                borrowLimit={borrowLimit}
+                getRun={RUNStake}
+                loan={loan}
+                debt={debt}
+              />
+            </div>
+          </div>
+          <div className={classes.adjust}>
+            <Adjust
+              brand={bldBrand}
+              debtBrand={runBrand}
+              purses={purses}
+              brandToInfo={brandToInfo}
+              accountState={accountState}
+              walletP={walletP}
+              lienBrand={lienBrand}
+              getRun={RUNStake}
+              loan={loan}
+              dispatch={dispatch}
+              borrowLimit={borrowLimit}
+              debt={debt}
+            />
+          </div>
+        </div>
+        <div className={classes.history}>
+          <History
+            getRun={RUNStake}
+            loan={loan}
+            history={RUNStakeHistory}
+            brandToInfo={brandToInfo}
+            brand={bldBrand}
+            debtBrand={runBrand}
+          />
+        </div>
+      </div>
     </div>
   );
-
-  return <div className={classes.root}>{header}</div>;
 };
 
 export default GetRun;

@@ -29,6 +29,20 @@
     jsesc "^2.5.1"
     source-map "^0.5.0"
 
+"@agoric/assert@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@agoric/assert/-/assert-0.4.0.tgz#144b0c93290bec2fb2c87da37d755d0e7d1a256e"
+  integrity sha512-KVAuDJPZ5B49S8LUGFgbsFEbr8KhR0REiqvxRUrlAJB1CVLbsIF/ywnz6XG1Bf8FSdFdxKtvlv8sK1aeM1B0jw==
+
+"@agoric/babel-generator@^7.17.4", "@agoric/babel-generator@^7.17.6":
+  version "7.17.6"
+  resolved "https://registry.yarnpkg.com/@agoric/babel-generator/-/babel-generator-7.17.6.tgz#75ff4629468a481d670b4154bcfade11af6de674"
+  integrity sha512-D2wnk5fGajxMN5SCRSaA/triQGEaEX2Du0EzrRqobuD4wRXjvtF1e7jC1PPOk/RC2bZ8/0fzp0CHOiB7YLwb5w==
+  dependencies:
+    "@babel/types" "^7.17.0"
+    jsesc "^2.5.1"
+    source-map "^0.5.0"
+
 "@agoric/babel-parser@^7.6.4":
   version "7.9.4"
   resolved "https://registry.yarnpkg.com/@agoric/babel-parser/-/babel-parser-7.9.4.tgz#2f9fd67f75a4a00bd1853e9d625bcc8ed479a564"
@@ -589,6 +603,25 @@
     "@endo/import-bundle" "^0.2.41"
     "@endo/marshal" "^0.6.3"
     "@endo/promise-kit" "^0.2.37"
+
+"@agoric/zoe@^0.22.0":
+  version "0.22.0"
+  resolved "https://registry.yarnpkg.com/@agoric/zoe/-/zoe-0.22.0.tgz#3f4bade8c20ac9612d0d15fdd3b011c8b157199c"
+  integrity sha512-mWRyLQJR1RspTs6gBGa0Wbd1sEgTqxoySv8wQlaHMLedfLR5gwcAqZVTw3oEsJHIP4Hr54qyRlC2ZKz/1jtAmg==
+  dependencies:
+    "@agoric/assert" "^0.4.0"
+    "@agoric/ertp" "^0.14.0"
+    "@agoric/nat" "^4.1.0"
+    "@agoric/notifier" "^0.4.0"
+    "@agoric/store" "^0.7.0"
+    "@agoric/swingset-vat" "^0.26.0"
+    "@agoric/vat-data" "^0.2.0"
+    "@endo/bundle-source" "^2.2.0"
+    "@endo/eventual-send" "^0.15.3"
+    "@endo/far" "^0.2.3"
+    "@endo/import-bundle" "^0.2.45"
+    "@endo/marshal" "^0.6.7"
+    "@endo/promise-kit" "^0.2.41"
 
 "@babel/code-frame@7.10.4":
   version "7.10.4"
@@ -3912,6 +3945,18 @@
   version "13.1.3"
   resolved "https://registry.yarnpkg.com/@rollup/plugin-node-resolve/-/plugin-node-resolve-13.1.3.tgz#2ed277fb3ad98745424c1d2ba152484508a92d79"
   integrity sha512-BdxNk+LtmElRo5d06MGY4zoepyrXX1tkzX2hrnPEZ53k78GuOMWLqmJDGIIOPwVRIFZrLQOo+Yr6KtCuLIA0AQ==
+  dependencies:
+    "@rollup/pluginutils" "^3.1.0"
+    "@types/resolve" "1.17.1"
+    builtin-modules "^3.1.0"
+    deepmerge "^4.2.2"
+    is-module "^1.0.0"
+    resolve "^1.19.0"
+
+"@rollup/plugin-node-resolve@^13.0.0":
+  version "13.2.1"
+  resolved "https://registry.yarnpkg.com/@rollup/plugin-node-resolve/-/plugin-node-resolve-13.2.1.tgz#cdee815cf02c180ff0a42536ca67a8f67e299f84"
+  integrity sha512-btX7kzGvp1JwShQI9V6IM841YKNPYjKCvUbNrQ2EcVYbULtUd/GH6wZ/qdqH13j9pOHBER+EZXNN2L8RSJhVRA==
   dependencies:
     "@rollup/pluginutils" "^3.1.0"
     "@types/resolve" "1.17.1"
@@ -12120,6 +12165,11 @@ minimist@^1.1.1, minimist@^1.1.3, minimist@^1.2.0, minimist@^1.2.3, minimist@^1.
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.5.tgz#67d66014b66a6a8aaa0c083c5fd58df4e4e97602"
   integrity sha512-FM9nNUYrRBAELZQT3xeZQ7fmMOBg6nWNmJKTcgsJeaLstP/UODVpGsr5OhXhhXg6f+qtJ8uiZ+PUxkDWcgIXLw==
 
+minimist@^1.2.3:
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.6.tgz#8637a5b759ea0d6e98702cfb3a9283323c93af44"
+  integrity sha512-Jsjnk4bw3YJqYzbdyBiNsPWHPfO++UGG749Cxs6peCu5Xg4nrena6OVxOYxrQTqww0Jmwt+Ref8rggumkTLz9Q==
+
 minipass-collect@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/minipass-collect/-/minipass-collect-1.0.2.tgz#22b813bf745dc6edba2576b940022ad6edc8c617"
@@ -12503,6 +12553,14 @@ node-lmdb@^0.9.5:
   version "0.9.6"
   resolved "https://registry.yarnpkg.com/node-lmdb/-/node-lmdb-0.9.6.tgz#b7bab03f8cf154a5df90f3a861239adb65ff3dbe"
   integrity sha512-zpYvuTWoyGY/G9/0kLZyJlEnnvm4U1t7r1q1akX4vvwviuxGAysW9hN77YwbijvWN7cIC1GRp3ptMkJaUxXKHw==
+  dependencies:
+    nan "^2.14.1"
+    node-gyp-build "^4.2.3"
+
+node-lmdb@^0.9.5:
+  version "0.9.7"
+  resolved "https://registry.yarnpkg.com/node-lmdb/-/node-lmdb-0.9.7.tgz#f518be2fd5922f445f9d11537753a5e938f1c5a1"
+  integrity sha512-RyYSB3kTByjp1yCKE474yuoBxi/+8kKvjYFOVuDBVoS31D6JvzjwMgNnQrMwoHSbZ6RwucW7jmF93Cm9ltziJQ==
   dependencies:
     nan "^2.14.1"
     node-gyp-build "^4.2.3"
@@ -15449,7 +15507,7 @@ rollup-plugin-terser@^5.3.1:
     serialize-javascript "^4.0.0"
     terser "^4.6.2"
 
-rollup-pluginutils@^2.8.1, rollup-pluginutils@^2.8.2:
+rollup-pluginutils@^2.4.1, rollup-pluginutils@^2.8.1, rollup-pluginutils@^2.8.2:
   version "2.8.2"
   resolved "https://registry.yarnpkg.com/rollup-pluginutils/-/rollup-pluginutils-2.8.2.tgz#72f2af0748b592364dbd3389e600e5a9444a351e"
   integrity sha512-EEp9NhnUkwY8aif6bxgovPHMoMoNr2FulJziTndpt5H9RdwC47GSGuII9XxpSdzVGM0GWrNPHV6ie1LTNJPaLQ==
@@ -15741,6 +15799,16 @@ ses@^0.15.7:
   version "0.15.7"
   resolved "https://registry.yarnpkg.com/ses/-/ses-0.15.7.tgz#53da049638bb34941befd1eccf34647c950f91a2"
   integrity sha512-WqEanVAU/zMSoR/c/bHrAHTD7wMPm4zQrVCSXuzHxuvq4mM0xdrK/rEgQ35zQh7IyIg2n/aKDJWv3CL1quiJFA==
+
+ses@^0.15.15:
+  version "0.15.15"
+  resolved "https://registry.yarnpkg.com/ses/-/ses-0.15.15.tgz#082923a1cabeac3151f9b3867e325fe447ce037d"
+  integrity sha512-sJM4HRlM3VouA3RhRmS7wG5MRQPqZZnc6O4BvAefU7yeM+qp8EUfGAWQ9iB/X5cNh3+m5N9lC7DEpyxQ+E4D+w==
+
+ses@^0.15.9:
+  version "0.15.9"
+  resolved "https://registry.yarnpkg.com/ses/-/ses-0.15.9.tgz#0dab638298a6af5e910c44c8a3700e596e9e3ac5"
+  integrity sha512-OgNR4u9csFywovs10qq9qwy/TTldS3m8K/y6xHavLbuEJOnHYFD62Jf1fVbR1VgtTYnlYjQd8nyBASFSjSkvpA==
 
 set-blocking@^2.0.0, set-blocking@~2.0.0:
   version "2.0.0"
