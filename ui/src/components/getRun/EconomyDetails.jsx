@@ -50,7 +50,7 @@ const MarketDetails = ({ brandToInfo, borrowLimit, interestRate, loanFee }) => {
   const { displayPercent, displayRatio } = makeDisplayFunctions(brandToInfo);
 
   const rows =
-    borrowLimit && interestRate
+    borrowLimit && interestRate && loanFee
       ? [
           makeRow('Debt Limit per BLD', `${displayRatio(borrowLimit)} RUN`),
           makeRow('Interest Rate', `${displayPercent(interestRate, 2)}%`),
@@ -58,7 +58,7 @@ const MarketDetails = ({ brandToInfo, borrowLimit, interestRate, loanFee }) => {
         ]
       : [];
   const values =
-    !borrowLimit || !interestRate ? (
+    rows.length === 0 ? (
       <NameValueTable rowsToLoad={3} />
     ) : (
       <NameValueTable rows={rows} />
