@@ -329,10 +329,7 @@ const watchLoans = async (dispatch, instanceBoardId) => {
         processLoanOffers(dispatch, instanceBoardId, watchedLoans, offers),
       );
       const hasLoan =
-        loans.includes(LoanStatus.OPEN) ||
-        loans.includes(LoanStatus.PENDING) ||
-        loans.includes(LoanStatus.PROPOSED) ||
-        loans.includes(LoanStatus.COMPLETE);
+        loans.includes(LoanStatus.OPEN) || loans.includes(LoanStatus.PROPOSED);
       // Set loan to empty object indicating data is loaded but no loan exists.
       if (!hasLoan) {
         dispatch(setLoan({}));

@@ -22,8 +22,8 @@ export const initial = {
   useGetRUN: false,
   loadTreasuryError: /** @type {string | null} */ null,
   RUNStake: /** @type { RUNStakeState | null } */ (null),
-  loan: /** @type { unknown | null } */ (null),
-  loanAsset: /** @type { unknown | null } */ (null),
+  loan: /** @type { Loan | null } */ (null),
+  loanAsset: /** @type { import('@agoric/run-protocol/src/runStake/runStakeManager').AssetState | null } */ (null),
 };
 
 /**

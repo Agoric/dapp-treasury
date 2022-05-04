@@ -11,6 +11,27 @@ const useApplicationContext = () => ({
 jest.mock('../../../contexts/Application', () => ({ useApplicationContext }));
 
 jest.mock('../EconomyDetails', () => () => 'EconomyDetails');
+jest.mock('../MyBalances', () => () => 'MyBalances');
+
+jest.mock('@endo/eventual-send', () => ({
+  E: obj =>
+    new Proxy(obj, {
+      get(target, propKey) {
+        const method = target[propKey];
+        return (...args) => method.apply(this, args);
+      },
+    }),
+}));
+
+jest.mock('@agoric/ertp', () => ({
+  AmountMath: {
+    make: jest.fn(),
+  },
+}));
+
+jest.mock('@agoric/run-protocol/src/interest-math', () => ({
+  calculateCurrentDebt: jest.fn(),
+}));
 
 test('renders the header', () => {
   const component = mount(<GetRun />);
