@@ -14,7 +14,7 @@ export const VaultStatus = /** @type {const} */ ({
 /** @typedef {typeof VaultStatus[keyof typeof VaultStatus]} VaultStatus */
 
 export const LoanStatus = /** @type {const} */ ({
-  ACCEPT: 'accept',
+  OPEN: 'open',
   CLOSED: 'closed',
   PROPOSED: 'pending',
   ERROR: 'error',

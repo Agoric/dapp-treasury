@@ -116,6 +116,17 @@
  */
 
 /**
+ * @typedef { import('../constants').LoanStatus } LoanStatus
+ */
+
+/**
+ * @typedef {{
+ * data: VaultData,
+ * id: string,
+ * status: LoanStatus
+ * }} Loan
+ */
+/**
  * @typedef {{
  *   RUNStakeAPI: RunStakePublic,
  *   RUNStakeTerms: RunStakeTerms,
