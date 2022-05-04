@@ -119,7 +119,6 @@
  * @typedef {{
  *   RUNStakeAPI: RunStakePublic,
  *   RUNStakeTerms: RunStakeTerms,
- *   loanData: unknown,
  *   instanceBoardId: string,
  *   installationBoardId: string,
  * }} RUNStakeState

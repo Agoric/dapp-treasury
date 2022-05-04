@@ -1,10 +1,14 @@
-import { React } from 'react';
+import { React, useState, useEffect } from 'react';
 
+import { AmountMath } from '@agoric/ertp';
+import { calculateCurrentDebt } from '@agoric/run-protocol/src/interest-math';
+import { E } from '@endo/eventual-send';
 import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
 import EconomyDetails from './EconomyDetails.jsx';
 import { useApplicationContext } from '../../contexts/Application';
+import MyBalances from './MyBalances.jsx';
 
 const useStyles = makeStyles(theme => ({
   body: {
@@ -63,8 +67,27 @@ const useStyles = makeStyles(theme => ({
 const GetRun = () => {
   const classes = useStyles();
   const {
-    state: { brandToInfo, RUNStake },
+    state: { purses, brandToInfo, RUNStake, loan, loanAsset },
+    walletP,
   } = useApplicationContext();
+
+  const [accountState, setAccountState] = useState(null);
+
+  useEffect(() => {
+    if (!walletP) return () => {};
+
+    let cancelled = false;
+    const refreshAccountState = async () => {
+      const newAccountState = await E(walletP).getAccountState();
+      if (!cancelled) {
+        setAccountState(newAccountState);
+      }
+      console.log('accountState:', newAccountState);
+    };
+    refreshAccountState();
+
+    return () => (cancelled = true);
+  }, [purses, walletP]);
 
   const {
     MintingRatio: { value: borrowLimit },
@@ -75,6 +98,21 @@ const GetRun = () => {
     InterestRate: {},
     LoanFee: {},
   };
+
+  const debt =
+    loan?.data?.debtSnapshot &&
+    loanAsset &&
+    calculateCurrentDebt(
+      loan.data.debtSnapshot.debt,
+      loan.data.debtSnapshot.interest,
+      loanAsset.compoundedInterest,
+    );
+
+  const stakeBrand = RUNStake?.RUNStakeTerms?.brands?.Stake;
+  const liened =
+    stakeBrand &&
+    loan?.data?.locked &&
+    AmountMath.make(stakeBrand, loan.data.locked.value.payload[0][1]);
 
   return (
     <div className={classes.root}>
@@ -95,6 +133,18 @@ const GetRun = () => {
                 borrowLimit={borrowLimit}
                 interestRate={interestRate}
                 loanFee={loanFee}
+              />
+            </div>
+            <div className={classes.item}>
+              <MyBalances
+                brandToInfo={brandToInfo}
+                accountState={accountState}
+                borrowLimit={borrowLimit}
+                runStake={RUNStake}
+                loan={loan}
+                debt={debt}
+                liened={liened}
+                stakeBrand={stakeBrand}
               />
             </div>
           </div>
