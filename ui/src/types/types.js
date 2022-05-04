@@ -108,9 +108,17 @@
  */
 
 /**
+ * @typedef { import('@agoric/run-protocol/src/runStake/runStake').RunStakePublic } RunStakePublic
+ */
+
+/**
+ * @typedef { import('@agoric/run-protocol/src/runStake/runStake').RunStakeTerms } RunStakeTerms
+ */
+
+/**
  * @typedef {{
- *   RUNStakeAPI: unknown,
- *   RUNStakeTerms: unknown
+ *   RUNStakeAPI: RunStakePublic,
+ *   RUNStakeTerms: RunStakeTerms,
  *   loanData: unknown,
  *   instanceBoardId: string,
  *   installationBoardId: string,
