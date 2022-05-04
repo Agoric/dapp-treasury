@@ -67,9 +67,9 @@ const GetRun = () => {
   } = useApplicationContext();
 
   const {
-    MintingRatio: { value: borrowLimit = undefined },
-    InterestRate: { value: interestRate = undefined },
-    LoanFee: { value: loanFee = undefined },
+    MintingRatio: { value: borrowLimit },
+    InterestRate: { value: interestRate },
+    LoanFee: { value: loanFee },
   } = RUNStake?.RUNStakeTerms?.governedParams ?? {
     MintingRatio: {},
     InterestRate: {},

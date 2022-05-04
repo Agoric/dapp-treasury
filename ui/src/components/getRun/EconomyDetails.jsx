@@ -2,7 +2,7 @@ import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 import { makeStyles } from '@material-ui/core/styles';
-import { NameValueTable, makeRow } from './NameValueTable';
+import { NameValueTable } from './NameValueTable';
 import { makeDisplayFunctions } from '../helpers';
 
 const useStyles = makeStyles(theme => ({
@@ -36,9 +36,9 @@ const useStyles = makeStyles(theme => ({
 /**
  * @typedef {{
  * brandToInfo: TreasuryState['brandToInfo'],
- * borrowLimit: RUNStakeState['RUNStakeTerms']['governedParams']['DebtLimit'],
- * interestRate: RUNStakeState['RUNStakeTerms']['governedParams']['InterestRate'],
- * loanFee: RUNStakeState['RUNStakeTerms']['governedParams']['LoanFee']
+ * borrowLimit: Amount<'nat'>,
+ * interestRate: Ratio,
+ * loanFee: Ratio
  * }} Props
  */
 
@@ -52,14 +52,14 @@ const MarketDetails = ({ brandToInfo, borrowLimit, interestRate, loanFee }) => {
   const rows =
     borrowLimit && interestRate && loanFee
       ? [
-          makeRow('Debt Limit per BLD', `${displayRatio(borrowLimit)} RUN`),
-          makeRow('Interest Rate', `${displayPercent(interestRate, 2)}%`),
-          makeRow('Loan Fee', `${displayPercent(loanFee, 2)}%`),
+          ['Debt Limit per BLD', `${displayRatio(borrowLimit)} RUN`],
+          ['Interest Rate', `${displayPercent(interestRate, 2)}%`],
+          ['Loan Fee', `${displayPercent(loanFee, 2)}%`],
         ]
       : [];
   const values =
     rows.length === 0 ? (
-      <NameValueTable rowsToLoad={3} />
+      <NameValueTable numToLoad={3} />
     ) : (
       <NameValueTable rows={rows} />
     );

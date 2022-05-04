@@ -25,24 +25,19 @@ const useStyles = makeStyles(_ => ({
   },
 }));
 
-export const makeRow = (name, value) => ({
-  name,
-  value,
-});
-
-export const NameValueTable = ({ rows, rowsToLoad }) => {
+export const NameValueTable = ({ rows, numToLoad }) => {
   const classes = useStyles();
 
   let content;
   if (rows) {
-    content = rows.map(row => (
-      <TableRow key={row.name} className={classes.row}>
-        <TableCell align="left">{row.name}</TableCell>
-        <TableCell align="right">{row.value}</TableCell>
+    content = rows.map(([name, value]) => (
+      <TableRow key={name} className={classes.row}>
+        <TableCell align="left">{name}</TableCell>
+        <TableCell align="right">{value}</TableCell>
       </TableRow>
     ));
-  } else if (rowsToLoad) {
-    content = [...Array(rowsToLoad).keys()].map(i => (
+  } else if (numToLoad) {
+    content = [...Array(numToLoad).keys()].map(i => (
       <TableRow key={i} className={classes.row}>
         <TableCell>
           <LoadingShimmer />
