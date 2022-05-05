@@ -6,11 +6,16 @@ import { E } from '@endo/eventual-send';
 import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
+import Adjust from './Adjust';
 import EconomyDetails from './EconomyDetails.jsx';
 import { useApplicationContext } from '../../contexts/Application';
 import MyBalances from './MyBalances.jsx';
 
 const useStyles = makeStyles(theme => ({
+  adjust: {
+    margin: `0 ${theme.spacing(2)}px`,
+    flexGrow: 1,
+  },
   body: {
     maxWidth: '1400px',
     display: 'flex',
@@ -69,6 +74,7 @@ const GetRun = () => {
   const {
     state: { purses, brandToInfo, RUNStake, loan, loanAsset },
     walletP,
+    dispatch,
   } = useApplicationContext();
 
   const [accountState, setAccountState] = useState(null);
@@ -108,7 +114,9 @@ const GetRun = () => {
       loanAsset.compoundedInterest,
     );
 
-  const stakeBrand = RUNStake?.RUNStakeTerms?.brands?.Stake;
+  const { Attestation: lienBrand, Debt: debtBrand, Stake: stakeBrand } =
+    RUNStake?.RUNStakeTerms?.brands ?? {};
+
   const liened =
     stakeBrand &&
     loan?.data?.locked &&
@@ -147,6 +155,23 @@ const GetRun = () => {
                 stakeBrand={stakeBrand}
               />
             </div>
+          </div>
+          <div className={classes.adjust}>
+            <Adjust
+              brand={stakeBrand}
+              debtBrand={debtBrand}
+              lienBrand={lienBrand}
+              purses={purses}
+              brandToInfo={brandToInfo}
+              accountState={accountState}
+              walletP={walletP}
+              getRun={RUNStake}
+              loan={loan}
+              dispatch={dispatch}
+              borrowLimit={borrowLimit}
+              debt={debt}
+              liened={liened}
+            />
           </div>
         </div>
       </div>
