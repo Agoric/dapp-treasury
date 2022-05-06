@@ -126,6 +126,7 @@
  * status: LoanStatus
  * }} Loan
  */
+
 /**
  * @typedef {{
  *   RUNStakeAPI: RunStakePublic,
@@ -133,4 +134,16 @@
  *   instanceBoardId: string,
  *   installationBoardId: string,
  * }} RUNStakeState
+ */
+
+/**
+ * @typedef { import('@agoric/wallet/api/src/types').RecordMetadata } RecordMetadata
+ */
+
+/**
+ * @typedef {{
+ *   meta: RecordMetadata,
+ *   proposalForDisplay: Record<string, any>
+ *   continuingInvitation?: string,
+ * }} HistoryItem
  */

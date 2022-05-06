@@ -11,7 +11,7 @@ export const initial = {
   account: null,
   purses: /** @type {PursesJSONState[] | null} */ (null),
   brandToInfo: /** @type {Array<[Brand, BrandInfo]>} */ ([]),
-  RUNSTakeHistory: /** @type {Record<string, unknown>} */ ({}),
+  RUNStakeHistory: /** @type {Record<string, HistoryItem>} */ ({}),
   // Vault state
   treasury: /** @type { VaultState | null } */ (null),
   vaultCollateral: /** @type { CollateralInfo | null } */ (null),
@@ -43,7 +43,7 @@ export const initial = {
  *    setCollaterals: (payload: typeof initial.collaterals) => TreasuryReducer,
  *    setRunLoCTerms: (payload: typeof initial.runLoCTerms) => TreasuryReducer,
  *    resetState: () => TreasuryReducer,
- *    mergeRUNStakeHistory: (payload: unknown) => TreasuryReducer,
+ *    mergeRUNStakeHistory: (payload: typeof initial.RUNStakeHistory) => TreasuryReducer,
  *    setTreasury: (payload: typeof initial.treasury) => TreasuryReducer,
  *    setVaultCollateral: (payload: typeof initial.vaultCollateral) => TreasuryReducer,
  *    setVaultConfiguration: (payload: typeof initial.vaultConfiguration) => TreasuryReducer,
@@ -142,6 +142,7 @@ export const {
         brandToInfo,
       };
     },
+    /** @type {(state: TreasuryState, newRUNStakeHistory: Record<string, HistoryItem>) => TreasuryState} */
     mergeRUNStakeHistory: (state, newRUNStakeHistory) => {
       return {
         ...state,
