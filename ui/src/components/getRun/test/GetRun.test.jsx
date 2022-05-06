@@ -12,6 +12,7 @@ jest.mock('../../../contexts/Application', () => ({ useApplicationContext }));
 
 jest.mock('../EconomyDetails', () => () => 'EconomyDetails');
 jest.mock('../MyBalances', () => () => 'MyBalances');
+jest.mock('../Adjust', () => () => 'Adjust');
 
 jest.mock('@endo/eventual-send', () => ({
   E: obj =>
