@@ -101,10 +101,10 @@ test('renders the history for the current loan', () => {
         .at(column)
         .text(),
     ).toEqual(text);
-  expectCellText(1, 0, '2022-05-08 11:53:56');
-  expectCellText(2, 0, '2022-05-08 11:53:41');
-  expectCellText(3, 0, '2022-05-08 11:53:38');
-  expectCellText(4, 0, '2022-05-08 11:53:06');
+  expectCellText(1, 0, '2022-05-08 18:53:56');
+  expectCellText(2, 0, '2022-05-08 18:53:41');
+  expectCellText(3, 0, '2022-05-08 18:53:38');
+  expectCellText(4, 0, '2022-05-08 18:53:06');
 
   expectCellText(1, 1, '0 BLD');
   expectCellText(2, 1, '-500 BLD');
