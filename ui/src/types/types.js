@@ -142,8 +142,14 @@
 
 /**
  * @typedef {{
+ *   priorOfferId?: string
+ * }} ContinuingInvitation
+ */
+
+/**
+ * @typedef {{
  *   meta: RecordMetadata,
  *   proposalForDisplay: Record<string, any>
- *   continuingInvitation?: string,
+ *   continuingInvitation?: ContinuingInvitation,
  * }} HistoryItem
  */
