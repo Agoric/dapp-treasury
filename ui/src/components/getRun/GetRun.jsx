@@ -8,8 +8,9 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import Adjust from './Adjust';
 import EconomyDetails from './EconomyDetails.jsx';
-import { useApplicationContext } from '../../contexts/Application';
 import MyBalances from './MyBalances.jsx';
+import History from './History.jsx';
+import { useApplicationContext } from '../../contexts/Application';
 
 const useStyles = makeStyles(theme => ({
   adjust: {
@@ -64,6 +65,10 @@ const useStyles = makeStyles(theme => ({
     backgroundColor: '#e0e0e0',
     marginTop: '24px',
   },
+  history: {
+    width: '100%',
+    padding: '0 16px',
+  },
   root: {
     margin: 'auto',
   },
@@ -72,7 +77,7 @@ const useStyles = makeStyles(theme => ({
 const GetRun = () => {
   const classes = useStyles();
   const {
-    state: { purses, brandToInfo, RUNStake, loan, loanAsset },
+    state: { purses, brandToInfo, RUNStake, loan, loanAsset, RUNStakeHistory },
     walletP,
     dispatch,
   } = useApplicationContext();
@@ -173,6 +178,15 @@ const GetRun = () => {
               liened={liened}
             />
           </div>
+        </div>
+        <div className={classes.history}>
+          <History
+            loan={loan}
+            history={RUNStakeHistory}
+            brandToInfo={brandToInfo}
+            brand={stakeBrand}
+            debtBrand={debtBrand}
+          />
         </div>
       </div>
     </div>
