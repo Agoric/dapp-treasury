@@ -351,11 +351,6 @@ const Adjust = ({
 
     const id = `${Date.now()}`;
 
-    const continuingInvitation = {
-      priorOfferId: loan?.id,
-      description: 'AdjustBalances',
-    };
-
     const collateralAmount = AmountMath.make(
       lienBrand,
       lockedDelta?.value ?? 0n,
@@ -387,6 +382,17 @@ const Adjust = ({
     } else if (debtAmount.value > 0n) {
       give.Debt = RUN;
     }
+
+    const invitationDescription =
+      collateralAction === 'unlock' &&
+      liened?.value - collateralAmount.value <= 0n
+        ? 'CloseVault'
+        : 'AdjustBalances';
+
+    const continuingInvitation = {
+      priorOfferId: loan?.id,
+      description: invitationDescription,
+    };
 
     const offerConfig = {
       id,

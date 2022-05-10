@@ -72,7 +72,7 @@ test('renders a message when there is no history', () => {
   expect(component.text()).toContain('Transactions will appear here.');
 });
 
-test('renders the history for the current loan', () => {
+test('renders the history of all loans and adjustments', () => {
   const component = mount(
     <History
       loan={loan}
@@ -86,7 +86,7 @@ test('renders the history for the current loan', () => {
   expect(component.text()).not.toContain('Transactions will appear here.');
   const rows = component.find('tr');
 
-  expect(rows.length).toEqual(5);
+  expect(rows.length).toEqual(6);
   const header = rows.at(0).find('th');
 
   expect(header.at(0).text()).toContain('Date');
@@ -104,15 +104,18 @@ test('renders the history for the current loan', () => {
   expectCellText(1, 0, '2022-05-08 18:53:56');
   expectCellText(2, 0, '2022-05-08 18:53:41');
   expectCellText(3, 0, '2022-05-08 18:53:38');
-  expectCellText(4, 0, '2022-05-08 18:53:06');
+  expectCellText(4, 0, '2022-05-08 18:53:20');
+  expectCellText(5, 0, '2022-05-08 18:53:06');
 
   expectCellText(1, 1, '0 BLD');
   expectCellText(2, 1, '-500 BLD');
   expectCellText(3, 1, '500 BLD');
-  expectCellText(4, 1, '2000 BLD');
+  expectCellText(4, 1, '550 BLD');
+  expectCellText(5, 1, '2000 BLD');
 
   expectCellText(1, 2, '0 RUN');
   expectCellText(2, 2, '-100 RUN');
   expectCellText(3, 2, '100 RUN');
-  expectCellText(4, 2, '400 RUN');
+  expectCellText(4, 2, '110 RUN');
+  expectCellText(5, 2, '400 RUN');
 });
