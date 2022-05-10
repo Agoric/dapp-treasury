@@ -74,7 +74,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-const GetRun = () => {
+const RunStake = () => {
   const classes = useStyles();
   const {
     state: { purses, brandToInfo, RUNStake, loan, loanAsset, RUNStakeHistory },
@@ -130,7 +130,7 @@ const GetRun = () => {
   return (
     <div className={classes.root}>
       <div className={classes.header}>
-        <Typography variant="h3">RUNStake</Typography>
+        <Typography variant="h3">RUN Stake</Typography>
         <Typography>
           Stake BLD, borrow RUN, automatically pay it back with your staking
           rewards.
@@ -193,4 +193,4 @@ const GetRun = () => {
   );
 };
 
-export default GetRun;
+export default RunStake;
