@@ -12,7 +12,7 @@ import NavDrawer from '../components/NavDrawer';
 import NewVault from '../components/vault/NewVault';
 import Treasury from '../components/Treasury';
 import VaultManagement from '../components/vault/VaultManagement/VaultManagement';
-import GetRun from '../components/getRun/GetRun';
+import RunStake from '../components/runStake/RunStake';
 
 const navigationDrawerWidth = 240;
 
@@ -64,8 +64,8 @@ function Top() {
               <Route path="/manageVault">
                 <VaultManagement />
               </Route>
-              <Route path="/getRUN">
-                <GetRun />
+              <Route path="/run-stake">
+                <RunStake />
               </Route>
               <Route path="/">
                 <NewVault />

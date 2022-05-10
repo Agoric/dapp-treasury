@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useReducer } from 'react';
+import React, { createContext, useContext, useReducer } from 'react';
 
 import { E } from '@endo/captp';
 import { makeAsyncIterableFromNotifier as iterateNotifier } from '@agoric/notifier';
@@ -15,7 +15,6 @@ import {
   setCollaterals,
   setTreasury,
   mergeBrandToInfo,
-  setUseGetRUN,
   setLoadTreasuryError,
   mergeRUNStakeHistory,
   setRUNStake,
@@ -343,11 +342,13 @@ const watchLoans = async (dispatch, instanceBoardId) => {
 
 const setupRUNStake = async (
   dispatch,
-  instance,
+  RUNStakeMethod,
+  RUNStakeArgs,
   board,
   zoe,
   RUN_STAKE_NAME,
 ) => {
+  const instance = await E(walletP)[RUNStakeMethod](...RUNStakeArgs);
   const [RUNStakeAPI, RUNStakeTerms, RUNStakeInstallation] = await Promise.all([
     E(zoe).getPublicFacet(instance),
     E(zoe).getTerms(instance),
@@ -412,45 +413,34 @@ export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, defaultState);
   const { brandToInfo } = state;
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const useGetRUN = urlParams.get('gr') === 'true';
-
-  useEffect(() => {
-    dispatch(setUseGetRUN(useGetRUN));
-  }, []);
-
   const retrySetup = async () => {
-    await refreshConfigFromWallet(walletP, useGetRUN);
+    await refreshConfigFromWallet(walletP);
     const {
       INSTALLATION_BOARD_ID,
       INSTANCE_BOARD_ID,
       RUN_ISSUER_BOARD_ID,
-      RUNStakeInstance,
       RUN_STAKE_NAME,
+      RUN_STAKE_ON_CHAIN_CONFIG: [RUNStakeMethod, RUNStakeArgs],
     } = dappConfig;
 
     const zoe = E(walletP).getZoe();
     const board = E(walletP).getBoard();
+
+    setupRUNStake(
+      dispatch,
+      RUNStakeMethod,
+      RUNStakeArgs,
+      board,
+      zoe,
+      RUN_STAKE_NAME,
+    );
     try {
-      if (useGetRUN) {
-        await setupRUNStake(
-          dispatch,
-          RUNStakeInstance,
-          board,
-          zoe,
-          RUN_STAKE_NAME,
-        );
-      } else {
-        await Promise.all([
-          setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID),
-        ]);
-      }
+      await setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID);
     } catch (e) {
       console.error('Couldnt load collaterals', e);
       dispatch(setLoadTreasuryError(e));
       return;
     }
-
     // The moral equivalent of walletGetPurses()
     async function watchPurses() {
       const pn = E(walletP).getPursesNotifier();
@@ -477,15 +467,13 @@ export default function Provider({ children }) {
       console.error('got watchBrands err', err);
     });
 
-    if (!useGetRUN) {
-      await Promise.all([
-        E(walletP).suggestInstallation('Installation', INSTALLATION_BOARD_ID),
-        E(walletP).suggestInstance('Instance', INSTANCE_BOARD_ID),
-        E(walletP).suggestIssuer('RUN', RUN_ISSUER_BOARD_ID),
-      ]);
+    await Promise.all([
+      E(walletP).suggestInstallation('Installation', INSTALLATION_BOARD_ID),
+      E(walletP).suggestInstance('Instance', INSTANCE_BOARD_ID),
+      E(walletP).suggestIssuer('RUN', RUN_ISSUER_BOARD_ID),
+    ]);
 
-      watchOffers(dispatch, INSTANCE_BOARD_ID);
-    }
+    watchOffers(dispatch, INSTANCE_BOARD_ID);
   };
 
   const setWalletP = async bridge => {

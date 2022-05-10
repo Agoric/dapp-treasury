@@ -1,6 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { mount } from 'enzyme';
-import GetRun from '../GetRun';
+import RunStake from '../RunStake';
 
 const state = {};
 
@@ -36,7 +36,7 @@ jest.mock('@agoric/run-protocol/src/interest-math', () => ({
 }));
 
 test('renders the header', () => {
-  const component = mount(<GetRun />);
+  const component = mount(<RunStake />);
 
-  expect(component.find('h3').text()).toContain('RUNStake');
+  expect(component.find('h3').text()).toContain('RUN Stake');
 });
