@@ -1,17 +1,22 @@
-import { React, useEffect, useState } from 'react';
+import { React, useState, useEffect } from 'react';
 
+import { AmountMath } from '@agoric/ertp';
 import { calculateCurrentDebt } from '@agoric/run-protocol/src/interest-math';
 import { E } from '@endo/eventual-send';
 import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
-import MarketDetails from './MarketDetails';
-import MyGetRun from './MyGetRun';
 import Adjust from './Adjust';
-import History from './History';
+import EconomyDetails from './EconomyDetails.jsx';
+import MyBalances from './MyBalances.jsx';
+import History from './History.jsx';
 import { useApplicationContext } from '../../contexts/Application';
 
 const useStyles = makeStyles(theme => ({
+  adjust: {
+    margin: `0 ${theme.spacing(2)}px`,
+    flexGrow: 1,
+  },
   body: {
     maxWidth: '1400px',
     display: 'flex',
@@ -30,10 +35,6 @@ const useStyles = makeStyles(theme => ({
   item: {
     margin: `0 ${theme.spacing(2)}px`,
     minWidth: 420,
-  },
-  adjust: {
-    margin: `0 ${theme.spacing(2)}px`,
-    flexGrow: 1,
   },
   infoColumn: {
     display: 'flex',
@@ -57,10 +58,6 @@ const useStyles = makeStyles(theme => ({
       marginBottom: '16px',
     },
   },
-  history: {
-    width: '100%',
-    padding: '0 16px',
-  },
   headerBottom: {
     height: '2px',
     width: '100%',
@@ -68,17 +65,21 @@ const useStyles = makeStyles(theme => ({
     backgroundColor: '#e0e0e0',
     marginTop: '24px',
   },
+  history: {
+    width: '100%',
+    padding: '0 16px',
+  },
   root: {
     margin: 'auto',
   },
 }));
 
-const GetRun = () => {
+const RunStake = () => {
   const classes = useStyles();
   const {
-    state: { brandToInfo, purses, RUNStakeHistory, RUNStake, loan, loanAsset },
-    dispatch,
+    state: { purses, brandToInfo, RUNStake, loan, loanAsset, RUNStakeHistory },
     walletP,
+    dispatch,
   } = useApplicationContext();
 
   const [accountState, setAccountState] = useState(null);
@@ -92,28 +93,22 @@ const GetRun = () => {
       if (!cancelled) {
         setAccountState(newAccountState);
       }
-      console.log('accountState', newAccountState);
+      console.log('accountState:', newAccountState);
     };
     refreshAccountState();
 
     return () => (cancelled = true);
   }, [purses, walletP]);
 
-  console.log('getRun', RUNStake, loan);
-  console.log('loanAsset', loanAsset);
   const {
-    MintingRatio: { value: borrowLimit = undefined },
-    InterestRate: { value: interestRate = undefined },
+    MintingRatio: { value: borrowLimit },
+    InterestRate: { value: interestRate },
+    LoanFee: { value: loanFee },
   } = RUNStake?.RUNStakeTerms?.governedParams ?? {
     MintingRatio: {},
     InterestRate: {},
+    LoanFee: {},
   };
-
-  const {
-    Attestation: lienBrand = undefined,
-    Debt: runBrand = undefined,
-    Stake: bldBrand = undefined,
-  } = RUNStake?.RUNStakeTerms?.brands ?? {};
 
   const debt =
     loan?.data?.debtSnapshot &&
@@ -124,10 +119,18 @@ const GetRun = () => {
       loanAsset.compoundedInterest,
     );
 
+  const { Attestation: lienBrand, Debt: debtBrand, Stake: stakeBrand } =
+    RUNStake?.RUNStakeTerms?.brands ?? {};
+
+  const liened =
+    stakeBrand &&
+    loan?.data?.locked &&
+    AmountMath.make(stakeBrand, loan.data.locked.value.payload[0][1]);
+
   return (
     <div className={classes.root}>
       <div className={classes.header}>
-        <Typography variant="h3">RUNStake</Typography>
+        <Typography variant="h3">RUN Stake</Typography>
         <Typography>
           Stake BLD, borrow RUN, automatically pay it back with your staking
           rewards.
@@ -138,48 +141,51 @@ const GetRun = () => {
         <div className={classes.container}>
           <div className={classes.infoColumn}>
             <div className={classes.item}>
-              <MarketDetails
+              <EconomyDetails
                 brandToInfo={brandToInfo}
                 borrowLimit={borrowLimit}
                 interestRate={interestRate}
+                loanFee={loanFee}
               />
             </div>
             <div className={classes.item}>
-              <MyGetRun
+              <MyBalances
                 brandToInfo={brandToInfo}
                 accountState={accountState}
                 borrowLimit={borrowLimit}
-                getRun={RUNStake}
+                runStake={RUNStake}
                 loan={loan}
                 debt={debt}
+                liened={liened}
+                stakeBrand={stakeBrand}
               />
             </div>
           </div>
           <div className={classes.adjust}>
             <Adjust
-              brand={bldBrand}
-              debtBrand={runBrand}
+              brand={stakeBrand}
+              debtBrand={debtBrand}
+              lienBrand={lienBrand}
               purses={purses}
               brandToInfo={brandToInfo}
               accountState={accountState}
               walletP={walletP}
-              lienBrand={lienBrand}
               getRun={RUNStake}
               loan={loan}
               dispatch={dispatch}
               borrowLimit={borrowLimit}
               debt={debt}
+              liened={liened}
             />
           </div>
         </div>
         <div className={classes.history}>
           <History
-            getRun={RUNStake}
             loan={loan}
             history={RUNStakeHistory}
             brandToInfo={brandToInfo}
-            brand={bldBrand}
-            debtBrand={runBrand}
+            brand={stakeBrand}
+            debtBrand={debtBrand}
           />
         </div>
       </div>
@@ -187,4 +193,4 @@ const GetRun = () => {
   );
 };
 
-export default GetRun;
+export default RunStake;

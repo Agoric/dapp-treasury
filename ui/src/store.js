@@ -11,7 +11,7 @@ export const initial = {
   account: null,
   purses: /** @type {PursesJSONState[] | null} */ (null),
   brandToInfo: /** @type {Array<[Brand, BrandInfo]>} */ ([]),
-  RUNSTakeHistory: /** @type {Record<string, unknown>} */ ({}),
+  RUNStakeHistory: /** @type {Record<string, HistoryItem>} */ ({}),
   // Vault state
   treasury: /** @type { VaultState | null } */ (null),
   vaultCollateral: /** @type { CollateralInfo | null } */ (null),
@@ -19,11 +19,10 @@ export const initial = {
   vaults: /** @type {Record<string, VaultData> | null} */ (null),
   collaterals: /** @type { Collaterals | null } */ (null),
   vaultToManageId: /** @type {string | null} */ (null),
-  useGetRUN: false,
   loadTreasuryError: /** @type {string | null} */ null,
   RUNStake: /** @type { RUNStakeState | null } */ (null),
-  loan: /** @type { unknown | null } */ (null),
-  loanAsset: /** @type { unknown | null } */ (null),
+  loan: /** @type { Loan | null } */ (null),
+  loanAsset: /** @type { import('@agoric/run-protocol/src/runStake/runStakeManager').AssetState | null } */ (null),
 };
 
 /**
@@ -41,9 +40,8 @@ export const initial = {
  *    mergeBrandToInfo: (payload: typeof initial.brandToInfo ) => TreasuryReducer,
  *    addToBrandToInfo: (payload: typeof initial.brandToInfo) => TreasuryReducer,
  *    setCollaterals: (payload: typeof initial.collaterals) => TreasuryReducer,
- *    setRunLoCTerms: (payload: typeof initial.runLoCTerms) => TreasuryReducer,
  *    resetState: () => TreasuryReducer,
- *    mergeRUNStakeHistory: (payload: unknown) => TreasuryReducer,
+ *    mergeRUNStakeHistory: (payload: typeof initial.RUNStakeHistory) => TreasuryReducer,
  *    setTreasury: (payload: typeof initial.treasury) => TreasuryReducer,
  *    setVaultCollateral: (payload: typeof initial.vaultCollateral) => TreasuryReducer,
  *    setVaultConfiguration: (payload: typeof initial.vaultConfiguration) => TreasuryReducer,
@@ -53,7 +51,6 @@ export const initial = {
  *    initVaults: () => TreasuryReducer,
  *    setLoan: (payload: typeof initial.loan) => TreasuryReducer,
  *    setLoanAsset: (payload: typeof initial.loanAsset) => TreasuryReducer,
- *    setUseGetRUN: (payload: boolean) => TreasuryReducer,
  *    setLoadTreasuryError: (payload: string | null) => TreasuryReducer,
  *    setRUNStake: (payload: typeof initial.RUNStake) => TreasuryReducer,
  * }} TreasuryActions
@@ -68,7 +65,6 @@ export const {
     mergeBrandToInfo,
     addToBrandToInfo,
     setCollaterals,
-    setRunLoCTerms,
     resetState,
     setTreasury,
     setVaultCollateral,
@@ -78,7 +74,6 @@ export const {
     setVaultToManageId,
     updateVault,
     resetVault,
-    setUseGetRUN,
     setLoadTreasuryError,
     mergeRUNStakeHistory,
     setRUNStake,
@@ -141,6 +136,7 @@ export const {
         brandToInfo,
       };
     },
+    /** @type {(state: TreasuryState, newRUNStakeHistory: Record<string, HistoryItem>) => TreasuryState} */
     mergeRUNStakeHistory: (state, newRUNStakeHistory) => {
       return {
         ...state,

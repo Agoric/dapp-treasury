@@ -108,11 +108,48 @@
  */
 
 /**
+ * @typedef { import('@agoric/run-protocol/src/runStake/runStake').RunStakePublic } RunStakePublic
+ */
+
+/**
+ * @typedef { import('@agoric/run-protocol/src/runStake/runStake').RunStakeTerms } RunStakeTerms
+ */
+
+/**
+ * @typedef { import('../constants').LoanStatus } LoanStatus
+ */
+
+/**
  * @typedef {{
- *   RUNStakeAPI: unknown,
- *   RUNStakeTerms: unknown
- *   loanData: unknown,
+ * data: VaultData,
+ * id: string,
+ * status: LoanStatus
+ * }} Loan
+ */
+
+/**
+ * @typedef {{
+ *   RUNStakeAPI: RunStakePublic,
+ *   RUNStakeTerms: RunStakeTerms,
  *   instanceBoardId: string,
  *   installationBoardId: string,
  * }} RUNStakeState
+ */
+
+/**
+ * @typedef { import('@agoric/wallet/api/src/types').RecordMetadata } RecordMetadata
+ */
+
+/**
+ * @typedef {{
+ *   priorOfferId?: string
+ * }} ContinuingInvitation
+ */
+
+/**
+ * @typedef {{
+ *   meta: RecordMetadata,
+ *   proposalForDisplay: Record<string, any>
+ *   continuingInvitation?: ContinuingInvitation,
+ * }} HistoryItem
  */
