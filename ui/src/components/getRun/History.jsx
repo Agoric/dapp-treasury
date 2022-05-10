@@ -105,11 +105,6 @@ const History = ({ loan, history, brandToInfo, brand, debtBrand }) => {
     brand &&
     debtBrand &&
     Object.entries(history)
-      .filter(
-        ([_id, { continuingInvitation = null }]) =>
-          !continuingInvitation ||
-          continuingInvitation.priorOfferId === loan.id,
-      )
       .map(([id, { meta, proposalForDisplay }]) => {
         let locked = AmountMath.makeEmpty(brand);
         let borrowed = AmountMath.makeEmpty(debtBrand);
