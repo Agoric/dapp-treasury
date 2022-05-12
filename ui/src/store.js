@@ -12,6 +12,7 @@ export const initial = {
   purses: /** @type {PursesJSONState[] | null} */ (null),
   brandToInfo: /** @type {Array<[Brand, BrandInfo]>} */ ([]),
   RUNStakeHistory: /** @type {Record<string, HistoryItem>} */ ({}),
+  vaultHistory: /** @type {Record<string, Record<string, VaultHistoryEntry>>} */ ({}),
   // Vault state
   treasury: /** @type { VaultState | null } */ (null),
   vaultCollateral: /** @type { CollateralInfo | null } */ (null),
@@ -42,6 +43,7 @@ export const initial = {
  *    setCollaterals: (payload: typeof initial.collaterals) => TreasuryReducer,
  *    resetState: () => TreasuryReducer,
  *    mergeRUNStakeHistory: (payload: typeof initial.RUNStakeHistory) => TreasuryReducer,
+ *    mergeVaultHistory: (payload: VaultHistoryEntry) => TreasuryReducer,
  *    setTreasury: (payload: typeof initial.treasury) => TreasuryReducer,
  *    setVaultCollateral: (payload: typeof initial.vaultCollateral) => TreasuryReducer,
  *    setVaultConfiguration: (payload: typeof initial.vaultConfiguration) => TreasuryReducer,
@@ -77,6 +79,7 @@ export const {
     resetVault,
     setLoadTreasuryError,
     mergeRUNStakeHistory,
+    mergeVaultHistory,
     setRUNStake,
     setLoan,
     setLoanAsset,
@@ -144,6 +147,20 @@ export const {
         RUNStakeHistory: {
           ...state.RUNStakeHistory,
           ...newRUNStakeHistory,
+        },
+      };
+    },
+    /** @type {(state: TreasuryState, payload: VaultHistoryEntry) => TreasuryState} */
+    mergeVaultHistory: (state, offer) => {
+      const vaultId = offer.continuingInvitation?.priorOfferId || offer.id;
+      const historyEntry = state.vaultHistory[vaultId] ?? {};
+      historyEntry[offer.id] = offer;
+
+      return {
+        ...state,
+        vaultHistory: {
+          ...state.vaultHistory,
+          [vaultId]: historyEntry,
         },
       };
     },

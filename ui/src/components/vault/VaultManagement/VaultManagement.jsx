@@ -18,6 +18,7 @@ import AdjustVaultForm from './AdjustVaultForm';
 import UnchangeableValues from './UnchangeableValues';
 import ChangesTable from './ChangesTable';
 import CloseVaultForm from './CloseVaultForm';
+import History from './History';
 import ErrorBoundary from '../../ErrorBoundary';
 import ApproveOfferSB from '../../ApproveOfferSB';
 import { makeAdjustVaultOffer } from './makeAdjustVaultOffer';
@@ -54,7 +55,14 @@ const VaultManagement = () => {
 
   const { state, walletP } = useApplicationContext();
 
-  const { purses, vaults, vaultToManageId, brandToInfo, treasury } = state;
+  const {
+    purses,
+    vaults,
+    vaultToManageId,
+    brandToInfo,
+    treasury,
+    vaultHistory,
+  } = state;
 
   /** @type { VaultData } */
   let vaultToManage;
@@ -319,6 +327,13 @@ const VaultManagement = () => {
           debt={debt}
           locked={locked}
           brandToInfo={brandToInfo}
+        />
+        <History
+          history={vaultHistory}
+          brandToInfo={brandToInfo}
+          brand={locked.brand}
+          debtBrand={debt.brand}
+          vaultId={vaultToManageId}
         />
       </ErrorBoundary>
       <ApproveOfferSB

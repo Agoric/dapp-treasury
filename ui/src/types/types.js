@@ -153,3 +153,13 @@
  *   continuingInvitation?: ContinuingInvitation,
  * }} HistoryItem
  */
+
+/**
+ * @typedef {{
+ *   id: string,
+ *   meta: RecordMetadata,
+ *   proposalForDisplay: Record<string, any>
+ *   status: string,
+ *   continuingInvitation?: ContinuingInvitation,
+ * }} VaultHistoryEntry
+ */

@@ -12,6 +12,7 @@ import {
   setPurses,
   initVaults,
   updateVault,
+  mergeVaultHistory,
   setCollaterals,
   setTreasury,
   mergeBrandToInfo,
@@ -132,7 +133,18 @@ function watchOffers(dispatch, INSTANCE_BOARD_ID) {
         instanceHandleBoardId,
         continuingInvitation,
         status,
+        proposalForDisplay,
+        meta,
       } of offers) {
+        dispatch(
+          mergeVaultHistory({
+            id,
+            continuingInvitation,
+            status,
+            proposalForDisplay,
+            meta,
+          }),
+        );
         if (
           instanceHandleBoardId === INSTANCE_BOARD_ID &&
           continuingInvitation === undefined // AdjustBalances and CloseVault offers use continuingInvitation
