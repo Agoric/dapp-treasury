@@ -72,14 +72,12 @@ const formatDateNow = stamp => {
   if (!stamp) {
     return 'unknown time';
   }
+  const o = new Intl.DateTimeFormat('en', {
+    timeStyle: 'short',
+    dateStyle: 'short',
+  });
 
-  const date = new Date(stamp);
-  const isoStamp = date.getTime() - date.getTimezoneOffset() * 60 * 1000;
-  const isoDate = new Date(isoStamp);
-  const isoStr = isoDate.toISOString();
-  const match = isoStr.match(/^(.*)T(.*)\..*/);
-
-  return `${match[1]} ${match[2]}`;
+  return o.format(new Date(stamp));
 };
 
 const History = ({ vaultId, history, brandToInfo, brand, debtBrand }) => {

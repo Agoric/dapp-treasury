@@ -34,7 +34,7 @@ const history = {
     },
     1: {
       status: 'accept',
-      meta: { creationStamp: 1652036021460 },
+      meta: { creationStamp: 1652036490300 },
       proposalForDisplay: {
         give: { RUN: { amount: { debtBrand, value: 100n } } },
         want: { Collateral: { amount: { brand, value: 500n } } },
@@ -42,7 +42,7 @@ const history = {
     },
     2: {
       status: undefined,
-      meta: { creationStamp: 1652036022540 },
+      meta: { creationStamp: 1652036022940 },
       proposalForDisplay: {
         give: { RUN: { amount: { debtBrand, value: 150n } } },
         want: { Collateral: { amount: { brand, value: 550n } } },
@@ -104,8 +104,8 @@ test('renders the history of all vault adjustments', () => {
         .at(column)
         .text(),
     ).toEqual(text);
-  expectCellText(1, 0, '2022-05-08 18:53:41');
-  expectCellText(2, 0, '2022-05-08 18:53:06a');
+  expectCellText(1, 0, '5/8/22, 7:01 PM');
+  expectCellText(2, 0, '5/8/22, 6:53 PM');
 
   expectCellText(1, 1, '-500 BLD');
   expectCellText(2, 1, '2000 BLD');
