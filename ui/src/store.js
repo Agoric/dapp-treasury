@@ -16,6 +16,8 @@ export const initial = {
   // Vault state
   treasury: /** @type { VaultState | null } */ (null),
   vaultCollateral: /** @type { CollateralInfo | null } */ (null),
+  vaultAssets: /** @type { Array<[Brand, VaultAssetState]> | null } */ (null),
+  governedParams: /** @type { Array<[Brand, Record<string, any>]> | null } */ (null),
   vaultConfiguration: null,
   vaults: /** @type {Record<string, VaultData> | null} */ (null),
   collaterals: /** @type { Collaterals | null } */ (null),
@@ -23,7 +25,7 @@ export const initial = {
   loadTreasuryError: /** @type {string | null} */ null,
   RUNStake: /** @type { RUNStakeState | null } */ (null),
   loan: /** @type { Loan | null } */ (null),
-  loanAsset: /** @type { import('@agoric/run-protocol/src/runStake/runStakeManager').AssetState | null } */ (null),
+  loanAsset: /** @type { LoanAssetState | null } */ null,
 };
 
 /**
@@ -39,6 +41,8 @@ export const initial = {
  *    setPurses: (payload: typeof initial.purses) => TreasuryReducer,
  *    createVault: (payload: { id: string, vault: VaultData }) => TreasuryReducer,
  *    mergeBrandToInfo: (payload: typeof initial.brandToInfo ) => TreasuryReducer,
+ *    mergeVaultAssets: (payload: typeof initial.vaultAssets ) => TreasuryReducer,
+ *    mergeGovernedParams: (payload: typeof initial.governedParams ) => TreasuryReducer,
  *    addToBrandToInfo: (payload: typeof initial.brandToInfo) => TreasuryReducer,
  *    setCollaterals: (payload: typeof initial.collaterals) => TreasuryReducer,
  *    resetState: () => TreasuryReducer,
@@ -66,6 +70,8 @@ export const {
     setConnected,
     setPurses,
     mergeBrandToInfo,
+    mergeVaultAssets,
+    mergeGovernedParams,
     addToBrandToInfo,
     setCollaterals,
     resetState,
@@ -138,6 +144,29 @@ export const {
       return {
         ...state,
         brandToInfo,
+      };
+    },
+    /** @type {(state: TreasuryState, newVaultAssetState: Array<[Brand, VaultAssetState]>) => TreasuryState} */
+    mergeVaultAssets: (state, newVaultAssets) => {
+      const merged = new Map([...(state.vaultAssets ?? []), ...newVaultAssets]);
+
+      const vaultAssets = [...merged.entries()];
+      return {
+        ...state,
+        vaultAssets,
+      };
+    },
+    /** @type {(state: TreasuryState, newGovernedParams: Array<[Brand, Record<string, any>]>) => TreasuryState} */
+    mergeGovernedParams: (state, newGovernedParams) => {
+      const merged = new Map([
+        ...(state.governedParams ?? []),
+        ...newGovernedParams,
+      ]);
+
+      const governedParams = [...merged.entries()];
+      return {
+        ...state,
+        governedParams,
       };
     },
     /** @type {(state: TreasuryState, newRUNStakeHistory: Record<string, HistoryItem>) => TreasuryState} */

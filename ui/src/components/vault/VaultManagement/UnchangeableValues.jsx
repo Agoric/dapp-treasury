@@ -63,11 +63,14 @@ const UnchangeableValues = ({
   marketPrice,
   liquidationRatio,
   interestRate,
-  // liquidationPenalty,
   brandToInfo,
   debt,
+  params,
+  asset,
 }) => {
-  const { displayPercent, displayRatio } = makeDisplayFunctions(brandToInfo);
+  const { displayPercent, displayRatio, displayAmount } = makeDisplayFunctions(
+    brandToInfo,
+  );
 
   // The liquidationPrice is when the value of the collateral
   // equals liquidationRatio (i.e. 125%) of the current debt, divided
@@ -91,16 +94,20 @@ const UnchangeableValues = ({
         />
         <ValueCard
           title="Liq. Price"
-          text={displayRatio(liquidationPricePerUnit)}
+          text={`${displayRatio(liquidationPricePerUnit)} RUN`}
         />
         <ValueCard
           title="Interest Rate"
           text={`${displayPercent(interestRate)}%`}
         />
-        {/* <ValueCard
-          title="Liquidation Penalty"
-          text={`${displayPercent(liquidationPenalty)}%`}
-        /> */}
+        <ValueCard
+          title="Asset Debt Limit"
+          text={`${displayAmount(params.DebtLimit.value)} RUN`}
+        />
+        <ValueCard
+          title="Asset Current Debt"
+          text={`${displayAmount(asset.totalDebt)} RUN`}
+        />
       </Grid>
     </Paper>
   );

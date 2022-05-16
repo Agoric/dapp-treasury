@@ -104,6 +104,8 @@
  *   runIssuer: Issuer,
  *   runBrand: Brand,
  *   priceAuthority: ERef<PriceAuthority>,
+ *   minInitialDebt: Amount<'nat'>,
+ *   debtLimit: Amount<'nat'>,
  * }} VaultState
  */
 
@@ -162,4 +164,12 @@
  *   status: string,
  *   continuingInvitation?: ContinuingInvitation,
  * }} VaultHistoryEntry
+ */
+
+/**
+ * @typedef  { import('@agoric/run-protocol/src/runStake/runStakeManager').AssetState } LoanAssetState
+ */
+
+/**
+ * @typedef  { import('@agoric/run-protocol/src/vaultFactory/vaultManager').AssetState } VaultAssetState
  */

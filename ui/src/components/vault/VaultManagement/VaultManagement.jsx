@@ -1,6 +1,3 @@
-// @ts-check
-/// <reference types="ses"/>
-
 import React, { useEffect, useState } from 'react';
 import { Redirect } from 'react-router-dom';
 import { Typography } from '@material-ui/core';
@@ -62,6 +59,8 @@ const VaultManagement = () => {
     brandToInfo,
     treasury,
     vaultHistory,
+    vaultAssets,
+    governedParams,
   } = state;
 
   /** @type { VaultData } */
@@ -76,12 +75,13 @@ const VaultManagement = () => {
     liquidationRatio,
     locked,
     debtSnapshot,
-    asset,
   } = vaultToManage;
 
+  const asset = locked && new Map(vaultAssets).get(locked.brand);
+  const params = locked && new Map(governedParams).get(locked.brand);
   assert(
-    locked && debtSnapshot && asset,
-    `Can't manage vault with missing data: locked: ${locked}, debt: ${debtSnapshot}, asset: ${asset}`,
+    params && locked && debtSnapshot && asset,
+    `Can't manage vault with missing data: locked: ${locked}, debt: ${debtSnapshot}, asset: ${asset}, params: ${params}`,
   );
   const debt = calculateCurrentDebt(
     debtSnapshot.debt,
@@ -213,6 +213,10 @@ const VaultManagement = () => {
 
   useEffect(() => {
     if (collateralAction === 'deposit') {
+      if (lockedDelta.value > collateralPurseSelected.value) {
+        setLockedInputError('Insufficient purse balance');
+        return;
+      }
       setLockedInputError(null);
       setLockedAfterDelta(AmountMath.add(locked, lockedDelta));
     }
@@ -231,11 +235,23 @@ const VaultManagement = () => {
 
   useEffect(() => {
     if (debtAction === 'borrow') {
+      const newDebt = AmountMath.add(debt, debtDelta);
+      if (
+        AmountMath.add(newDebt, asset.totalDebt).value >
+        params.DebtLimit.value.value
+      ) {
+        setDebtInputError('Exceeds asset debt limit');
+        return;
+      }
       setDebtInputError(null);
       setDebtAfterDelta(AmountMath.add(debt, debtDelta));
     }
     if (debtAction === 'repay') {
       let newAmount;
+      if (debtDelta.value > runPurseSelected.value) {
+        setDebtInputError('Insufficient purse balance');
+        return;
+      }
       try {
         newAmount = AmountMath.subtract(debt, debtDelta);
       } catch {
@@ -286,6 +302,8 @@ const VaultManagement = () => {
           brandToInfo={brandToInfo}
           debt={debt}
           locked={locked}
+          params={params}
+          asset={asset}
         />
         <div className={classes.valuesTable}>
           <ChangesTable
