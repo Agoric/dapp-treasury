@@ -16,8 +16,8 @@ export const initial = {
   // Vault state
   treasury: /** @type { VaultState | null } */ (null),
   vaultCollateral: /** @type { CollateralInfo | null } */ (null),
-  vaultAssets: /** @type { Array<[Brand, VaultAssetState]> | null } */ (null),
-  governedParams: /** @type { Array<[Brand, Record<string, any>]> | null } */ (null),
+  vaultAssets: /** @type { Map<Brand, VaultAssetState> | null } */ (null),
+  governedParams: /** @type { Map<Brand, Record<string, any>> | null } */ (null),
   vaultConfiguration: null,
   vaults: /** @type {Record<string, VaultData> | null} */ (null),
   collaterals: /** @type { Collaterals | null } */ (null),
@@ -148,9 +148,11 @@ export const {
     },
     /** @type {(state: TreasuryState, newVaultAssetState: Array<[Brand, VaultAssetState]>) => TreasuryState} */
     mergeVaultAssets: (state, newVaultAssets) => {
-      const merged = new Map([...(state.vaultAssets ?? []), ...newVaultAssets]);
+      const vaultAssets = new Map([
+        ...(state.vaultAssets?.entries() ?? []),
+        ...newVaultAssets,
+      ]);
 
-      const vaultAssets = [...merged.entries()];
       return {
         ...state,
         vaultAssets,
@@ -158,12 +160,11 @@ export const {
     },
     /** @type {(state: TreasuryState, newGovernedParams: Array<[Brand, Record<string, any>]>) => TreasuryState} */
     mergeGovernedParams: (state, newGovernedParams) => {
-      const merged = new Map([
-        ...(state.governedParams ?? []),
+      const governedParams = new Map([
+        ...(state.governedParams?.entries() ?? []),
         ...newGovernedParams,
       ]);
 
-      const governedParams = [...merged.entries()];
       return {
         ...state,
         governedParams,

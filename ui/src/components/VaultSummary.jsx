@@ -114,8 +114,8 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     status,
   } = vault;
 
-  const asset = locked && new Map(vaultAssets).get(locked.brand);
-  const params = locked && new Map(governedParams).get(locked.brand);
+  const asset = locked && vaultAssets?.get(locked.brand);
+  const params = locked && governedParams?.get(locked.brand);
   const debt =
     debtSnapshot &&
     asset &&

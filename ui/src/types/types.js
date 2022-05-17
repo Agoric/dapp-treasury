@@ -173,3 +173,10 @@
 /**
  * @typedef  { import('@agoric/run-protocol/src/vaultFactory/vaultManager').AssetState } VaultAssetState
  */
+
+/**
+ * @typedef {{
+ *  pursePetname: string,
+ *  value: bigint
+ * }} NatPurse
+ */

@@ -63,8 +63,6 @@ export default function NewVault() {
     walletP,
   } = useApplicationContext();
 
-  const assets = vaultAssets && new Map(vaultAssets);
-  const params = governedParams && new Map(governedParams);
   const [redirect, setRedirect] = useState(
     /** @type { string | false } */ (false),
   );
@@ -95,20 +93,20 @@ export default function NewVault() {
         <VaultCollateral
           dispatch={dispatch}
           collaterals={collaterals}
-          assets={assets}
+          assets={vaultAssets}
           purses={purses}
           brandToInfo={brandToInfo}
-          governedParams={params}
+          governedParams={governedParams}
         />
       );
     }
     if (!vaultConfiguration) {
       assert(
-        params,
+        governedParams,
         'GovernedParams must be loaded before collateral can be selected.',
       );
       assert(
-        assets,
+        vaultAssets,
         'Assets must be loaded before collateral can be selected.',
       );
       assert(
@@ -122,11 +120,11 @@ export default function NewVault() {
           dispatch={dispatch}
           vaultCollateral={vaultCollateral}
           purses={purses}
-          assets={assets}
+          assets={vaultAssets}
           runBrand={treasury.runBrand ?? null}
           brandToInfo={brandToInfo}
           minInitialDebt={treasury.minInitialDebt}
-          governedParams={params}
+          governedParams={governedParams}
         />
       );
     }

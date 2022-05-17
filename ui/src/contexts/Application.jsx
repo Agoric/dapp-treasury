@@ -180,7 +180,6 @@ const watchCollateral = async (dispatch, collateral, treasuryAPI) => {
     console.log('asset state', collateral.brand, state);
     dispatch(mergeVaultAssets([[collateral.brand, state]]));
   }
-  console.log('notifier finished');
 };
 
 /**

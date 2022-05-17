@@ -68,9 +68,12 @@ const UnchangeableValues = ({
   params,
   asset,
 }) => {
-  const { displayPercent, displayRatio, displayAmount } = makeDisplayFunctions(
-    brandToInfo,
-  );
+  const {
+    displayPercent,
+    displayRatio,
+    displayAmount,
+    displayBrandPetname,
+  } = makeDisplayFunctions(brandToInfo);
 
   // The liquidationPrice is when the value of the collateral
   // equals liquidationRatio (i.e. 125%) of the current debt, divided
@@ -82,6 +85,9 @@ const UnchangeableValues = ({
   );
 
   const classes = useStyles();
+
+  const debtPetname = displayBrandPetname(debt.brand);
+
   return (
     <Paper className={classes.root} elevation={4}>
       <Typography className={classes.title}>Market Details</Typography>
@@ -94,7 +100,7 @@ const UnchangeableValues = ({
         />
         <ValueCard
           title="Liq. Price"
-          text={`${displayRatio(liquidationPricePerUnit)} RUN`}
+          text={`${displayRatio(liquidationPricePerUnit)} ${debtPetname}`}
         />
         <ValueCard
           title="Interest Rate"
@@ -102,11 +108,11 @@ const UnchangeableValues = ({
         />
         <ValueCard
           title="Asset Debt Limit"
-          text={`${displayAmount(params.DebtLimit.value)} RUN`}
+          text={`${displayAmount(params.DebtLimit.value)} ${debtPetname}`}
         />
         <ValueCard
           title="Asset Current Debt"
-          text={`${displayAmount(asset.totalDebt)} RUN`}
+          text={`${displayAmount(asset.totalDebt)} ${debtPetname}`}
         />
       </Grid>
     </Paper>

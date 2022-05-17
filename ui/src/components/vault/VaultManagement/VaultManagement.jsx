@@ -1,3 +1,4 @@
+// @ts-check
 import React, { useEffect, useState } from 'react';
 import { Redirect } from 'react-router-dom';
 import { Typography } from '@material-ui/core';
@@ -77,8 +78,8 @@ const VaultManagement = () => {
     debtSnapshot,
   } = vaultToManage;
 
-  const asset = locked && new Map(vaultAssets).get(locked.brand);
-  const params = locked && new Map(governedParams).get(locked.brand);
+  const asset = locked && vaultAssets?.get(locked.brand);
+  const params = locked && governedParams?.get(locked.brand);
   assert(
     params && locked && debtSnapshot && asset,
     `Can't manage vault with missing data: locked: ${locked}, debt: ${debtSnapshot}, asset: ${asset}, params: ${params}`,
@@ -103,8 +104,12 @@ const VaultManagement = () => {
     AmountMath.make(locked.brand, 0n),
   );
   const [debtDelta, setDebtDelta] = useState(AmountMath.make(debt.brand, 0n));
-  const [collateralPurseSelected, setCollateralPurseSelected] = useState(null);
-  const [runPurseSelected, setRunPurseSelected] = useState(null);
+  const [collateralPurseSelected, setCollateralPurseSelected] = useState(
+    /** @type { NatPurse | null } */ (null),
+  );
+  const [runPurseSelected, setRunPurseSelected] = useState(
+    /** @type { NatPurse | null } */ (null),
+  );
   const [offerInvalid, setOfferInvalid] = useState(true);
 
   const [lockedAfterDelta, setLockedAfterDelta] = useState(locked);
@@ -213,7 +218,11 @@ const VaultManagement = () => {
 
   useEffect(() => {
     if (collateralAction === 'deposit') {
-      if (lockedDelta.value > collateralPurseSelected.value) {
+      if (
+        lockedDelta.value >
+        (collateralPurseSelected?.value ??
+          AmountMath.makeEmptyFromAmount(locked))
+      ) {
         setLockedInputError('Insufficient purse balance');
         return;
       }
@@ -244,22 +253,26 @@ const VaultManagement = () => {
         return;
       }
       setDebtInputError(null);
-      setDebtAfterDelta(AmountMath.add(debt, debtDelta));
+      setDebtAfterDelta(newDebt);
     }
     if (debtAction === 'repay') {
-      let newAmount;
-      if (debtDelta.value > runPurseSelected.value) {
+      if (
+        debtDelta.value >
+        (runPurseSelected?.value ?? AmountMath.makeEmptyFromAmount(debt))
+      ) {
         setDebtInputError('Insufficient purse balance');
         return;
       }
+
+      let newDebt;
       try {
-        newAmount = AmountMath.subtract(debt, debtDelta);
+        newDebt = AmountMath.subtract(debt, debtDelta);
       } catch {
         setDebtInputError('Insufficient debt balance');
         return;
       }
       setDebtInputError(null);
-      setDebtAfterDelta(newAmount);
+      setDebtAfterDelta(newDebt);
     }
   }, [debt, debtDelta, debtAction]);
 
