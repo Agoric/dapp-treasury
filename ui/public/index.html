@@ -22,6 +22,11 @@
       });
 
       console.log('lockdown done.');
+
+      // Prevent React Dev from throwing up error overlays on unhandled rejections.
+      if ('%NODE_ENV%' !== 'production') {
+        window.addEventListener('unhandledrejection', ev => ev.stopImmediatePropagation());
+      }
     </script>
     <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
