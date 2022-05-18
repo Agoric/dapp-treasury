@@ -21,6 +21,8 @@ import {
   setRUNStake,
   setLoan,
   setLoanAsset,
+  mergeVaultAssets,
+  mergeGovernedParams,
 } from '../store';
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
 import WalletConnection from '../components/WalletConnection';
@@ -85,33 +87,16 @@ function watchVault(id, dispatch, offerStatus) {
     window.localStorage.setItem(id, VaultStatus.CLOSED);
   }
 
-  async function assetUpdater(asset) {
-    for await (const assetState of iterateNotifier(asset)) {
-      console.log('======== ASSET', id, assetState);
-      dispatch(
-        updateVault({
-          id,
-          vault: { asset: assetState },
-        }),
-      );
-    }
-  }
-
   async function watch() {
     let vault;
-    let asset;
     try {
       const notifiers = await E(walletP).getPublicNotifiers(id);
-      ({ vault, asset } = notifiers);
+      ({ vault } = notifiers);
     } catch (err) {
       console.error('Could not get notifiers', id, err);
       dispatch(updateVault({ id, vault: { status: VaultStatus.ERROR, err } }));
       return;
     }
-
-    assetUpdater(asset).catch(err => {
-      console.error('Asset watcher exception', id, err);
-    });
 
     vaultUpdater(vault).catch(err => {
       console.error('Vault watcher exception', id, err);
@@ -183,6 +168,20 @@ function watchOffers(dispatch, INSTANCE_BOARD_ID) {
   offersUpdater().catch(err => console.error('Offers watcher exception', err));
 }
 
+const watchCollateral = async (dispatch, collateral, treasuryAPI) => {
+  const [manager, governedParams] = await Promise.all([
+    E(treasuryAPI).getCollateralManager(collateral.brand),
+    E(treasuryAPI).getGovernedParams({ collateralBrand: collateral.brand }),
+  ]);
+  dispatch(mergeGovernedParams([[collateral.brand, governedParams]]));
+
+  const notifier = await E(manager).getNotifier();
+  for await (const state of iterateNotifier(notifier)) {
+    console.log('asset state', collateral.brand, state);
+    dispatch(mergeVaultAssets([[collateral.brand, state]]));
+  }
+};
+
 /**
  * @param {TreasuryDispatch} dispatch
  * @param {Array<[Brand, BrandInfo]>} brandToInfo
@@ -203,12 +202,31 @@ const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
     E(treasuryAPIP).getCollaterals(),
     E.get(termsP).priceAuthority,
   ]);
+  for (const collateral of collaterals) {
+    watchCollateral(dispatch, collateral, treasuryAPI);
+  }
+
   const {
     issuers: { RUN: runIssuer },
     brands: { RUN: runBrand },
+    governedParams: {
+      MinInitialDebt: { value: minInitialDebt },
+    },
+    loanParams: {
+      DebtLimit: { value: debtLimit },
+    },
   } = terms;
+  console.log('VaultFactory terms:', terms);
   dispatch(
-    setTreasury({ instance, treasuryAPI, runIssuer, runBrand, priceAuthority }),
+    setTreasury({
+      instance,
+      treasuryAPI,
+      runIssuer,
+      runBrand,
+      priceAuthority,
+      minInitialDebt,
+      debtLimit,
+    }),
   );
   await storeAllBrandsFromTerms({
     dispatch,

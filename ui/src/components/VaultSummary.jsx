@@ -92,8 +92,9 @@ export function VaultSummary({ vault, brandToInfo, id }) {
   const { state } = useApplicationContext();
   const {
     treasury: { priceAuthority },
+    vaultAssets,
+    governedParams,
   } = state;
-
   const makeRatioState = () => useState(/** @type { Ratio | null } */ (null));
   const [marketPrice, setMarketPrice] = makeRatioState();
   const [collateralizationRatio, setCollateralizationRatio] = makeRatioState();
@@ -107,13 +108,14 @@ export function VaultSummary({ vault, brandToInfo, id }) {
 
   const {
     debtSnapshot,
-    asset,
     interestRate,
     liquidationRatio,
     locked,
     status,
   } = vault;
 
+  const asset = locked && vaultAssets?.get(locked.brand);
+  const params = locked && governedParams?.get(locked.brand);
   const debt =
     debtSnapshot &&
     asset &&
@@ -207,7 +209,9 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     );
   }
 
-  if (!vault.status || vault.status === VaultStatus.LOADING) {
+  const isLoading =
+    !asset || !params || !vault.status || vault.status === VaultStatus.LOADING;
+  if (isLoading) {
     return (
       <TableContainer>
         <Table>
