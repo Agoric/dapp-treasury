@@ -23,6 +23,7 @@ import {
   setLoanAsset,
   mergeVaultAssets,
   mergeGovernedParams,
+  setPSM,
 } from '../store';
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
 import WalletConnection from '../components/WalletConnection';
@@ -438,6 +439,59 @@ const setupRUNStake = async (
   );
 };
 
+const setupPSM = async (dispatch, PSMMethod, PSMArgs, board, zoe, PSM_NAME) => {
+  const instance = await E(walletP)[PSMMethod](...PSMArgs);
+  const [PSMAPI, PSMTerms, PSMInstallation] = await Promise.all([
+    E(zoe).getPublicFacet(instance),
+    E(zoe).getTerms(instance),
+    E(zoe).getInstallationForInstance(instance),
+  ]);
+  // Get brands.
+  const brands = Object.entries(PSMTerms.brands);
+  const displayInfos = await Promise.all(
+    brands.map(([_name, brand]) => E(brand).getDisplayInfo()),
+  );
+
+  const newBrandToInfo = brands.map(([petname, brand], i) => {
+    /** @type { [Brand, BrandInfo]} */
+    const entry = [
+      brand,
+      {
+        assetKind: displayInfos[i].assetKind,
+        decimalPlaces: displayInfos[i].decimalPlaces,
+        petname,
+        brand,
+      },
+    ];
+    return entry;
+  });
+  dispatch(mergeBrandToInfo(newBrandToInfo));
+
+  // Suggest instance/installation
+  const [instanceBoardId, installationBoardId, PSMParams] = await Promise.all([
+    E(board).getId(instance),
+    E(board).getId(PSMInstallation),
+    E(PSMAPI).getGovernedParams(),
+  ]);
+  await Promise.all([
+    E(walletP).suggestInstallation(
+      `${PSM_NAME}Installation`,
+      installationBoardId,
+    ),
+    E(walletP).suggestInstance(`${PSM_NAME}Instance`, instanceBoardId),
+  ]);
+
+  dispatch(
+    setPSM({
+      PSMAPI,
+      PSMTerms,
+      PSMParams,
+      instanceBoardId,
+      installationBoardId,
+    }),
+  );
+};
+
 /* eslint-disable complexity, react/prop-types */
 export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, defaultState);
@@ -451,6 +505,8 @@ export default function Provider({ children }) {
       RUN_ISSUER_BOARD_ID,
       RUN_STAKE_NAME,
       RUN_STAKE_ON_CHAIN_CONFIG: [RUNStakeMethod, RUNStakeArgs],
+      PSM_NAME,
+      PSM_ON_CHAIN_CONFIG: [PSMMethod, PSMArgs],
     } = dappConfig;
 
     const zoe = E(walletP).getZoe();
@@ -464,6 +520,12 @@ export default function Provider({ children }) {
       zoe,
       RUN_STAKE_NAME,
     );
+
+    const psmParam = new URLSearchParams(window.location.search).get('psm');
+    if (psmParam === 'true') {
+      setupPSM(dispatch, PSMMethod, PSMArgs, board, zoe, PSM_NAME);
+    }
+
     try {
       await setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID);
     } catch (e) {
