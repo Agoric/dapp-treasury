@@ -9,6 +9,8 @@ const uiConfig = JSON.stringify(
     CONTRACT_NAME: 'VaultFactory',
     RUN_STAKE_ON_CHAIN_CONFIG: ['getAgoricNames', ['instance', 'runStake']],
     RUN_STAKE_NAME: 'GetRUN',
+    PSM_ON_CHAIN_CONFIG: ['getAgoricNames', ['instance', 'psm']],
+    PSM_NAME: 'PSM',
   },
   undefined,
   2,

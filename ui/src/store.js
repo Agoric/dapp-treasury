@@ -26,6 +26,7 @@ export const initial = {
   RUNStake: /** @type { RUNStakeState | null } */ (null),
   loan: /** @type { Loan | null } */ (null),
   loanAsset: /** @type { LoanAssetState | null } */ null,
+  PSM: /** @type { PSMState | null } */ null,
 };
 
 /**
@@ -59,6 +60,7 @@ export const initial = {
  *    setLoanAsset: (payload: typeof initial.loanAsset) => TreasuryReducer,
  *    setLoadTreasuryError: (payload: string | null) => TreasuryReducer,
  *    setRUNStake: (payload: typeof initial.RUNStake) => TreasuryReducer,
+ *    setPSM: (payload: typeof initial.PSM) => TreasuryReducer,
  * }} TreasuryActions
  */
 
@@ -89,6 +91,7 @@ export const {
     setRUNStake,
     setLoan,
     setLoanAsset,
+    setPSM,
   },
   // @ts-ignore tsc can't tell that autodux is callable
 } = autodux({

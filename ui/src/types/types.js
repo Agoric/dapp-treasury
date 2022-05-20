@@ -139,6 +139,16 @@
  */
 
 /**
+ * @typedef {{
+ *   PSMAPI: any,
+ *   PSMTerms: any,
+ *   PSMParams: any,
+ *   instanceBoardId: string,
+ *   installationBoardId: string
+ * }} PSMState
+ */
+
+/**
  * @typedef { import('@agoric/wallet/api/src/types').RecordMetadata } RecordMetadata
  */
 
