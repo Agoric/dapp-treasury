@@ -16,7 +16,7 @@ import { mergeBrandToInfo } from '../store';
 
 /**
  *
- * @param {Object} param0
+ * @param {object} param0
  * @param {TreasuryDispatch} param0.dispatch
  * @param {Terms} param0.terms
  * @param {Array<[Brand, BrandInfo]>} param0.brandToInfo
@@ -69,7 +69,7 @@ export const storeAllBrandsFromTerms = async ({
 
 /**
  *
- * @param {Object} param0
+ * @param {object} param0
  * @param {TreasuryDispatch} param0.dispatch
  * @param {Array<[Brand, BrandInfo]>} param0.brandToInfo
  * @param {Issuer} param0.issuer

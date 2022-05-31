@@ -53,7 +53,7 @@ const makeHeaderCell = data => (
 );
 
 /**
- * @param {Object} info
+ * @param {object} info
  * @param {TreasuryDispatch} info.dispatch
  * @param {PursesJSONState[] | null} info.purses
  * @param {Collaterals | null} info.collaterals
