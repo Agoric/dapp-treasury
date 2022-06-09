@@ -180,6 +180,8 @@ const watchCollateral = async (dispatch, collateral, treasuryAPI, runBrand) => {
   const notifier = await E(manager).getNotifier();
   for await (const state of iterateNotifier(notifier)) {
     console.log('asset state', collateral.brand, state);
+    // FIXME: Remove totalDebt placeholder in favor of metrics subscription
+    // after https://github.com/Agoric/agoric-sdk/issues/5366.
     dispatch(
       mergeVaultAssets([
         [
