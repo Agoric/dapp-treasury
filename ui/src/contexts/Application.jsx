@@ -3,6 +3,7 @@ import React, { createContext, useContext, useReducer } from 'react';
 import { E } from '@endo/captp';
 import { makeAsyncIterableFromNotifier as iterateNotifier } from '@agoric/notifier';
 
+import { AmountMath } from '@agoric/ertp';
 import { dappConfig, refreshConfigFromWallet } from '../utils/config';
 
 import {
@@ -169,7 +170,7 @@ function watchOffers(dispatch, INSTANCE_BOARD_ID) {
   offersUpdater().catch(err => console.error('Offers watcher exception', err));
 }
 
-const watchCollateral = async (dispatch, collateral, treasuryAPI) => {
+const watchCollateral = async (dispatch, collateral, treasuryAPI, runBrand) => {
   const [manager, governedParams] = await Promise.all([
     E(treasuryAPI).getCollateralManager(collateral.brand),
     E(treasuryAPI).getGovernedParams({ collateralBrand: collateral.brand }),
@@ -179,7 +180,16 @@ const watchCollateral = async (dispatch, collateral, treasuryAPI) => {
   const notifier = await E(manager).getNotifier();
   for await (const state of iterateNotifier(notifier)) {
     console.log('asset state', collateral.brand, state);
-    dispatch(mergeVaultAssets([[collateral.brand, state]]));
+    // FIXME: Remove totalDebt placeholder in favor of metrics subscription
+    // after https://github.com/Agoric/agoric-sdk/issues/5366.
+    dispatch(
+      mergeVaultAssets([
+        [
+          collateral.brand,
+          { totalDebt: AmountMath.makeEmpty(runBrand), ...state },
+        ],
+      ]),
+    );
   }
 };
 
@@ -203,10 +213,6 @@ const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
     E(treasuryAPIP).getCollaterals(),
     E.get(termsP).priceAuthority,
   ]);
-  for (const collateral of collaterals) {
-    watchCollateral(dispatch, collateral, treasuryAPI);
-  }
-
   const {
     issuers: { RUN: runIssuer },
     brands: { RUN: runBrand },
@@ -218,6 +224,9 @@ const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
     },
   } = terms;
   console.log('VaultFactory terms:', terms);
+  for (const collateral of collaterals) {
+    watchCollateral(dispatch, collateral, treasuryAPI, runBrand);
+  }
   dispatch(
     setTreasury({
       instance,
