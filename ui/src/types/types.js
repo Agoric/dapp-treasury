@@ -1,3 +1,83 @@
+// @ts-check
+/**
+ * FIXME
+ *
+ * @typedef {any} Terms
+ * @typedef {'instance'} Instance
+ */
+/**
+ * @typedef {PromiseLike} ERef<T>
+ * @template T
+ */
+
+/**
+ * @template {AssetKind} [K=AssetKind]
+ * @typedef {object} Issuer
+ *
+ * The issuer cannot mint a new amount, but it can create empty purses
+ * and payments. The issuer can also transform payments (splitting
+ * payments, combining payments, burning payments, and claiming
+ * payments exclusively). The issuer should be gotten from a trusted
+ * source and then relied upon as the decider of whether an untrusted
+ * payment is valid.
+ *
+ * @property {() => Brand<K>} getBrand Get the Brand for this Issuer. The
+ * Brand indicates the type of digital asset and is shared by the
+ * mint, the issuer, and any purses and payments of this particular
+ * kind. The brand is not closely held, so this function should not be
+ * trusted to identify an issuer alone. Fake digital assets and amount
+ * can use another issuer's brand.
+ *
+ * @property {() => string} getAllegedName Get the allegedName for
+ * this mint/issuer
+ * @property {() => AssetKind} getAssetKind Get the kind of
+ * MathHelpers used by this Issuer.
+ * @property {() => any} getDisplayInfo Give information to UI
+ *  on how to display amounts for this issuer.
+ * @property {() => any} makeEmptyPurse Make an empty purse of this
+ * brand.
+ * @property {any} isLive
+ * @property {any} getAmountOf
+ * @property {any} burn
+ * @property {any} claim
+ * @property {any} combine
+ * @property {any} split
+ * @property {any} splitMany
+ */
+/**
+ * @typedef {'nat' | 'set' | 'copySet' | 'copyBag' } AssetKind
+ */
+/**
+ * @template {AssetKind} [K=AssetKind]
+ * @typedef {object} Brand
+ * @property {(allegedIssuer: ERef<Issuer>) => Promise<boolean>} isMyIssuer
+ * Should be used with `issuer.getBrand` to ensure an issuer and brand match.
+ * @property {() => string} getAllegedName
+ * @property {() => any} getDisplayInfo
+ */
+
+/**
+ * @template {AssetKind} [K=AssetKind]
+ * @typedef {object} Amount
+ * Amounts are descriptions of digital assets, answering the questions
+ * "how much" and "of what kind". Amounts are values labeled with a brand.
+ * AmountMath executes the logic of how amounts are changed when digital
+ * assets are merged, separated, or otherwise manipulated. For
+ * example, a deposit of 2 bucks into a purse that already has 3 bucks
+ * gives a new purse balance of 5 bucks. An empty purse has 0 bucks. AmountMath
+ * relies heavily on polymorphic MathHelpers, which manipulate the unbranded
+ * portion.
+ *
+ * @property {Brand<K>} brand
+ * @property {any} value
+ */
+
+/**
+ * @typedef {object} Ratio
+ * @property {Amount<'nat'>} numerator
+ * @property {Amount<'nat'>} denominator
+ */
+
 /**
  * @typedef {object} CollateralInfo
  *
@@ -40,7 +120,7 @@
  * this purse
  * @property {Petname} brandPetname the petname for this purse's brand
  * @property {Petname} pursePetname the petname for this purse
- * @property {any} displayInfo the brand's displayInfo
+ * @property {import('@agoric/ertp/exported.js').DisplayInfo} displayInfo the brand's displayInfo
  * @property {any} value the purse's current balance
  * @property {any} currentAmountSlots
  * @property {any} currentAmount
@@ -69,7 +149,7 @@
 /**
  * @typedef {{
  *   instance?: Instance,
- *   ammAPI?: ERef<MultipoolAutoswapPublicFacet>,
+ *   ammAPI?: ERef<unknown>,
  *   centralBrand?: Brand,
  *   otherBrands?: Record<string, Brand>,
  * }} AutoswapState
@@ -103,7 +183,7 @@
  *   treasuryAPI: unknown,
  *   runIssuer: Issuer,
  *   runBrand: Brand,
- *   priceAuthority: ERef<PriceAuthority>,
+ *   priceAuthority: ERef<any>,
  *   minInitialDebt: Amount<'nat'>,
  *   debtLimit: Amount<'nat'>,
  * }} VaultState

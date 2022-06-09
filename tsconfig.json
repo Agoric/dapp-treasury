@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+      "target": "es2020",
+      "noEmit": true,
+      "downlevelIteration": true,
+      "strictNullChecks": true,
+      "moduleResolution": "node",
+      "allowJs": true,
+      // Enable this to check .js files that don't have @ts-check
+      // "checkJs": true,
+      // for React
+      "allowSyntheticDefaultImports": true,
+      "jsx": "preserve"
+    },
+    "include": ["ui/"],
+    "exclude": ["**/build", "**/public"]
+  }
+  

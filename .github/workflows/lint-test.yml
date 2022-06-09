@@ -71,5 +71,6 @@ jobs:
     - name: yarn build
       run: yarn build
     - run: yarn lint
+    - run: yarn tsc
     - name: yarn test (everything)
       run: yarn test
