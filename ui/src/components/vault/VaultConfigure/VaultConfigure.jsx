@@ -10,6 +10,7 @@ import {
   floorDivideBy,
   makeRatio,
 } from '@agoric/zoe/src/contractSupport';
+import { AmountMath } from '@agoric/ertp';
 
 import '../../../types/types';
 
@@ -69,9 +70,6 @@ const useConfigStyles = makeStyles(theme => ({
  * @param {Array<PursesJSONState> | null} props.purses
  * @param {Brand | null} props.runBrand
  * @param {Iterable<[Brand, BrandInfo]> | null} props.brandToInfo
- * @param {Map<Brand, VaultAssetState>} props.assets
- * @param {Amount<'nat'>} props.minInitialDebt
- * @param {Map<Brand, Record<string, any>>} props.governedParams
  * @returns {React.ReactElement}
  */
 function VaultConfigure({
@@ -80,14 +78,8 @@ function VaultConfigure({
   purses,
   runBrand,
   brandToInfo,
-  assets,
-  minInitialDebt,
-  governedParams,
 }) {
   const classes = useConfigStyles();
-
-  const debtLimit = governedParams.get(vaultCollateral.brand).DebtLimit.value;
-  const asset = assets.get(vaultCollateral.brand);
 
   // Purses with the same brand as the collateral brand that was
   // selected in the previous step.
@@ -105,6 +97,11 @@ function VaultConfigure({
   const [dstPurse, setDstPurse] = useState(
     dstPurses.length ? dstPurses[0] : null,
   );
+  const [toBorrow, setToBorrow] = useState(AmountMath.makeEmpty(runBrand));
+  // Assumes that collateral is AssetKind.NAT
+  const [toLock, setToLock] = useState(
+    AmountMath.makeEmpty(vaultCollateral.brand),
+  );
 
   const [collateralPercent, setCollateralPercent] = useState(
     makeRatio(
@@ -116,20 +113,9 @@ function VaultConfigure({
     ),
   );
 
+  const [belowMinError, setBelowMinError] = useState(false);
+
   const priceRate = vaultCollateral.marketPrice;
-
-  const [toBorrow, setToBorrow] = useState(minInitialDebt);
-  // Assumes that collateral is AssetKind.NAT
-  const [toLock, setToLock] = useState(
-    computeToLock(priceRate, minInitialDebt, collateralPercent),
-  );
-
-  const [belowMinCollateralError, setBelowMinCollateralError] = useState(false);
-  const [debtError, setDebtError] = useState(
-    minInitialDebt.value > debtLimit.value
-      ? 'Debt exceeds per-asset limit.'
-      : null,
-  );
 
   const onBorrowChange = newToBorrow => {
     setToBorrow(newToBorrow);
@@ -163,18 +149,13 @@ function VaultConfigure({
   };
 
   const handlePercentInputError = bool => {
-    setBelowMinCollateralError(bool);
-  };
-
-  const handleDebtInputError = bool => {
-    setDebtError(bool);
+    setBelowMinError(bool);
   };
 
   const {
     displayBrandPetname,
     displayPercent,
     getDecimalPlaces,
-    displayAmount,
   } = makeDisplayFunctions(brandToInfo);
   const collateralPetnameDisplay = displayBrandPetname(vaultCollateral.brand);
 
@@ -192,15 +173,6 @@ function VaultConfigure({
             <div style={{ paddingTop: 20 }}>
               {fundPurseBalanceDisplay} {collateralPetnameDisplay} Available
               from Funding Purse
-            </div>
-            <div style={{ paddingTop: 20 }}>
-              Minimum initial debt: {displayAmount(minInitialDebt)}
-            </div>
-            <div style={{ paddingTop: 20 }}>
-              Total debt for asset type: {displayAmount(asset.totalDebt)}
-            </div>
-            <div style={{ paddingTop: 20 }}>
-              Total debt limit per asset type: {displayAmount(debtLimit)}
             </div>
             <div style={{ paddingTop: 20 }}>
               A stability fee of{' '}
@@ -225,10 +197,6 @@ function VaultConfigure({
               toBorrow={toBorrow}
               toBorrowDecimalPlaces={toBorrowDecimalPlaces}
               onChange={onBorrowChange}
-              onError={handleDebtInputError}
-              error={debtError}
-              min={minInitialDebt}
-              max={debtLimit}
             />
             <DstPurseSelector
               dstPurses={dstPurses}
@@ -240,7 +208,7 @@ function VaultConfigure({
               onChange={onCollateralPercentChange}
               liquidationMargin={vaultCollateral.liquidationMargin}
               onError={handlePercentInputError}
-              belowMinError={belowMinCollateralError}
+              belowMinError={belowMinError}
               brandToInfo={brandToInfo}
             />
           </Grid>
@@ -248,10 +216,9 @@ function VaultConfigure({
             <CancelButton dispatch={dispatch} />
             <EnterButton
               dispatch={dispatch}
+              balanceExceeded={balanceExceeded}
               vaultConfig={vaultConfig}
-              disabled={
-                balanceExceeded || belowMinCollateralError || debtError !== null
-              }
+              belowMinError={belowMinError}
             />
           </Grid>
         </Grid>

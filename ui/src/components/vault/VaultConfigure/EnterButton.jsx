@@ -4,14 +4,21 @@ import { Button } from '@material-ui/core';
 
 import { setVaultConfiguration } from '../../../store';
 
-const EnterButton = ({ dispatch, vaultConfig, disabled }) => {
+const EnterButton = ({
+  balanceExceeded,
+  dispatch,
+  vaultConfig,
+  belowMinError,
+}) => {
+  const formHasError = balanceExceeded || belowMinError;
   return (
     <Button
       color="primary"
       variant="contained"
-      disabled={disabled}
       onClick={() => {
-        dispatch(setVaultConfiguration(vaultConfig));
+        if (!formHasError) {
+          dispatch(setVaultConfiguration(vaultConfig));
+        }
       }}
     >
       Configure

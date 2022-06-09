@@ -9,32 +9,13 @@ import { makeNatAmountInput } from '@agoric/ui-components';
 // instances to the component.
 const NatAmountInput = makeNatAmountInput({ React, TextField });
 
-const ToBorrowValueInput = ({
-  toBorrow,
-  toBorrowDecimalPlaces,
-  onChange,
-  onError,
-  error,
-  min,
-  max,
-}) => (
+const ToBorrowValueInput = ({ toBorrow, toBorrowDecimalPlaces, onChange }) => (
   <NatAmountInput
     required
     label="RUN to receive"
     value={toBorrow.value}
     decimalPlaces={toBorrowDecimalPlaces}
-    onChange={value => {
-      if (value < min.value) {
-        onError('Initial debt below minimum.');
-      } else if (value > max.value) {
-        onError('Debt exceeds per-asset limit.');
-      } else {
-        onError(null);
-      }
-      onChange({ brand: toBorrow.brand, value });
-    }}
-    error={error !== null}
-    helperText={error}
+    onChange={value => onChange({ brand: toBorrow.brand, value })}
   />
 );
 

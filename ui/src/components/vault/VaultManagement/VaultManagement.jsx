@@ -1,4 +1,6 @@
 // @ts-check
+/// <reference types="ses"/>
+
 import React, { useEffect, useState } from 'react';
 import { Redirect } from 'react-router-dom';
 import { Typography } from '@material-ui/core';
@@ -60,8 +62,6 @@ const VaultManagement = () => {
     brandToInfo,
     treasury,
     vaultHistory,
-    vaultAssets,
-    governedParams,
   } = state;
 
   /** @type { VaultData } */
@@ -76,13 +76,12 @@ const VaultManagement = () => {
     liquidationRatio,
     locked,
     debtSnapshot,
+    asset,
   } = vaultToManage;
 
-  const asset = locked && vaultAssets?.get(locked.brand);
-  const params = locked && governedParams?.get(locked.brand);
   assert(
-    params && locked && debtSnapshot && asset,
-    `Can't manage vault with missing data: locked: ${locked}, debt: ${debtSnapshot}, asset: ${asset}, params: ${params}`,
+    locked && debtSnapshot && asset,
+    `Can't manage vault with missing data: locked: ${locked}, debt: ${debtSnapshot}, asset: ${asset}`,
   );
   const debt = calculateCurrentDebt(
     debtSnapshot.debt,
@@ -104,12 +103,8 @@ const VaultManagement = () => {
     AmountMath.make(locked.brand, 0n),
   );
   const [debtDelta, setDebtDelta] = useState(AmountMath.make(debt.brand, 0n));
-  const [collateralPurseSelected, setCollateralPurseSelected] = useState(
-    /** @type { NatPurse | null } */ (null),
-  );
-  const [runPurseSelected, setRunPurseSelected] = useState(
-    /** @type { NatPurse | null } */ (null),
-  );
+  const [collateralPurseSelected, setCollateralPurseSelected] = useState(null);
+  const [runPurseSelected, setRunPurseSelected] = useState(null);
   const [offerInvalid, setOfferInvalid] = useState(true);
 
   const [lockedAfterDelta, setLockedAfterDelta] = useState(locked);
@@ -218,14 +213,6 @@ const VaultManagement = () => {
 
   useEffect(() => {
     if (collateralAction === 'deposit') {
-      if (
-        lockedDelta.value >
-        (collateralPurseSelected?.value ??
-          AmountMath.makeEmptyFromAmount(locked))
-      ) {
-        setLockedInputError('Insufficient purse balance');
-        return;
-      }
       setLockedInputError(null);
       setLockedAfterDelta(AmountMath.add(locked, lockedDelta));
     }
@@ -244,35 +231,19 @@ const VaultManagement = () => {
 
   useEffect(() => {
     if (debtAction === 'borrow') {
-      const newDebt = AmountMath.add(debt, debtDelta);
-      if (
-        AmountMath.add(newDebt, asset.totalDebt).value >
-        params.DebtLimit.value.value
-      ) {
-        setDebtInputError('Exceeds asset debt limit');
-        return;
-      }
       setDebtInputError(null);
-      setDebtAfterDelta(newDebt);
+      setDebtAfterDelta(AmountMath.add(debt, debtDelta));
     }
     if (debtAction === 'repay') {
-      if (
-        debtDelta.value >
-        (runPurseSelected?.value ?? AmountMath.makeEmptyFromAmount(debt))
-      ) {
-        setDebtInputError('Insufficient purse balance');
-        return;
-      }
-
-      let newDebt;
+      let newAmount;
       try {
-        newDebt = AmountMath.subtract(debt, debtDelta);
+        newAmount = AmountMath.subtract(debt, debtDelta);
       } catch {
         setDebtInputError('Insufficient debt balance');
         return;
       }
       setDebtInputError(null);
-      setDebtAfterDelta(newDebt);
+      setDebtAfterDelta(newAmount);
     }
   }, [debt, debtDelta, debtAction]);
 
@@ -315,8 +286,6 @@ const VaultManagement = () => {
           brandToInfo={brandToInfo}
           debt={debt}
           locked={locked}
-          params={params}
-          asset={asset}
         />
         <div className={classes.valuesTable}>
           <ChangesTable

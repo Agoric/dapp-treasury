@@ -111,19 +111,13 @@ const useStyles = makeStyles(theme => {
 function VaultList() {
   const classes = useStyles();
   const {
-    state: {
-      approved,
-      vaults,
-      brandToInfo,
-      loadTreasuryError,
-      treasury,
-      vaultAssets,
-    },
+    state: { approved, vaults, brandToInfo, loadTreasuryError, treasury },
     dispatch,
     retrySetup,
   } = useApplicationContext();
 
   const vaultsList = Object.entries(vaults ?? {});
+
   const showShowClosedToggle =
     (vaultsList?.find(entry =>
       [VaultStatus.CLOSED, VaultStatus.ERROR].includes(entry[1].status),
@@ -240,8 +234,7 @@ function VaultList() {
           alignItems="stretch"
         >
           {vaultsToRender.map(([key, v]) => {
-            const asset = v.locked && vaultAssets?.get(v.locked.brand);
-            const canManage = v.status === 'Loan Initiated' && asset;
+            const canManage = v.status === 'Loan Initiated';
             return (
               <Grid item key={key} className={classes.gridCard}>
                 <Card key={key} className={classes.card}>
