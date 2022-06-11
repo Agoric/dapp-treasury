@@ -76,12 +76,18 @@ function watchVault(id, dispatch, offerStatus) {
   }
 
   async function vaultUpdater(vault) {
-    for await (const vaultState of iterateNotifier(vault)) {
-      console.log('======== VAULT', id, vaultState);
+    for await (const state of iterateNotifier(vault)) {
+      console.log('======== VAULT', id, state);
+      let status = VaultStatus.INITIATED;
+      if (state.vaultState === 'liquidating') {
+        status = VaultStatus.LIQUIDATING;
+      } else if (state.vaultState === 'liquidated') {
+        status = VaultStatus.LIQUIDATED;
+      }
       dispatch(
         updateVault({
           id,
-          vault: { ...vaultState, status: VaultStatus.INITIATED },
+          vault: { ...state, status },
         }),
       );
     }
