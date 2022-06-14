@@ -199,8 +199,8 @@ const watchCollateral = async (dispatch, collateral, treasuryAPI, runBrand) => {
  * @param {ERef<ZoeService>} zoe
  * @param {ERef<Board>} board
  * @param {string} instanceID
- *
- * @typedef {{ getId: (value: unknown) => string, getValue: (id: string) => any }} Board */
+ * @typedef {{ getId: (value: unknown) => string, getValue: (id: string) => any }} Board
+ */
 const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
   /** @type { Instance } */
   const instance = await E(board).getValue(instanceID);

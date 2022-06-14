@@ -38,7 +38,6 @@ export const initial = {
  *   initial: TreasuryState,
  *   actions: TreasuryActions,
  * }}
- *
  * @typedef {{
  *    setApproved: (payload: boolean) => TreasuryReducer,
  *    setConnected: (payload: boolean) => TreasuryReducer,
