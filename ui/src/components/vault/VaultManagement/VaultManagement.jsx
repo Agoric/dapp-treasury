@@ -71,12 +71,8 @@ const VaultManagement = () => {
   } else {
     return <Redirect to="/vaults" />;
   }
-  const {
-    interestRate,
-    liquidationRatio,
-    locked,
-    debtSnapshot,
-  } = vaultToManage;
+  const { interestRate, liquidationRatio, locked, debtSnapshot } =
+    vaultToManage;
 
   const asset = locked && vaultAssets?.get(locked.brand);
   const params = locked && governedParams?.get(locked.brand);
@@ -115,18 +111,13 @@ const VaultManagement = () => {
   const [lockedAfterDelta, setLockedAfterDelta] = useState(locked);
   const [debtAfterDelta, setDebtAfterDelta] = useState(debt);
   const makeRatioState = () => useState(/** @type { Ratio | null } */ (null));
-  const [
-    newCollateralizationRatio,
-    setNewCollateralizationRatio,
-  ] = makeRatioState();
+  const [newCollateralizationRatio, setNewCollateralizationRatio] =
+    makeRatioState();
   const [marketPrice, setMarketPrice] = makeRatioState();
   const [collateralizationRatio, setCollateralizationRatio] = makeRatioState();
 
-  const {
-    displayBrandPetname,
-    displayAmount,
-    getDecimalPlaces,
-  } = makeDisplayFunctions(brandToInfo);
+  const { displayBrandPetname, displayAmount, getDecimalPlaces } =
+    makeDisplayFunctions(brandToInfo);
   const lockedPetname = displayBrandPetname(locked.brand);
 
   const [openApproveOfferSB, setOpenApproveOfferSB] = React.useState(false);

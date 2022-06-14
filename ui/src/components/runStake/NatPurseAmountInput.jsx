@@ -66,8 +66,10 @@ const NatPurseAmountInput = ({
 }) => {
   const classes = useStyles();
 
-  const decimalPlaces = getInfoForBrand(brandToInfo, brandToFilter)
-    .decimalPlaces;
+  const decimalPlaces = getInfoForBrand(
+    brandToInfo,
+    brandToFilter,
+  ).decimalPlaces;
 
   const amountString = stringifyValue(amount, AssetKind.NAT, decimalPlaces);
   const [fieldString, setFieldString] = useState(
