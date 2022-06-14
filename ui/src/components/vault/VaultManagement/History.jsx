@@ -81,9 +81,8 @@ const formatDateNow = stamp => {
 };
 
 const History = ({ vaultId, history, brandToInfo, brand, debtBrand }) => {
-  const { displayAmount, displayBrandPetname } = makeDisplayFunctions(
-    brandToInfo,
-  );
+  const { displayAmount, displayBrandPetname } =
+    makeDisplayFunctions(brandToInfo);
   const classes = useStyles();
 
   /**

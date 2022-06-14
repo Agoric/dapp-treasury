@@ -92,11 +92,8 @@ function VaultCollateral({
     </Alert>
   );
 
-  const {
-    displayRatio,
-    displayPercent,
-    displayBrandPetname,
-  } = makeDisplayFunctions(brandToInfo);
+  const { displayRatio, displayPercent, displayBrandPetname } =
+    makeDisplayFunctions(brandToInfo);
 
   /** @param {CollateralInfo} row */
   const makeOnClick = row => _ev => {

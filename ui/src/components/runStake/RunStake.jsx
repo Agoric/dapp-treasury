@@ -119,8 +119,11 @@ const RunStake = () => {
       loanAsset.compoundedInterest,
     );
 
-  const { Attestation: lienBrand, Debt: debtBrand, Stake: stakeBrand } =
-    RUNStake?.RUNStakeTerms?.brands ?? {};
+  const {
+    Attestation: lienBrand,
+    Debt: debtBrand,
+    Stake: stakeBrand,
+  } = RUNStake?.RUNStakeTerms?.brands ?? {};
 
   const liened =
     stakeBrand &&

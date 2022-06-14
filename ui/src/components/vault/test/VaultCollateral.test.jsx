@@ -72,20 +72,12 @@ test('renders the interest rates', () => {
   // One header row and one row for each collateral
   expect(rows.length).toBe(3);
 
-  expect(
-    rows
-      .at(1)
-      .find('td')
-      .at(4)
-      .text(),
-  ).toContain(`${collaterals[0].interestRate}%`);
-  expect(
-    rows
-      .at(2)
-      .find('td')
-      .at(4)
-      .text(),
-  ).toContain(`${collaterals[1].interestRate}%`);
+  expect(rows.at(1).find('td').at(4).text()).toContain(
+    `${collaterals[0].interestRate}%`,
+  );
+  expect(rows.at(2).find('td').at(4).text()).toContain(
+    `${collaterals[1].interestRate}%`,
+  );
 });
 
 test('does not render if purse is missing', () => {

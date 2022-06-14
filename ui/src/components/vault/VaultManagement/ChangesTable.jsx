@@ -72,11 +72,8 @@ const ChangesTable = ({
 }) => {
   const classes = useStyles();
 
-  const {
-    displayAmount,
-    displayPercent,
-    displayBrandPetname,
-  } = makeDisplayFunctions(brandToInfo);
+  const { displayAmount, displayPercent, displayBrandPetname } =
+    makeDisplayFunctions(brandToInfo);
 
   const getDeltaString = (oldAmount, newAmount) => {
     if (

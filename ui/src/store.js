@@ -12,12 +12,15 @@ export const initial = {
   purses: /** @type {PursesJSONState[] | null} */ (null),
   brandToInfo: /** @type {Array<[Brand, BrandInfo]>} */ ([]),
   RUNStakeHistory: /** @type {Record<string, HistoryItem>} */ ({}),
-  vaultHistory: /** @type {Record<string, Record<string, VaultHistoryEntry>>} */ ({}),
+  vaultHistory:
+    /** @type {Record<string, Record<string, VaultHistoryEntry>>} */ ({}),
   // Vault state
   treasury: /** @type { VaultState | null } */ (null),
   vaultCollateral: /** @type { CollateralInfo | null } */ (null),
   vaultAssets: /** @type { Map<Brand, VaultAssetState> | null } */ (null),
-  governedParams: /** @type { Map<Brand, Record<string, any>> | null } */ (null),
+  governedParams: /** @type { Map<Brand, Record<string, any>> | null } */ (
+    null
+  ),
   vaultConfiguration: null,
   vaults: /** @type {Record<string, VaultData> | null} */ (null),
   collaterals: /** @type { Collaterals | null } */ (null),
@@ -117,7 +120,7 @@ export const {
       const oldVaultData = vaults && vaults[id];
       const status = vault.liquidated
         ? VaultStatus.LIQUIDATED
-        : (vault.status ?? oldVaultData?.status);
+        : vault.status ?? oldVaultData?.status;
       return {
         ...state,
         vaults: { ...vaults, [id]: { ...oldVaultData, ...vault, status } },

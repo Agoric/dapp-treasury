@@ -47,8 +47,10 @@ const PurseAmountInput = ({
   purseSelectorDisabled = false,
   amountInputDisabled = false,
 }) => {
-  const decimalPlaces = getInfoForBrand(brandToInfo, brandToFilter)
-    .decimalPlaces;
+  const decimalPlaces = getInfoForBrand(
+    brandToInfo,
+    brandToFilter,
+  ).decimalPlaces;
   const placesToShow = decimalPlaces > 0 ? 2 : 0;
 
   const pursesFiltered = filterPurses(purses, brandToFilter);

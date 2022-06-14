@@ -68,12 +68,8 @@ const UnchangeableValues = ({
   params,
   asset,
 }) => {
-  const {
-    displayPercent,
-    displayRatio,
-    displayAmount,
-    displayBrandPetname,
-  } = makeDisplayFunctions(brandToInfo);
+  const { displayPercent, displayRatio, displayAmount, displayBrandPetname } =
+    makeDisplayFunctions(brandToInfo);
 
   // The liquidationPrice is when the value of the collateral
   // equals liquidationRatio (i.e. 125%) of the current debt, divided

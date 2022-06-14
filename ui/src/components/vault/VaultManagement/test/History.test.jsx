@@ -97,13 +97,7 @@ test('renders the history of all vault adjustments', () => {
   expect(header.at(2).text()).toContain('Borrowed');
 
   const expectCellText = (row, column, text) =>
-    expect(
-      rows
-        .at(row)
-        .find('td')
-        .at(column)
-        .text(),
-    ).toEqual(text);
+    expect(rows.at(row).find('td').at(column).text()).toEqual(text);
   expectCellText(1, 0, '5/8/22, 7:01 PM');
   expectCellText(2, 0, '5/8/22, 6:53 PM');
 
