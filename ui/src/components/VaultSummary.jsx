@@ -106,14 +106,8 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     getDecimalPlaces,
   } = makeDisplayFunctions(brandToInfo);
 
-  const {
-    debtSnapshot,
-    interestRate,
-    liquidationRatio,
-    locked,
-    status,
-    err,
-  } = vault;
+  const { debtSnapshot, interestRate, liquidationRatio, locked, status, err } =
+    vault;
 
   const asset = locked && vaultAssets?.get(locked.brand);
   const params = locked && governedParams?.get(locked.brand);
