@@ -126,17 +126,26 @@ function VaultList() {
   const vaultsList = Object.entries(vaults ?? {});
   const showShowClosedToggle =
     (vaultsList?.find(entry =>
-      [VaultStatus.CLOSED, VaultStatus.ERROR].includes(entry[1].status),
+      [VaultStatus.CLOSED, VaultStatus.ERROR, VaultStatus.LIQUIDATED].includes(
+        entry[1].status,
+      ),
     )?.length ?? 0) > 0;
 
   const [showClosed, setShowClosed] = useState(false);
 
   const vaultsToRender = vaultsList.filter(([_key, { status }]) =>
     showClosed
-      ? [VaultStatus.CLOSED, VaultStatus.ERROR].includes(status)
-      : ![VaultStatus.CLOSED, VaultStatus.ERROR, VaultStatus.DECLINED].includes(
-          status,
-        ),
+      ? [
+          VaultStatus.CLOSED,
+          VaultStatus.ERROR,
+          VaultStatus.LIQUIDATED,
+        ].includes(status)
+      : ![
+          VaultStatus.CLOSED,
+          VaultStatus.ERROR,
+          VaultStatus.DECLINED,
+          VaultStatus.LIQUIDATED,
+        ].includes(status),
   );
 
   const [redirect, setRedirect] = useState(false);

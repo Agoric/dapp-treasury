@@ -97,6 +97,12 @@ test('hides closed vaults by default', () => {
     1: {
       status: 'Closed',
     },
+    2: {
+      status: 'Liquidated',
+    },
+    3: {
+      status: 'Error in Offer',
+    },
   };
   state.approved = true;
   state.treasury = { priceAuthority: { quoteGiven: jest.fn() } };
@@ -112,6 +118,15 @@ test('shows closed vaults when enabled', () => {
     1: {
       status: 'Closed',
     },
+    2: {
+      status: 'Liquidated',
+    },
+    3: {
+      status: 'Error in Offer',
+    },
+    4: {
+      status: 'Loan Initiated',
+    },
   };
   state.approved = true;
   state.treasury = { priceAuthority: { quoteGiven: jest.fn() } };
@@ -122,9 +137,13 @@ test('shows closed vaults when enabled', () => {
   component.update();
 
   const vaultSummaries = component.find(VaultSummary);
-  expect(vaultSummaries).toHaveLength(1);
+  expect(vaultSummaries).toHaveLength(3);
   expect(vaultSummaries.at(0).props().vault).toEqual(state.vaults['1']);
   expect(vaultSummaries.at(0).props().id).toEqual('1');
+  expect(vaultSummaries.at(1).props().vault).toEqual(state.vaults['2']);
+  expect(vaultSummaries.at(1).props().id).toEqual('2');
+  expect(vaultSummaries.at(2).props().vault).toEqual(state.vaults['3']);
+  expect(vaultSummaries.at(2).props().id).toEqual('3');
 });
 
 test('shows loading vaults', () => {

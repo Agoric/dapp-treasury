@@ -106,7 +106,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     getDecimalPlaces,
   } = makeDisplayFunctions(brandToInfo);
 
-  const { debtSnapshot, interestRate, liquidationRatio, locked, status } =
+  const { debtSnapshot, interestRate, liquidationRatio, locked, status, err } =
     vault;
 
   const asset = locked && vaultAssets?.get(locked.brand);
@@ -149,7 +149,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     });
   }, [vault]);
 
-  if (vault.status === VaultStatus.PENDING) {
+  if (status === VaultStatus.PENDING) {
     return (
       <div className={classes.pending}>
         <TableContainer>
@@ -163,7 +163,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
               </TableRow>
               <TableRow>
                 <TableCell>Status</TableCell>
-                <TableCell align="right">{vault.status}</TableCell>
+                <TableCell align="right">{status}</TableCell>
               </TableRow>
             </TableBody>
           </Table>
@@ -176,7 +176,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     );
   }
 
-  if (vault.status === VaultStatus.ERROR) {
+  if (status === VaultStatus.ERROR) {
     return (
       <TableContainer>
         <Table>
@@ -189,12 +189,12 @@ export function VaultSummary({ vault, brandToInfo, id }) {
             </TableRow>
             <TableRow>
               <TableCell>Status</TableCell>
-              <TableCell align="right">{vault.status}</TableCell>
+              <TableCell align="right">{status}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell colSpan={3}>
                 <details style={{ whiteSpace: 'pre-wrap' }}>
-                  {vault.err && vault.err.toString()}
+                  {err && err.toString()}
                 </details>
               </TableCell>
             </TableRow>
@@ -205,7 +205,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
   }
 
   const isLoading =
-    !asset || !params || !vault.status || vault.status === VaultStatus.LOADING;
+    !asset || !params || !status || status === VaultStatus.LOADING;
   if (isLoading) {
     return (
       <TableContainer>
@@ -230,7 +230,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     );
   }
 
-  if (vault.status === VaultStatus.CLOSED) {
+  if (status === VaultStatus.CLOSED || status === VaultStatus.LIQUIDATED) {
     return (
       <TableContainer>
         <Table>
@@ -243,7 +243,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
             </TableRow>
             <TableRow>
               <TableCell>Status</TableCell>
-              <TableCell align="right">Closed</TableCell>
+              <TableCell align="right">{status}</TableCell>
             </TableRow>
           </TableBody>
         </Table>
