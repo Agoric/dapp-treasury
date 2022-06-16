@@ -56,6 +56,8 @@ export default function NewVault() {
       vaultConfiguration,
       approved,
       brandToInfo,
+      vaultAssets,
+      governedParams,
     },
     dispatch,
     walletP,
@@ -91,12 +93,26 @@ export default function NewVault() {
         <VaultCollateral
           dispatch={dispatch}
           collaterals={collaterals}
+          assets={vaultAssets}
           purses={purses}
           brandToInfo={brandToInfo}
+          governedParams={governedParams}
         />
       );
     }
     if (!vaultConfiguration) {
+      assert(
+        governedParams,
+        'GovernedParams must be loaded before collateral can be selected.',
+      );
+      assert(
+        vaultAssets,
+        'Assets must be loaded before collateral can be selected.',
+      );
+      assert(
+        treasury,
+        'Treasury must be loaded before collateral can be selected.',
+      );
       // User needs to configure their vault and choose the amount of
       // debt
       return (
@@ -104,8 +120,11 @@ export default function NewVault() {
           dispatch={dispatch}
           vaultCollateral={vaultCollateral}
           purses={purses}
-          runBrand={treasury?.runBrand ?? null}
+          assets={vaultAssets}
+          runBrand={treasury.runBrand ?? null}
           brandToInfo={brandToInfo}
+          minInitialDebt={treasury.minInitialDebt}
+          governedParams={governedParams}
         />
       );
     }

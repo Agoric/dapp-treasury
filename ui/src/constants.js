@@ -6,6 +6,7 @@ export const VaultStatus = /** @type {const} */ ({
   PENDING: 'Pending Wallet Acceptance',
   ERROR: 'Error in Offer',
   INITIATED: 'Loan Initiated',
+  LIQUIDATING: 'Liquidating',
   LIQUIDATED: 'Liquidated',
   LOADING: 'Loading',
   CLOSED: 'Closed',

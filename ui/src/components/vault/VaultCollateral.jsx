@@ -53,17 +53,21 @@ const makeHeaderCell = data => (
 );
 
 /**
- * @param {Object} info
+ * @param {object} info
  * @param {TreasuryDispatch} info.dispatch
  * @param {PursesJSONState[] | null} info.purses
  * @param {Collaterals | null} info.collaterals
  * @param {Iterable<[Brand, BrandInfo]>} info.brandToInfo
+ * @param {Map<Brand, VaultAssetState> | null} info.assets
+ * @param {Map<Brand, Record<string, any>> | null} info.governedParams
  */
 function VaultCollateral({
   dispatch,
   purses,
   collaterals: collateralsRaw,
   brandToInfo,
+  assets,
+  governedParams,
 }) {
   const classes = useStyles();
   const { state, retrySetup } = useApplicationContext();
@@ -88,11 +92,8 @@ function VaultCollateral({
     </Alert>
   );
 
-  const {
-    displayRatio,
-    displayPercent,
-    displayBrandPetname,
-  } = makeDisplayFunctions(brandToInfo);
+  const { displayRatio, displayPercent, displayBrandPetname } =
+    makeDisplayFunctions(brandToInfo);
 
   /** @param {CollateralInfo} row */
   const makeOnClick = row => _ev => {
@@ -102,7 +103,15 @@ function VaultCollateral({
   // Filter out brands that the wallet does not have purses for
   const purseBrands = new Set(purses && purses.map(p => p.brand));
   const collaterals =
-    collateralsRaw && collateralsRaw.filter(c => purseBrands.has(c.brand));
+    collateralsRaw &&
+    assets &&
+    governedParams &&
+    collateralsRaw.filter(
+      ({ brand }) =>
+        purseBrands.has(brand) &&
+        assets.has(brand) &&
+        governedParams.has(brand),
+    );
 
   if (loadTreasuryError) {
     return loadColalteralsErrorDiv;

@@ -94,13 +94,7 @@ test('renders the history of all loans and adjustments', () => {
   expect(header.at(2).text()).toContain('Borrowed');
 
   const expectCellText = (row, column, text) =>
-    expect(
-      rows
-        .at(row)
-        .find('td')
-        .at(column)
-        .text(),
-    ).toEqual(text);
+    expect(rows.at(row).find('td').at(column).text()).toEqual(text);
   expectCellText(1, 0, '2022-05-08 18:53:56');
   expectCellText(2, 0, '2022-05-08 18:53:41');
   expectCellText(3, 0, '2022-05-08 18:53:38');

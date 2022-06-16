@@ -3,6 +3,7 @@ import React, { createContext, useContext, useReducer } from 'react';
 import { E } from '@endo/captp';
 import { makeAsyncIterableFromNotifier as iterateNotifier } from '@agoric/notifier';
 
+import { AmountMath } from '@agoric/ertp';
 import { dappConfig, refreshConfigFromWallet } from '../utils/config';
 
 import {
@@ -12,6 +13,7 @@ import {
   setPurses,
   initVaults,
   updateVault,
+  mergeVaultHistory,
   setCollaterals,
   setTreasury,
   mergeBrandToInfo,
@@ -20,6 +22,9 @@ import {
   setRUNStake,
   setLoan,
   setLoanAsset,
+  mergeVaultAssets,
+  mergeGovernedParams,
+  setPSM,
 } from '../store';
 import { updateBrandPetnames, storeAllBrandsFromTerms } from './storeBrandInfo';
 import WalletConnection from '../components/WalletConnection';
@@ -71,12 +76,18 @@ function watchVault(id, dispatch, offerStatus) {
   }
 
   async function vaultUpdater(vault) {
-    for await (const vaultState of iterateNotifier(vault)) {
-      console.log('======== VAULT', id, vaultState);
+    for await (const state of iterateNotifier(vault)) {
+      console.log('======== VAULT', id, state);
+      let status = VaultStatus.INITIATED;
+      if (state.vaultState === 'liquidating') {
+        status = VaultStatus.LIQUIDATING;
+      } else if (state.vaultState === 'liquidated') {
+        status = VaultStatus.LIQUIDATED;
+      }
       dispatch(
         updateVault({
           id,
-          vault: { ...vaultState, status: VaultStatus.INITIATED },
+          vault: { ...state, status },
         }),
       );
     }
@@ -84,33 +95,16 @@ function watchVault(id, dispatch, offerStatus) {
     window.localStorage.setItem(id, VaultStatus.CLOSED);
   }
 
-  async function assetUpdater(asset) {
-    for await (const assetState of iterateNotifier(asset)) {
-      console.log('======== ASSET', id, assetState);
-      dispatch(
-        updateVault({
-          id,
-          vault: { asset: assetState },
-        }),
-      );
-    }
-  }
-
   async function watch() {
     let vault;
-    let asset;
     try {
       const notifiers = await E(walletP).getPublicNotifiers(id);
-      ({ vault, asset } = notifiers);
+      ({ vault } = notifiers);
     } catch (err) {
       console.error('Could not get notifiers', id, err);
       dispatch(updateVault({ id, vault: { status: VaultStatus.ERROR, err } }));
       return;
     }
-
-    assetUpdater(asset).catch(err => {
-      console.error('Asset watcher exception', id, err);
-    });
 
     vaultUpdater(vault).catch(err => {
       console.error('Vault watcher exception', id, err);
@@ -132,7 +126,18 @@ function watchOffers(dispatch, INSTANCE_BOARD_ID) {
         instanceHandleBoardId,
         continuingInvitation,
         status,
+        proposalForDisplay,
+        meta,
       } of offers) {
+        dispatch(
+          mergeVaultHistory({
+            id,
+            continuingInvitation,
+            status,
+            proposalForDisplay,
+            meta,
+          }),
+        );
         if (
           instanceHandleBoardId === INSTANCE_BOARD_ID &&
           continuingInvitation === undefined // AdjustBalances and CloseVault offers use continuingInvitation
@@ -171,14 +176,37 @@ function watchOffers(dispatch, INSTANCE_BOARD_ID) {
   offersUpdater().catch(err => console.error('Offers watcher exception', err));
 }
 
+const watchCollateral = async (dispatch, collateral, treasuryAPI, runBrand) => {
+  const [manager, governedParams] = await Promise.all([
+    E(treasuryAPI).getCollateralManager(collateral.brand),
+    E(treasuryAPI).getGovernedParams({ collateralBrand: collateral.brand }),
+  ]);
+  dispatch(mergeGovernedParams([[collateral.brand, governedParams]]));
+
+  const notifier = await E(manager).getNotifier();
+  for await (const state of iterateNotifier(notifier)) {
+    console.log('asset state', collateral.brand, state);
+    // FIXME: Remove totalDebt placeholder in favor of metrics subscription
+    // after https://github.com/Agoric/agoric-sdk/issues/5366.
+    dispatch(
+      mergeVaultAssets([
+        [
+          collateral.brand,
+          { totalDebt: AmountMath.makeEmpty(runBrand), ...state },
+        ],
+      ]),
+    );
+  }
+};
+
 /**
  * @param {TreasuryDispatch} dispatch
  * @param {Array<[Brand, BrandInfo]>} brandToInfo
  * @param {ERef<ZoeService>} zoe
  * @param {ERef<Board>} board
  * @param {string} instanceID
- *
- * @typedef {{ getId: (value: unknown) => string, getValue: (id: string) => any }} Board */
+ * @typedef {{ getId: (value: unknown) => string, getValue: (id: string) => any }} Board
+ */
 const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
   /** @type { Instance } */
   const instance = await E(board).getValue(instanceID);
@@ -194,9 +222,27 @@ const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
   const {
     issuers: { RUN: runIssuer },
     brands: { RUN: runBrand },
+    governedParams: {
+      MinInitialDebt: { value: minInitialDebt },
+    },
+    loanParams: {
+      DebtLimit: { value: debtLimit },
+    },
   } = terms;
+  console.log('VaultFactory terms:', terms);
+  for (const collateral of collaterals) {
+    watchCollateral(dispatch, collateral, treasuryAPI, runBrand);
+  }
   dispatch(
-    setTreasury({ instance, treasuryAPI, runIssuer, runBrand, priceAuthority }),
+    setTreasury({
+      instance,
+      treasuryAPI,
+      runIssuer,
+      runBrand,
+      priceAuthority,
+      minInitialDebt,
+      debtLimit,
+    }),
   );
   await storeAllBrandsFromTerms({
     dispatch,
@@ -408,6 +454,59 @@ const setupRUNStake = async (
   );
 };
 
+const setupPSM = async (dispatch, PSMMethod, PSMArgs, board, zoe, PSM_NAME) => {
+  const instance = await E(walletP)[PSMMethod](...PSMArgs);
+  const [PSMAPI, PSMTerms, PSMInstallation] = await Promise.all([
+    E(zoe).getPublicFacet(instance),
+    E(zoe).getTerms(instance),
+    E(zoe).getInstallationForInstance(instance),
+  ]);
+  // Get brands.
+  const brands = Object.entries(PSMTerms.brands);
+  const displayInfos = await Promise.all(
+    brands.map(([_name, brand]) => E(brand).getDisplayInfo()),
+  );
+
+  const newBrandToInfo = brands.map(([petname, brand], i) => {
+    /** @type { [Brand, BrandInfo]} */
+    const entry = [
+      brand,
+      {
+        assetKind: displayInfos[i].assetKind,
+        decimalPlaces: displayInfos[i].decimalPlaces,
+        petname,
+        brand,
+      },
+    ];
+    return entry;
+  });
+  dispatch(mergeBrandToInfo(newBrandToInfo));
+
+  // Suggest instance/installation
+  const [instanceBoardId, installationBoardId, PSMParams] = await Promise.all([
+    E(board).getId(instance),
+    E(board).getId(PSMInstallation),
+    E(PSMAPI).getGovernedParams(),
+  ]);
+  await Promise.all([
+    E(walletP).suggestInstallation(
+      `${PSM_NAME}Installation`,
+      installationBoardId,
+    ),
+    E(walletP).suggestInstance(`${PSM_NAME}Instance`, instanceBoardId),
+  ]);
+
+  dispatch(
+    setPSM({
+      PSMAPI,
+      PSMTerms,
+      PSMParams,
+      instanceBoardId,
+      installationBoardId,
+    }),
+  );
+};
+
 /* eslint-disable complexity, react/prop-types */
 export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, defaultState);
@@ -421,6 +520,8 @@ export default function Provider({ children }) {
       RUN_ISSUER_BOARD_ID,
       RUN_STAKE_NAME,
       RUN_STAKE_ON_CHAIN_CONFIG: [RUNStakeMethod, RUNStakeArgs],
+      PSM_NAME,
+      PSM_ON_CHAIN_CONFIG: [PSMMethod, PSMArgs],
     } = dappConfig;
     const zoe = E(walletP).getZoe();
     const board = E(walletP).getBoard();
@@ -433,6 +534,12 @@ export default function Provider({ children }) {
       zoe,
       RUN_STAKE_NAME,
     );
+
+    const psmParam = new URLSearchParams(window.location.search).get('psm');
+    if (psmParam === 'true') {
+      setupPSM(dispatch, PSMMethod, PSMArgs, board, zoe, PSM_NAME);
+    }
+
     try {
       await setupTreasury(dispatch, brandToInfo, zoe, board, INSTANCE_BOARD_ID);
     } catch (e) {

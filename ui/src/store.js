@@ -12,9 +12,15 @@ export const initial = {
   purses: /** @type {PursesJSONState[] | null} */ (null),
   brandToInfo: /** @type {Array<[Brand, BrandInfo]>} */ ([]),
   RUNStakeHistory: /** @type {Record<string, HistoryItem>} */ ({}),
+  vaultHistory:
+    /** @type {Record<string, Record<string, VaultHistoryEntry>>} */ ({}),
   // Vault state
   treasury: /** @type { VaultState | null } */ (null),
   vaultCollateral: /** @type { CollateralInfo | null } */ (null),
+  vaultAssets: /** @type { Map<Brand, VaultAssetState> | null } */ (null),
+  governedParams: /** @type { Map<Brand, Record<string, any>> | null } */ (
+    null
+  ),
   vaultConfiguration: null,
   vaults: /** @type {Record<string, VaultData> | null} */ (null),
   collaterals: /** @type { Collaterals | null } */ (null),
@@ -22,7 +28,8 @@ export const initial = {
   loadTreasuryError: /** @type {string | null} */ null,
   RUNStake: /** @type { RUNStakeState | null } */ (null),
   loan: /** @type { Loan | null } */ (null),
-  loanAsset: /** @type { import('@agoric/run-protocol/src/runStake/runStakeManager').AssetState | null } */ (null),
+  loanAsset: /** @type { LoanAssetState | null } */ null,
+  PSM: /** @type { PSMState | null } */ null,
 };
 
 /**
@@ -31,17 +38,19 @@ export const initial = {
  *   initial: TreasuryState,
  *   actions: TreasuryActions,
  * }}
- *
  * @typedef {{
  *    setApproved: (payload: boolean) => TreasuryReducer,
  *    setConnected: (payload: boolean) => TreasuryReducer,
  *    setPurses: (payload: typeof initial.purses) => TreasuryReducer,
  *    createVault: (payload: { id: string, vault: VaultData }) => TreasuryReducer,
  *    mergeBrandToInfo: (payload: typeof initial.brandToInfo ) => TreasuryReducer,
+ *    mergeVaultAssets: (payload: typeof initial.vaultAssets ) => TreasuryReducer,
+ *    mergeGovernedParams: (payload: typeof initial.governedParams ) => TreasuryReducer,
  *    addToBrandToInfo: (payload: typeof initial.brandToInfo) => TreasuryReducer,
  *    setCollaterals: (payload: typeof initial.collaterals) => TreasuryReducer,
  *    resetState: () => TreasuryReducer,
  *    mergeRUNStakeHistory: (payload: typeof initial.RUNStakeHistory) => TreasuryReducer,
+ *    mergeVaultHistory: (payload: VaultHistoryEntry) => TreasuryReducer,
  *    setTreasury: (payload: typeof initial.treasury) => TreasuryReducer,
  *    setVaultCollateral: (payload: typeof initial.vaultCollateral) => TreasuryReducer,
  *    setVaultConfiguration: (payload: typeof initial.vaultConfiguration) => TreasuryReducer,
@@ -53,6 +62,7 @@ export const initial = {
  *    setLoanAsset: (payload: typeof initial.loanAsset) => TreasuryReducer,
  *    setLoadTreasuryError: (payload: string | null) => TreasuryReducer,
  *    setRUNStake: (payload: typeof initial.RUNStake) => TreasuryReducer,
+ *    setPSM: (payload: typeof initial.PSM) => TreasuryReducer,
  * }} TreasuryActions
  */
 export const {
@@ -63,6 +73,8 @@ export const {
     setConnected,
     setPurses,
     mergeBrandToInfo,
+    mergeVaultAssets,
+    mergeGovernedParams,
     addToBrandToInfo,
     setCollaterals,
     resetState,
@@ -76,9 +88,11 @@ export const {
     resetVault,
     setLoadTreasuryError,
     mergeRUNStakeHistory,
+    mergeVaultHistory,
     setRUNStake,
     setLoan,
     setLoanAsset,
+    setPSM,
   },
   // @ts-ignore tsc can't tell that autodux is callable
 } = autodux({
@@ -104,7 +118,7 @@ export const {
       const oldVaultData = vaults && vaults[id];
       const status = vault.liquidated
         ? VaultStatus.LIQUIDATED
-        : (vault.status ?? oldVaultData?.status);
+        : vault.status ?? oldVaultData?.status;
       return {
         ...state,
         vaults: { ...vaults, [id]: { ...oldVaultData, ...vault, status } },
@@ -136,6 +150,30 @@ export const {
         brandToInfo,
       };
     },
+    /** @type {(state: TreasuryState, newVaultAssetState: Array<[Brand, VaultAssetState]>) => TreasuryState} */
+    mergeVaultAssets: (state, newVaultAssets) => {
+      const vaultAssets = new Map([
+        ...(state.vaultAssets?.entries() ?? []),
+        ...newVaultAssets,
+      ]);
+
+      return {
+        ...state,
+        vaultAssets,
+      };
+    },
+    /** @type {(state: TreasuryState, newGovernedParams: Array<[Brand, Record<string, any>]>) => TreasuryState} */
+    mergeGovernedParams: (state, newGovernedParams) => {
+      const governedParams = new Map([
+        ...(state.governedParams?.entries() ?? []),
+        ...newGovernedParams,
+      ]);
+
+      return {
+        ...state,
+        governedParams,
+      };
+    },
     /** @type {(state: TreasuryState, newRUNStakeHistory: Record<string, HistoryItem>) => TreasuryState} */
     mergeRUNStakeHistory: (state, newRUNStakeHistory) => {
       return {
@@ -143,6 +181,20 @@ export const {
         RUNStakeHistory: {
           ...state.RUNStakeHistory,
           ...newRUNStakeHistory,
+        },
+      };
+    },
+    /** @type {(state: TreasuryState, payload: VaultHistoryEntry) => TreasuryState} */
+    mergeVaultHistory: (state, offer) => {
+      const vaultId = offer.continuingInvitation?.priorOfferId || offer.id;
+      const historyEntry = state.vaultHistory[vaultId] ?? {};
+      historyEntry[offer.id] = offer;
+
+      return {
+        ...state,
+        vaultHistory: {
+          ...state.vaultHistory,
+          [vaultId]: historyEntry,
         },
       };
     },

@@ -45,13 +45,9 @@ test('renders the interest rate', () => {
   );
 
   const rows = component.find('tr');
-  expect(
-    rows
-      .at(2)
-      .find('td')
-      .at(1)
-      .text(),
-  ).toContain(`${vaultConfiguration.interestRate}%`);
+  expect(rows.at(2).find('td').at(1).text()).toContain(
+    `${vaultConfiguration.interestRate}%`,
+  );
 });
 
 test('renders the stability fee', () => {
@@ -63,11 +59,7 @@ test('renders the stability fee', () => {
   );
 
   const rows = component.find('tr');
-  expect(
-    rows
-      .at(3)
-      .find('td')
-      .at(1)
-      .text(),
-  ).toContain(`${vaultConfiguration.stabilityFee}%`);
+  expect(rows.at(3).find('td').at(1).text()).toContain(
+    `${vaultConfiguration.stabilityFee}%`,
+  );
 });

@@ -1,22 +1,16 @@
 /**
  * @typedef {object} CollateralInfo
- *
  * @property {Brand} brand - the brand of the potential collateral
- *
  * @property {Ratio} liquidationMargin - the ratio below which
  * collateral will be liquidated to satisfy the debt. Example:
  * RUN125/RUN100
- *
  * @property {Ratio} marketPrice - price of one unit of collateral in
  * run, where unit is the commonly understood unit indicated by
  * decimalPlaces (e.g. ETH, not wei). Example: RUN1/moola1
- *
  * @property {string} petname - the petname from the user's wallet for
  *   this brand. Example: "moola"
- *
  * @property {Ratio} stabilityFee - the fee for the loan. Example:
  * RUN50/RUN10000
- *
  * @property {Ratio} interestRate - the interest to be charged on a
  * regular basis. The interest is added to the outstanding debt.
  */
@@ -57,12 +51,9 @@
 
 /**
  * @typedef { typeof import('../store').initial } TreasuryState
- *
  * @typedef { React.Reducer<TreasuryState, TreasuryAction> } TreasuryReducer
- *
  * @typedef { any } TreasuryAction This should probably be a big union type
  * but specifying it doesn't seem cost-effective just now.
- *
  * @typedef {React.Dispatch<React.Reducer<TreasuryState, TreasuryAction>>} TreasuryDispatch
  */
 
@@ -104,6 +95,8 @@
  *   runIssuer: Issuer,
  *   runBrand: Brand,
  *   priceAuthority: ERef<PriceAuthority>,
+ *   minInitialDebt: Amount<'nat'>,
+ *   debtLimit: Amount<'nat'>,
  * }} VaultState
  */
 
@@ -137,6 +130,16 @@
  */
 
 /**
+ * @typedef {{
+ *   PSMAPI: any,
+ *   PSMTerms: any,
+ *   PSMParams: any,
+ *   instanceBoardId: string,
+ *   installationBoardId: string
+ * }} PSMState
+ */
+
+/**
  * @typedef { import('@agoric/wallet/api/src/types').RecordMetadata } RecordMetadata
  */
 
@@ -152,4 +155,29 @@
  *   proposalForDisplay: Record<string, any>
  *   continuingInvitation?: ContinuingInvitation,
  * }} HistoryItem
+ */
+
+/**
+ * @typedef {{
+ *   id: string,
+ *   meta: RecordMetadata,
+ *   proposalForDisplay: Record<string, any>
+ *   status: string,
+ *   continuingInvitation?: ContinuingInvitation,
+ * }} VaultHistoryEntry
+ */
+
+/**
+ * @typedef  { import('@agoric/run-protocol/src/runStake/runStakeManager').AssetState } LoanAssetState
+ */
+
+/**
+ * @typedef  { import('@agoric/run-protocol/src/vaultFactory/vaultManager').AssetState } VaultAssetState
+ */
+
+/**
+ * @typedef {{
+ *  pursePetname: string,
+ *  value: bigint
+ * }} NatPurse
  */
