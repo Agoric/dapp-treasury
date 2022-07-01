@@ -225,9 +225,6 @@ const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
     governedParams: {
       MinInitialDebt: { value: minInitialDebt },
     },
-    loanParams: {
-      DebtLimit: { value: debtLimit },
-    },
   } = terms;
   console.log('VaultFactory terms:', terms);
   for (const collateral of collaterals) {
@@ -241,7 +238,6 @@ const setupTreasury = async (dispatch, brandToInfo, zoe, board, instanceID) => {
       runBrand,
       priceAuthority,
       minInitialDebt,
-      debtLimit,
     }),
   );
   await storeAllBrandsFromTerms({

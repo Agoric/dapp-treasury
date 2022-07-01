@@ -200,7 +200,7 @@ function VaultConfigure({
               Total debt for asset type: {displayAmount(asset.totalDebt)}
             </div>
             <div style={{ paddingTop: 20 }}>
-              Total debt limit per asset type: {displayAmount(debtLimit)}
+              Total debt limit for asset type: {displayAmount(debtLimit)}
             </div>
             <div style={{ paddingTop: 20 }}>
               A stability fee of{' '}
