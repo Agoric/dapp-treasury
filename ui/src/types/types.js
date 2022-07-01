@@ -96,7 +96,6 @@
  *   runBrand: Brand,
  *   priceAuthority: ERef<PriceAuthority>,
  *   minInitialDebt: Amount<'nat'>,
- *   debtLimit: Amount<'nat'>,
  * }} VaultState
  */
 
