@@ -71,8 +71,7 @@ const VaultManagement = () => {
   } else {
     return <Redirect to="/vaults" />;
   }
-  const { interestRate, liquidationRatio, locked, debtSnapshot } =
-    vaultToManage;
+  const { locked, debtSnapshot } = vaultToManage;
 
   const asset = locked && vaultAssets?.get(locked.brand);
   const params = locked && governedParams?.get(locked.brand);
@@ -80,6 +79,8 @@ const VaultManagement = () => {
     params && locked && debtSnapshot && asset,
     `Can't manage vault with missing data: locked: ${locked}, debt: ${debtSnapshot}, asset: ${asset}, params: ${params}`,
   );
+  const interestRate = asset.interestRate;
+  const liquidationRatio = params.LiquidationMargin.value;
   const debt = calculateCurrentDebt(
     debtSnapshot.debt,
     debtSnapshot.interest,
