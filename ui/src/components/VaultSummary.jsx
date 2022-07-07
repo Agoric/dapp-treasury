@@ -106,8 +106,7 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     getDecimalPlaces,
   } = makeDisplayFunctions(brandToInfo);
 
-  const { debtSnapshot, interestRate, liquidationRatio, locked, status, err } =
-    vault;
+  const { debtSnapshot, locked, status, err } = vault;
 
   const asset = locked && vaultAssets?.get(locked.brand);
   const params = locked && governedParams?.get(locked.brand);
@@ -119,6 +118,8 @@ export function VaultSummary({ vault, brandToInfo, id }) {
       debtSnapshot.interest,
       asset.compoundedInterest,
     );
+  const interestRate = asset && asset.interestRate;
+  const liquidationRatio = params && params.LiquidationMargin?.value;
 
   useEffect(() => {
     if (marketPrice && locked && debt) {
@@ -286,13 +287,16 @@ export function VaultSummary({ vault, brandToInfo, id }) {
           <TableRow>
             <TableCell>Liquidation Ratio</TableCell>
             <TableCell align="right">
-              {displayPercent(liquidationRatio)}%
+              {liquidationRatio ? displayPercent(liquidationRatio) : '--'}%
             </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Collateral Ratio</TableCell>
             <TableCell align="right">
-              {displayPercent(collateralizationRatio)}%
+              {collateralizationRatio
+                ? displayPercent(collateralizationRatio)
+                : '--'}
+              %
             </TableCell>
           </TableRow>
         </TableBody>

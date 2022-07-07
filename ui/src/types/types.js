@@ -81,8 +81,6 @@
  *   locked?: VaultUIState['locked'],
  *   collateralizationRatio?: Ratio,
  *   debtSnapshot?: VaultUIState['debtSnapshot'],
- *   interestRate?:  VaultUIState['interestRate'],
- *   liquidationRatio?: VaultUIState['liquidationRatio'],
  *   asset?: AssetState,
  *   err?: Error,
  * }} VaultData
