@@ -205,6 +205,27 @@ export function VaultSummary({ vault, brandToInfo, id }) {
     );
   }
 
+  if (status === VaultStatus.CLOSED || status === VaultStatus.LIQUIDATED) {
+    return (
+      <TableContainer>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell className={classes.header}>Id</TableCell>
+              <TableCell className={classes.header} align="right">
+                {id}
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Status</TableCell>
+              <TableCell align="right">{status}</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  }
+
   const isLoading =
     !asset || !params || !status || status === VaultStatus.LOADING;
   if (isLoading) {
@@ -225,27 +246,6 @@ export function VaultSummary({ vault, brandToInfo, id }) {
                 </TableCell>
               </TableRow>
             ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    );
-  }
-
-  if (status === VaultStatus.CLOSED || status === VaultStatus.LIQUIDATED) {
-    return (
-      <TableContainer>
-        <Table>
-          <TableBody>
-            <TableRow>
-              <TableCell className={classes.header}>Id</TableCell>
-              <TableCell className={classes.header} align="right">
-                {id}
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Status</TableCell>
-              <TableCell align="right">{status}</TableCell>
-            </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
