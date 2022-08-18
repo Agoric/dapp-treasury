@@ -10,7 +10,7 @@ import {
 import { AmountMath } from '@agoric/ertp';
 import { Nat } from '@endo/nat';
 import { E } from '@endo/eventual-send';
-import { calculateCurrentDebt } from '@agoric/run-protocol/src/interest-math';
+import { calculateCurrentDebt } from '@agoric/inter-protocol/src/interest-math';
 
 import AdjustVaultForm from './AdjustVaultForm';
 import UnchangeableValues from './UnchangeableValues';

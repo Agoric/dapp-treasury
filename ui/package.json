@@ -34,7 +34,7 @@
   "dependencies": {
     "@agoric/ertp": "dev",
     "@agoric/notifier": "dev",
-    "@agoric/run-protocol": "dev",
+    "@agoric/inter-protocol": "dev",
     "@agoric/same-structure": "dev",
     "@agoric/ui-components": "dev",
     "@agoric/wallet-connection": "dev",

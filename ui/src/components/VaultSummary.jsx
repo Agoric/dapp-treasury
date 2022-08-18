@@ -16,7 +16,7 @@ import {
   TableRow,
 } from '@material-ui/core';
 
-import { calculateCurrentDebt } from '@agoric/run-protocol/src/interest-math';
+import { calculateCurrentDebt } from '@agoric/inter-protocol/src/interest-math';
 import LoadingBlocks from './LoadingBlocks';
 import { makeDisplayFunctions } from './helpers';
 import { useApplicationContext } from '../contexts/Application';
