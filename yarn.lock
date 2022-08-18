@@ -268,28 +268,6 @@
   resolved "https://registry.yarnpkg.com/@agoric/promise-kit/-/promise-kit-0.2.30-dev-0c5d62c.0.tgz#4cc1e445d4e0da697ae473b9eccd9a28ed241f8c"
   integrity sha512-gkqhyx+6AyrHvvNZ3P4YeNR79lS+ApEeah2zfi9/YLtyeZklHEtNP6m4UIyNbIiIaLB5n5oAUETo750LxdBaCQ==
 
-"@agoric/run-protocol@0.7.2-dev-0c5d62c.0+0c5d62c":
-  version "0.7.2-dev-0c5d62c.0"
-  resolved "https://registry.yarnpkg.com/@agoric/run-protocol/-/run-protocol-0.7.2-dev-0c5d62c.0.tgz#3eeecea20f5d453a18170259f4468a4f110281a8"
-  integrity sha512-j3VPW9i9H/MQkadVC+WG60tPd9DG4HQ8r3NjwvCV1+Pw8pwLd4U79nEbaoHmNpTKqmsz7CblDcs00aYWilBjbw==
-  dependencies:
-    "@agoric/assert" "0.3.16-dev-0c5d62c.0+0c5d62c"
-    "@agoric/deploy-script-support" "0.6.2-dev-0c5d62c.0+0c5d62c"
-    "@agoric/ertp" "0.13.2-dev-0c5d62c.0+0c5d62c"
-    "@agoric/eventual-send" "0.14.1-dev-0c5d62c.0+0c5d62c"
-    "@agoric/governance" "0.4.2-dev-0c5d62c.0+0c5d62c"
-    "@agoric/nat" "^4.1.0"
-    "@agoric/notifier" "0.3.34-dev-0c5d62c.0+0c5d62c"
-    "@agoric/promise-kit" "0.2.30-dev-0c5d62c.0+0c5d62c"
-    "@agoric/store" "0.6.9-dev-0c5d62c.0+0c5d62c"
-    "@agoric/swingset-vat" "0.24.2-dev-0c5d62c.0+0c5d62c"
-    "@agoric/vats" "0.5.2-dev-0c5d62c.0+0c5d62c"
-    "@agoric/zoe" "0.21.2-dev-0c5d62c.0+0c5d62c"
-    "@endo/bundle-source" "^2.0.5"
-    "@endo/captp" "^1.10.12"
-    "@endo/far" "^0.1.5"
-    "@endo/marshal" "^0.5.4"
-
 "@agoric/same-structure@dev":
   version "0.1.30-dev-0c5d62c.0"
   resolved "https://registry.yarnpkg.com/@agoric/same-structure/-/same-structure-0.1.30-dev-0c5d62c.0.tgz#6e061d38121af7ba8fb8ae9001ac29d54d276124"
@@ -15478,7 +15456,7 @@ rollup@^2.47.0:
   optionalDependencies:
     fsevents "~2.3.2"
 
-"rollup@github:endojs/endo#rollup-2.7.1-patch-1":
+rollup@endojs/endo#rollup-2.7.1-patch-1:
   version "2.70.1-endo.1"
   resolved "https://codeload.github.com/endojs/endo/tar.gz/54060e784a4dbe77b6692f17344f4d84a198530d"
   optionalDependencies:

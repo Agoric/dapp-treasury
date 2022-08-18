@@ -31,7 +31,7 @@ jest.mock('@agoric/ertp', () => ({
   },
 }));
 
-jest.mock('@agoric/run-protocol/src/interest-math', () => ({
+jest.mock('@agoric/inter-protocol/src/interest-math', () => ({
   calculateCurrentDebt: jest.fn(),
 }));
 

@@ -67,11 +67,11 @@
  */
 
 /**
- * @typedef  { import('@agoric/run-protocol/src/vaultFactory/vault').VaultUIState } VaultUIState
+ * @typedef  { import('@agoric/inter-protocol/src/vaultFactory/vault').VaultUIState } VaultUIState
  */
 
 /**
- * @typedef { import('@agoric/run-protocol/src/vaultFactory/vaultManager').AssetState } AssetState
+ * @typedef { import('@agoric/inter-protocol/src/vaultFactory/vaultManager').AssetState } AssetState
  */
 
 /**
@@ -98,11 +98,11 @@
  */
 
 /**
- * @typedef { import('@agoric/run-protocol/src/runStake/runStake').RunStakePublic } RunStakePublic
+ * @typedef { import('@agoric/inter-protocol/src/runStake/runStake').RunStakePublic } RunStakePublic
  */
 
 /**
- * @typedef { import('@agoric/run-protocol/src/runStake/runStake').RunStakeTerms } RunStakeTerms
+ * @typedef { import('@agoric/inter-protocol/src/runStake/runStake').RunStakeTerms } RunStakeTerms
  */
 
 /**
@@ -165,11 +165,11 @@
  */
 
 /**
- * @typedef  { import('@agoric/run-protocol/src/runStake/runStakeManager').AssetState } LoanAssetState
+ * @typedef  { import('@agoric/inter-protocol/src/runStake/runStakeManager').AssetState } LoanAssetState
  */
 
 /**
- * @typedef  { import('@agoric/run-protocol/src/vaultFactory/vaultManager').AssetState } VaultAssetState
+ * @typedef  { import('@agoric/inter-protocol/src/vaultFactory/vaultManager').AssetState } VaultAssetState
  */
 
 /**
