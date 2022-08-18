@@ -1,7 +1,7 @@
 import { React, useState, useEffect } from 'react';
 
 import { AmountMath } from '@agoric/ertp';
-import { calculateCurrentDebt } from '@agoric/run-protocol/src/interest-math';
+import { calculateCurrentDebt } from '@agoric/inter-protocol/src/interest-math';
 import { E } from '@endo/eventual-send';
 import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
